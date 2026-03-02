@@ -160,7 +160,7 @@ export const useSettingsStore = create<SettingsState>()(
         set({ isLoading: true });
 
         try {
-          const newUser = {
+          const newUser: Record<string, unknown> = {
             email: userData.email!,
             name: userData.name!,
             role: userData.role!,
@@ -168,10 +168,12 @@ export const useSettingsStore = create<SettingsState>()(
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             isActive: true,
-            phone: userData.phone,
-            company: userData.company,
-            address: userData.address,
           };
+
+          // Only add optional fields if they have values
+          if (userData.phone) newUser.phone = userData.phone;
+          if (userData.company) newUser.company = userData.company;
+          if (userData.address) newUser.address = userData.address;
 
           const docRef = await addDoc(collection(db, USERS_COLLECTION), newUser);
 

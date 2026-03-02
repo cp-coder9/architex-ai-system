@@ -58,3 +58,6 @@ coverage/
 .env.vercel.local
 .env.vercel.production.local
 .env.vercel.preview.local
+
+# Firebase service account credentials
+*-firebase-adminsdk-*.json

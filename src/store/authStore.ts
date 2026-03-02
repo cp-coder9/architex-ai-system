@@ -116,16 +116,18 @@ function createRoleSpecificUserData(
   userData: Partial<User>,
   uid: string
 ): Omit<User, 'id' | 'createdAt' | 'updatedAt'> {
-  const baseUser = {
+  const baseUser: Record<string, unknown> = {
     email: userData.email!,
     name: userData.name!,
     role: userData.role!,
     avatar: userData.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${uid}`,
     isActive: true,
-    phone: userData.phone,
-    company: userData.company,
-    address: userData.address,
   };
+
+  // Only add optional fields if they have values (avoid undefined)
+  if (userData.phone) baseUser.phone = userData.phone;
+  if (userData.company) baseUser.company = userData.company;
+  if (userData.address) baseUser.address = userData.address;
 
   switch (userData.role) {
     case 'client':
