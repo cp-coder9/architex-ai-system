@@ -1,0 +1,562 @@
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useProjectStore, useInvoiceStore, useSettingsStore, useNotificationStore, useAuthStore } from '@/store';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Building2,
+  Users,
+  FolderKanban,
+  Bot,
+  FileText,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  ArrowUpRight,
+  MoreHorizontal,
+  Activity,
+  Zap,
+  BarChart3,
+  MessageSquare,
+} from 'lucide-react';
+
+// Animated Counter Component
+function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    const duration = 1500;
+    const steps = 60;
+    const increment = value / steps;
+    let current = 0;
+    
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= value) {
+        setDisplayValue(value);
+        clearInterval(timer);
+      } else {
+        setDisplayValue(Math.floor(current));
+      }
+    }, duration / steps);
+    
+    return () => clearInterval(timer);
+  }, [value]);
+  
+  return (
+    <span>
+      {prefix}{displayValue.toLocaleString()}{suffix}
+    </span>
+  );
+}
+
+// Stat Card Component
+function StatCard({ 
+  title, 
+  value, 
+  prefix = '', 
+  suffix = '', 
+  icon: Icon, 
+  trend, 
+  trendValue, 
+  color 
+}: { 
+  title: string; 
+  value: number; 
+  prefix?: string;
+  suffix?: string;
+  icon: React.ComponentType<{ className?: string }>; 
+  trend?: 'up' | 'down'; 
+  trendValue?: string;
+  color: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">{title}</p>
+              <h3 className="text-3xl font-bold">
+                <AnimatedCounter value={value} prefix={prefix} suffix={suffix} />
+              </h3>
+              {trend && (
+                <div className={`flex items-center gap-1 mt-2 text-sm ${
+                  trend === 'up' ? 'text-green-500' : 'text-red-500'
+                }`}>
+                  {trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                  <span>{trendValue}</span>
+                </div>
+              )}
+            </div>
+            <div className={`p-3 rounded-xl ${color}`}>
+              <Icon className="w-6 h-6 text-white" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+// Recent Activity Component
+function RecentActivity() {
+  const notifications = useNotificationStore(state => state.notifications);
+  
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'project_update': return FolderKanban;
+      case 'drawing_status': return CheckCircle2;
+      case 'agent_check': return Bot;
+      case 'invoice': return FileText;
+      default: return Activity;
+    }
+  };
+  
+  const getColor = (type: string) => {
+    switch (type) {
+      case 'project_update': return 'bg-blue-500';
+      case 'drawing_status': return 'bg-green-500';
+      case 'agent_check': return 'bg-purple-500';
+      case 'invoice': return 'bg-orange-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  return (
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Activity className="w-5 h-5" />
+          Recent Activity
+        </CardTitle>
+        <CardDescription>Latest system events and updates</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[300px]">
+          <div className="space-y-4">
+            {notifications.slice(0, 10).map((notif, index) => {
+              const Icon = getIcon(notif.type);
+              return (
+                <motion.div
+                  key={notif.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <div className={`p-2 rounded-lg ${getColor(notif.type)}`}>
+                    <Icon className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">{notif.title}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{notif.message}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(notif.createdAt).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Agent Status Component
+function AgentStatus() {
+  const [agents, setAgents] = useState([
+    { id: 'agent-1', name: 'Drawing Validator Alpha', status: 'active', checksToday: 45, avgTime: '3.2s' },
+    { id: 'agent-2', name: 'Compliance Checker Beta', status: 'active', checksToday: 38, avgTime: '4.1s' },
+    { id: 'agent-3', name: 'Dimension Analyzer Gamma', status: 'idle', checksToday: 52, avgTime: '2.8s' },
+    { id: 'agent-4', name: 'Annotation Reviewer Delta', status: 'active', checksToday: 29, avgTime: '5.5s' },
+  ]);
+
+  return (
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Bot className="w-5 h-5" />
+          Agent Status
+        </CardTitle>
+        <CardDescription>AI agent performance and availability</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {agents.map((agent, index) => (
+            <motion.div
+              key={agent.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="flex items-center justify-between p-3 rounded-lg border"
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-2 h-2 rounded-full ${
+                  agent.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
+                }`} />
+                <div>
+                  <p className="font-medium text-sm">{agent.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {agent.checksToday} checks today • Avg {agent.avgTime}
+                  </p>
+                </div>
+              </div>
+              <Badge variant={agent.status === 'active' ? 'default' : 'secondary'}>
+                {agent.status}
+              </Badge>
+            </motion.div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Project Overview Component
+function ProjectOverview() {
+  const projects = useProjectStore(state => state.projects);
+  
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-500';
+      case 'draft': return 'bg-gray-500';
+      case 'on_hold': return 'bg-yellow-500';
+      case 'completed': return 'bg-blue-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FolderKanban className="w-5 h-5" />
+          Active Projects
+        </CardTitle>
+        <CardDescription>Current project status and progress</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {projects.slice(0, 5).map((project, index) => (
+            <motion.div
+              key={project.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="space-y-2"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${getStatusColor(project.status)}`} />
+                  <span className="font-medium text-sm">{project.name}</span>
+                </div>
+                <Badge variant="outline">{project.status}</Badge>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span>{project.hoursUsed}/{project.hoursAllocated} hours</span>
+                <Progress 
+                  value={(project.hoursUsed / project.hoursAllocated) * 100} 
+                  className="flex-1 h-2"
+                />
+                <span>{Math.round((project.hoursUsed / project.hoursAllocated) * 100)}%</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Revenue Chart Component
+function RevenueOverview() {
+  const invoices = useInvoiceStore(state => state.invoices);
+  
+  const totalRevenue = invoices
+    .filter(inv => inv.status === 'paid')
+    .reduce((sum, inv) => sum + inv.total, 0);
+  
+  const pendingRevenue = invoices
+    .filter(inv => inv.status === 'sent' || inv.status === 'draft')
+    .reduce((sum, inv) => sum + inv.total, 0);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BarChart3 className="w-5 h-5" />
+          Revenue Overview
+        </CardTitle>
+        <CardDescription>Financial performance metrics</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20">
+            <p className="text-sm text-muted-foreground mb-1">Total Revenue</p>
+            <p className="text-2xl font-bold text-green-600">R${totalRevenue.toLocaleString()}</p>
+          </div>
+          <div className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
+            <p className="text-sm text-muted-foreground mb-1">Pending</p>
+            <p className="text-2xl font-bold text-yellow-600">R${pendingRevenue.toLocaleString()}</p>
+          </div>
+        </div>
+        
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span>Invoice Status</span>
+          </div>
+          {['paid', 'sent', 'draft', 'overdue'].map((status) => {
+            const count = invoices.filter(inv => inv.status === status).length;
+            const total = invoices.length;
+            const percentage = total > 0 ? (count / total) * 100 : 0;
+            
+            return (
+              <div key={status} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="capitalize">{status}</span>
+                  <span>{count} ({Math.round(percentage)}%)</span>
+                </div>
+                <Progress value={percentage} className="h-2" />
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Recent File Uploads Component
+function RecentFileUploads() {
+  const drawings = useProjectStore(state => state.drawings);
+  const projects = useProjectStore(state => state.projects);
+  
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+  
+  const formatRelativeTime = (date: Date): string => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+  
+  const getProjectName = (projectId: string): string => {
+    const project = projects.find(p => p.id === projectId);
+    return project?.name || 'Unknown Project';
+  };
+  
+  const sortedDrawings = [...drawings]
+    .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())
+    .slice(0, 5);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="w-5 h-5" />
+          Recent File Uploads
+        </CardTitle>
+        <CardDescription>Latest drawing uploads</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[300px]">
+          <div className="space-y-4">
+            {sortedDrawings.map((drawing, index) => (
+              <motion.div
+                key={drawing.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
+              >
+                <div className="p-2 rounded-lg bg-blue-500">
+                  <FileText className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{drawing.name}</p>
+                  <p className="text-xs text-muted-foreground">{getProjectName(drawing.projectId)}</p>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                    <span>{formatFileSize(drawing.fileSize)}</span>
+                    <span>•</span>
+                    <span>{formatRelativeTime(new Date(drawing.uploadedAt))}</span>
+                  </div>
+                </div>
+                <Badge variant={drawing.status === 'approved' ? 'default' : drawing.status === 'pending' ? 'secondary' : 'outline'}>
+                  {drawing.status}
+                </Badge>
+              </motion.div>
+            ))}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function AdminOverview() {
+  const projects = useProjectStore(state => state.projects);
+  const users = useSettingsStore(state => state.users);
+  const invoices = useInvoiceStore(state => state.invoices);
+  const drawings = useProjectStore(state => state.drawings);
+  const chatMessages = useNotificationStore(state => state.chatMessages);
+  const currentUser = useAuthStore(state => state.currentUser);
+  
+  // Calculate stats
+  const totalProjects = projects.length;
+  const activeProjects = projects.filter(p => p.status === 'active').length;
+  const totalUsers = users.length;
+  const totalRevenue = invoices
+    .filter(inv => inv.status === 'paid')
+    .reduce((sum, inv) => sum + inv.total, 0);
+  const pendingDrawings = drawings.filter(d => d.status === 'pending' || d.status === 'in_review').length;
+  const approvedDrawings = drawings.filter(d => d.status === 'approved').length;
+  
+  // Calculate unread messages (messages not read by current user and not sent by current user)
+  const unreadMessages = chatMessages.filter(msg => 
+    currentUser && !msg.readBy.includes(currentUser.id) && msg.senderId !== currentUser.id
+  ).length;
+  
+  // Calculate projects pending approval (draft status)
+  const pendingApprovalProjects = projects.filter(p => p.status === 'draft').length;
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <p className="text-muted-foreground mt-1">
+          {currentUser ? `Welcome back, ${currentUser.name}! Here's what's happening across the platform.` : "Welcome back! Here's what's happening across the platform."}
+        </p>
+      </motion.div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <StatCard
+          title="Total Projects"
+          value={totalProjects}
+          icon={FolderKanban}
+          trend="up"
+          trendValue="+12% this month"
+          color="bg-blue-500"
+        />
+        <StatCard
+          title="Active Users"
+          value={totalUsers}
+          icon={Users}
+          trend="up"
+          trendValue="+5 new this week"
+          color="bg-green-500"
+        />
+        <StatCard
+          title="Total Revenue"
+          value={totalRevenue}
+          prefix="R"
+          icon={FileText}
+          trend="up"
+          trendValue="+23% this month"
+          color="bg-purple-500"
+        />
+        <StatCard
+          title="Pending Drawings"
+          value={pendingDrawings}
+          icon={Building2}
+          color="bg-orange-500"
+        />
+        <StatCard
+          title="Messages"
+          value={unreadMessages}
+          icon={MessageSquare}
+          color="bg-indigo-500"
+        />
+        <StatCard
+          title="Projects Pending Approval"
+          value={pendingApprovalProjects}
+          icon={Clock}
+          color="bg-yellow-500"
+        />
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column */}
+        <div className="lg:col-span-2 space-y-6">
+          <ProjectOverview />
+          <RevenueOverview />
+        </div>
+        
+        {/* Right Column */}
+        <div className="space-y-6">
+          <RecentFileUploads />
+          <AgentStatus />
+          <RecentActivity />
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Common administrative tasks</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              <Button variant="outline" className="gap-2">
+                <Users className="w-4 h-4" />
+                Add User
+              </Button>
+              <Button variant="outline" className="gap-2">
+                <FolderKanban className="w-4 h-4" />
+                Create Project
+              </Button>
+              <Button variant="outline" className="gap-2">
+                <Bot className="w-4 h-4" />
+                Configure Agents
+              </Button>
+              <Button variant="outline" className="gap-2">
+                <FileText className="w-4 h-4" />
+                Generate Report
+              </Button>
+              <Button variant="outline" className="gap-2">
+                <Zap className="w-4 h-4" />
+                Run System Check
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
+  );
+}

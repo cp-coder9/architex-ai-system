@@ -1,0 +1,120 @@
+src/agents/specialized/drainage/DrainageComplianceAgent.ts(10,3): error TS2305: Module '"@/types/agent"' has no exported member 'Agent'.
+src/agents/specialized/drainage/DrainageComplianceAgent.ts(336,10): error TS2339: Property 'rules' does not exist on type 'DrainageComplianceAgent'.
+src/agents/specialized/drainage/DrainageComplianceAgent.ts(378,23): error TS2339: Property 'config' does not exist on type 'DrainageComplianceAgent'.
+src/agents/specialized/drainage/DrainageComplianceAgent.ts(379,25): error TS2339: Property 'config' does not exist on type 'DrainageComplianceAgent'.
+src/agents/specialized/drainage/DrainageComplianceAgent.ts(404,23): error TS2339: Property 'config' does not exist on type 'DrainageComplianceAgent'.
+src/agents/specialized/drainage/DrainageComplianceAgent.ts(405,25): error TS2339: Property 'config' does not exist on type 'DrainageComplianceAgent'.
+src/agents/specialized/drainage/DrainageComplianceAgent.ts(985,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/drainage/DrainageComplianceAgent.ts(986,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/elevation/ElevationComplianceAgent.ts(10,3): error TS2305: Module '"@/types/agent"' has no exported member 'Agent'.
+src/agents/specialized/elevation/ElevationComplianceAgent.ts(276,10): error TS2339: Property 'rules' does not exist on type 'ElevationComplianceAgent'.
+src/agents/specialized/elevation/ElevationComplianceAgent.ts(318,23): error TS2339: Property 'config' does not exist on type 'ElevationComplianceAgent'.
+src/agents/specialized/elevation/ElevationComplianceAgent.ts(319,25): error TS2339: Property 'config' does not exist on type 'ElevationComplianceAgent'.
+src/agents/specialized/elevation/ElevationComplianceAgent.ts(351,23): error TS2339: Property 'config' does not exist on type 'ElevationComplianceAgent'.
+src/agents/specialized/elevation/ElevationComplianceAgent.ts(352,25): error TS2339: Property 'config' does not exist on type 'ElevationComplianceAgent'.
+src/agents/specialized/elevation/ElevationComplianceAgent.ts(1179,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/elevation/ElevationComplianceAgent.ts(1180,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/elevation/ElevationComplianceAgent.ts(1383,28): error TS2322: Type 'number | null' is not assignable to type 'number | undefined'.
+  Type 'null' is not assignable to type 'number | undefined'.
+src/agents/specialized/energy/EnergyComplianceAgent.ts(11,3): error TS2305: Module '"@/types/agent"' has no exported member 'Agent'.
+src/agents/specialized/energy/EnergyComplianceAgent.ts(338,10): error TS2339: Property 'rules' does not exist on type 'EnergyComplianceAgent'.
+src/agents/specialized/energy/EnergyComplianceAgent.ts(380,23): error TS2339: Property 'config' does not exist on type 'EnergyComplianceAgent'.
+src/agents/specialized/energy/EnergyComplianceAgent.ts(381,25): error TS2339: Property 'config' does not exist on type 'EnergyComplianceAgent'.
+src/agents/specialized/energy/EnergyComplianceAgent.ts(406,23): error TS2339: Property 'config' does not exist on type 'EnergyComplianceAgent'.
+src/agents/specialized/energy/EnergyComplianceAgent.ts(407,25): error TS2339: Property 'config' does not exist on type 'EnergyComplianceAgent'.
+src/agents/specialized/energy/EnergyComplianceAgent.ts(770,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/energy/EnergyComplianceAgent.ts(771,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/fire/FireComplianceAgent.ts(793,28): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/fire/FireComplianceAgent.ts(793,35): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/floorplan/FloorPlanComplianceAgent.test.ts(55,5): error TS2741: Property 'type' is missing in type '{ id: string; content: string; position: { x: number; y: number; }; }' but required in type 'AnnotationInfo'.
+src/agents/specialized/floorplan/FloorPlanComplianceAgent.test.ts(56,5): error TS2741: Property 'type' is missing in type '{ id: string; content: string; position: { x: number; y: number; }; }' but required in type 'AnnotationInfo'.
+src/agents/specialized/floorplan/FloorPlanComplianceAgent.test.ts(57,5): error TS2741: Property 'type' is missing in type '{ id: string; content: string; position: { x: number; y: number; }; }' but required in type 'AnnotationInfo'.
+src/agents/specialized/floorplan/FloorPlanComplianceAgent.test.ts(58,5): error TS2741: Property 'type' is missing in type '{ id: string; content: string; position: { x: number; y: number; }; }' but required in type 'AnnotationInfo'.
+src/agents/specialized/floorplan/FloorPlanComplianceAgent.test.ts(134,3): error TS2353: Object literal may only specify known properties, and 'siteAddress' does not exist in type 'ProjectInfo'.
+src/agents/specialized/floorplan/FloorPlanComplianceAgent.test.ts(165,56): error TS2339: Property 'metadata' does not exist on type 'DrawingData'.
+src/agents/specialized/floorplan/FloorPlanComplianceAgent.ts(1488,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/floorplan/FloorPlanComplianceAgent.ts(1489,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/floorplan/FloorPlanComplianceAgent.ts(1756,9): error TS2322: Type 'number | null' is not assignable to type 'number | undefined'.
+  Type 'null' is not assignable to type 'number | undefined'.
+src/agents/specialized/floorplan/FloorPlanComplianceAgent.ts(1768,28): error TS2322: Type 'number | null' is not assignable to type 'number | undefined'.
+  Type 'null' is not assignable to type 'number | undefined'.
+src/agents/specialized/section/SectionComplianceAgent.ts(10,3): error TS2305: Module '"@/types/agent"' has no exported member 'Agent'.
+src/agents/specialized/section/SectionComplianceAgent.ts(284,10): error TS2339: Property 'rules' does not exist on type 'SectionComplianceAgent'.
+src/agents/specialized/section/SectionComplianceAgent.ts(326,23): error TS2339: Property 'config' does not exist on type 'SectionComplianceAgent'.
+src/agents/specialized/section/SectionComplianceAgent.ts(327,25): error TS2339: Property 'config' does not exist on type 'SectionComplianceAgent'.
+src/agents/specialized/section/SectionComplianceAgent.ts(361,23): error TS2339: Property 'config' does not exist on type 'SectionComplianceAgent'.
+src/agents/specialized/section/SectionComplianceAgent.ts(362,25): error TS2339: Property 'config' does not exist on type 'SectionComplianceAgent'.
+src/agents/specialized/section/SectionComplianceAgent.ts(1115,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/section/SectionComplianceAgent.ts(1116,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/section/SectionComplianceAgent.ts(1217,9): error TS2322: Type 'number | null' is not assignable to type 'number | undefined'.
+  Type 'null' is not assignable to type 'number | undefined'.
+src/agents/specialized/section/SectionComplianceAgent.ts(1231,7): error TS2322: Type 'number | null' is not assignable to type 'number | undefined'.
+  Type 'null' is not assignable to type 'number | undefined'.
+src/agents/specialized/siteplan/SitePlanComplianceAgent.ts(10,3): error TS2305: Module '"@/types/agent"' has no exported member 'Agent'.
+src/agents/specialized/siteplan/SitePlanComplianceAgent.ts(281,10): error TS2339: Property 'rules' does not exist on type 'SitePlanComplianceAgent'.
+src/agents/specialized/siteplan/SitePlanComplianceAgent.ts(323,23): error TS2339: Property 'config' does not exist on type 'SitePlanComplianceAgent'.
+src/agents/specialized/siteplan/SitePlanComplianceAgent.ts(324,25): error TS2339: Property 'config' does not exist on type 'SitePlanComplianceAgent'.
+src/agents/specialized/siteplan/SitePlanComplianceAgent.ts(349,23): error TS2339: Property 'config' does not exist on type 'SitePlanComplianceAgent'.
+src/agents/specialized/siteplan/SitePlanComplianceAgent.ts(350,25): error TS2339: Property 'config' does not exist on type 'SitePlanComplianceAgent'.
+src/agents/specialized/siteplan/SitePlanComplianceAgent.ts(418,7): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/agents/specialized/siteplan/SitePlanComplianceAgent.ts(419,7): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/agents/specialized/siteplan/SitePlanComplianceAgent.ts(420,7): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/agents/specialized/siteplan/SitePlanComplianceAgent.ts(872,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/siteplan/SitePlanComplianceAgent.ts(873,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/technical/DimensionValidatorAgent.ts(9,3): error TS2305: Module '"@/types/agent"' has no exported member 'Agent'.
+src/agents/specialized/technical/DimensionValidatorAgent.ts(265,10): error TS2339: Property 'rules' does not exist on type 'DimensionValidatorAgent'.
+src/agents/specialized/technical/DimensionValidatorAgent.ts(307,23): error TS2339: Property 'config' does not exist on type 'DimensionValidatorAgent'.
+src/agents/specialized/technical/DimensionValidatorAgent.ts(308,25): error TS2339: Property 'config' does not exist on type 'DimensionValidatorAgent'.
+src/agents/specialized/technical/DimensionValidatorAgent.ts(331,23): error TS2339: Property 'config' does not exist on type 'DimensionValidatorAgent'.
+src/agents/specialized/technical/DimensionValidatorAgent.ts(332,25): error TS2339: Property 'config' does not exist on type 'DimensionValidatorAgent'.
+src/agents/specialized/technical/DimensionValidatorAgent.ts(603,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/technical/DimensionValidatorAgent.ts(604,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/technical/LayerAnalyzerAgent.ts(9,3): error TS2305: Module '"@/types/agent"' has no exported member 'Agent'.
+src/agents/specialized/technical/LayerAnalyzerAgent.ts(73,3): error TS2741: Property 'requirement' is missing in type '{ id: string; name: string; description: string; standard: string; part: string; category: "technical"; severity: Severity.MEDIUM; checkType: "verification"; lastUpdated: Date; version: string; isActive: true; }' but required in type 'ComplianceRule'.
+src/agents/specialized/technical/LayerAnalyzerAgent.ts(82,5): error TS1117: An object literal cannot have multiple properties with the same name.
+src/agents/specialized/technical/LayerAnalyzerAgent.ts(215,10): error TS2339: Property 'rules' does not exist on type 'LayerAnalyzerAgent'.
+src/agents/specialized/technical/LayerAnalyzerAgent.ts(257,23): error TS2339: Property 'config' does not exist on type 'LayerAnalyzerAgent'.
+src/agents/specialized/technical/LayerAnalyzerAgent.ts(258,25): error TS2339: Property 'config' does not exist on type 'LayerAnalyzerAgent'.
+src/agents/specialized/technical/LayerAnalyzerAgent.ts(281,23): error TS2339: Property 'config' does not exist on type 'LayerAnalyzerAgent'.
+src/agents/specialized/technical/LayerAnalyzerAgent.ts(282,25): error TS2339: Property 'config' does not exist on type 'LayerAnalyzerAgent'.
+src/agents/specialized/technical/LayerAnalyzerAgent.ts(515,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/technical/LayerAnalyzerAgent.ts(516,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/technical/ScaleVerifierAgent.ts(9,3): error TS2305: Module '"@/types/agent"' has no exported member 'Agent'.
+src/agents/specialized/technical/ScaleVerifierAgent.ts(227,10): error TS2339: Property 'rules' does not exist on type 'ScaleVerifierAgent'.
+src/agents/specialized/technical/ScaleVerifierAgent.ts(269,23): error TS2339: Property 'config' does not exist on type 'ScaleVerifierAgent'.
+src/agents/specialized/technical/ScaleVerifierAgent.ts(270,25): error TS2339: Property 'config' does not exist on type 'ScaleVerifierAgent'.
+src/agents/specialized/technical/ScaleVerifierAgent.ts(293,23): error TS2339: Property 'config' does not exist on type 'ScaleVerifierAgent'.
+src/agents/specialized/technical/ScaleVerifierAgent.ts(294,25): error TS2339: Property 'config' does not exist on type 'ScaleVerifierAgent'.
+src/agents/specialized/technical/ScaleVerifierAgent.ts(536,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/technical/ScaleVerifierAgent.ts(537,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/technical/SymbolRecognizerAgent.ts(9,3): error TS2305: Module '"@/types/agent"' has no exported member 'Agent'.
+src/agents/specialized/technical/SymbolRecognizerAgent.ts(91,3): error TS2741: Property 'requirement' is missing in type '{ id: string; name: string; description: string; standard: string; part: string; category: "technical"; severity: Severity.MEDIUM; checkType: "presence"; lastUpdated: Date; version: string; isActive: true; }' but required in type 'ComplianceRule'.
+src/agents/specialized/technical/SymbolRecognizerAgent.ts(100,5): error TS1117: An object literal cannot have multiple properties with the same name.
+src/agents/specialized/technical/SymbolRecognizerAgent.ts(218,10): error TS2339: Property 'rules' does not exist on type 'SymbolRecognizerAgent'.
+src/agents/specialized/technical/SymbolRecognizerAgent.ts(260,23): error TS2339: Property 'config' does not exist on type 'SymbolRecognizerAgent'.
+src/agents/specialized/technical/SymbolRecognizerAgent.ts(261,25): error TS2339: Property 'config' does not exist on type 'SymbolRecognizerAgent'.
+src/agents/specialized/technical/SymbolRecognizerAgent.ts(285,23): error TS2339: Property 'config' does not exist on type 'SymbolRecognizerAgent'.
+src/agents/specialized/technical/SymbolRecognizerAgent.ts(286,25): error TS2339: Property 'config' does not exist on type 'SymbolRecognizerAgent'.
+src/agents/specialized/technical/SymbolRecognizerAgent.ts(518,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/technical/SymbolRecognizerAgent.ts(519,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/technical/TechnicalAgents.test.ts(12,50): error TS2307: Cannot find module 'vitest' or its corresponding type declarations.
+src/agents/specialized/technical/TextClarityCheckerAgent.ts(586,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/agents/specialized/technical/TextClarityCheckerAgent.ts(587,7): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | undefined'.
+src/lib/agentApi.ts(171,9): error TS2322: Type 'string' is not assignable to type '"symbol" | "dimension" | "compliance" | "scale" | "annotation" | "layer" | "other"'.
+src/orchestrator/AgentOrchestrator.ts(10,3): error TS2305: Module '"@/types/agent"' has no exported member 'Agent'.
+src/orchestrator/AgentRegistry.ts(8,10): error TS2305: Module '"@/types/agent"' has no exported member 'Agent'.
+src/sections/admin/AdminMessages.tsx(500,21): error TS2322: Type '{ icon: Element; title: string; description: string; }' is not assignable to type 'IntrinsicAttributes & ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement>'.
+  Property 'icon' does not exist on type 'IntrinsicAttributes & ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement>'.
+src/sections/admin/AdminMessages.tsx(613,19): error TS2322: Type '{ icon: Element; title: string; description: string; }' is not assignable to type 'IntrinsicAttributes & ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement>'.
+  Property 'icon' does not exist on type 'IntrinsicAttributes & ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement>'.
+src/sections/admin/InvoiceManagement.tsx(363,33): error TS2322: Type 'unknown' is not assignable to type 'Key | null | undefined'.
+src/sections/admin/InvoiceManagement.tsx(363,45): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/sections/admin/InvoiceManagement.tsx(363,59): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/sections/freelancer/FreelancerOverview.tsx(29,24): error TS2554: Expected 1 arguments, but got 0.
+src/store/authStore.ts(133,46): error TS2339: Property 'lastLogin' does not exist on type 'MockUserWithPassword'.
+src/store/authStore.ts(184,45): error TS2339: Property 'permissions' does not exist on type 'MockUserWithPassword'.
+src/store/authStore.ts(185,45): error TS2339: Property 'lastLogin' does not exist on type 'MockUserWithPassword'.
+src/types/index.ts(87,9): error TS2304: Cannot find name 'DrawingType'.
