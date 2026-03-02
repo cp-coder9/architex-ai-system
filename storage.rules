@@ -1,0 +1,71 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isClient() {
+      return isAuthenticated() && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'client';
+    }
+    
+    function isFreelancer() {
+      return isAuthenticated() && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'freelancer';
+    }
+
+    // Profile images - users can upload their own profile pictures
+    match /profiles/{userId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isUser(userId) || isAdmin();
+    }
+
+    // Project drawings - freelancers can upload, clients and admins can read
+    match /drawings/{projectId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isFreelancer() || isAdmin();
+    }
+
+    // Proof of work attachments - freelancers can upload
+    match /proofs/{projectId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isFreelancer() || isAdmin();
+    }
+
+    // General project files
+    match /projects/{projectId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated(); // All authenticated users can upload project files
+    }
+
+    // Agent attachments and exports
+    match /agents/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Temp uploads folder for file processing
+    match /temp/{userId}/{allPaths=**} {
+      allow read: if isUser(userId) || isAdmin();
+      allow write: if isUser(userId) || isAdmin();
+      // Auto-delete temp files after 24 hours via Cloud Function
+    }
+
+    // Default deny all other paths
+    match /{allPaths=**} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+  }
+}
