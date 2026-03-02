@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             // Split vendor chunks for better caching
             'react-vendor': ['react', 'react-dom'],
-            'firebase-vendor': ['firebase'],
+            'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
             'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
           },
         },

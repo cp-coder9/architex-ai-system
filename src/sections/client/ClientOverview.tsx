@@ -43,7 +43,37 @@ import {
   Zap as ZapIcon,
   CalendarDays,
   Clock as ClockIcon,
+  FileImage,
+  FileSpreadsheet,
+  FileCode,
 } from 'lucide-react';
+
+// Helper function to get file icon based on file type
+function getFileIcon(fileType: string) {
+  const type = fileType.toLowerCase();
+  if (type.includes('image') || type.includes('jpg') || type.includes('png') || type.includes('jpeg')) {
+    return FileImage;
+  }
+  if (type.includes('pdf')) {
+    return FileText;
+  }
+  if (type.includes('sheet') || type.includes('excel') || type.includes('csv')) {
+    return FileSpreadsheet;
+  }
+  if (type.includes('dwg') || type.includes('cad') || type.includes('autocad')) {
+    return FileCode;
+  }
+  return File;
+}
+
+// Helper function to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 
 
 
@@ -149,8 +179,43 @@ const getUrgencyInfo = (urgency: string) => {
   }
 };
 
+// Uploaded file type for onboarding
+type UploadedFile = {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  progress: number;
+  preview?: string;
+};
+
+type OnboardingData = {
+  serviceType: string;
+  customServiceDescription: string;
+  propertyType: string;
+  urgency: string;
+  uploadedFiles: UploadedFile[];
+  personalDetails: {
+    firstName: string;
+    surname: string;
+    phoneNumber: string;
+    email: string;
+  };
+  propertyDetails: {
+    identifierType: 'erf' | 'stand';
+    identifierNumber: string;
+    physicalAddress: {
+      street: string;
+      suburb: string;
+      city: string;
+      province: string;
+      postalCode: string;
+    };
+  };
+};
+
 // Project Request Card - Displays onboarding data
-function ProjectRequestCard({ onboardingData }: { onboardingData: NonNullable<ReturnType<typeof useAuthStore>['tempOnboardingData']> }) {
+function ProjectRequestCard({ onboardingData }: { onboardingData: OnboardingData }) {
   const serviceInfo = getServiceTypeInfo(onboardingData.serviceType);
   const propertyInfo = getPropertyTypeInfo(onboardingData.propertyType);
   const urgencyInfo = getUrgencyInfo(onboardingData.urgency);
@@ -290,7 +355,7 @@ function ProjectRequestCard({ onboardingData }: { onboardingData: NonNullable<Re
               <span className="text-xs font-medium uppercase tracking-wider">Uploaded Files ({onboardingData.uploadedFiles.length})</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pl-6">
-              {onboardingData.uploadedFiles.map((file) => {
+              {onboardingData.uploadedFiles.map((file: { id: string; name: string; type: string; size: number; preview?: string }) => {
                 const FileIcon = getFileIcon(file.type);
                 return (
                   <div
@@ -334,7 +399,9 @@ function ProjectRequestCard({ onboardingData }: { onboardingData: NonNullable<Re
 
 export function ClientOverview() {
   const navigate = useNavigate();
-  const { currentUser, tempOnboardingData } = useAuthStore();
+  const authStore = useAuthStore();
+  const currentUser = authStore.currentUser;
+  const tempOnboardingData = authStore.tempOnboardingData;
   const allProjects = useProjectStore(state => state.projects);
   const allDrawings = useProjectStore(state => state.drawings);
   const allInvoices = useInvoiceStore(state => state.invoices);

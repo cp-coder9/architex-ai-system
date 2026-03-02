@@ -23,15 +23,17 @@ function Timer({ onStop }: { onStop: (hours: number) => void }) {
   const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (isRunning) {
       interval = setInterval(() => {
         setSeconds((prev) => prev + 1);
       }, 1000);
-    } else {
-      clearInterval(interval);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [isRunning]);
 
   const formatTime = (totalSeconds: number) => {

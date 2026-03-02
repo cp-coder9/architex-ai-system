@@ -113,6 +113,16 @@ export function checkFirebaseConfig(): {
  */
 export async function testFirestoreConnectivity(): Promise<TestResult> {
   const startTime = performance.now();
+  
+  if (!db) {
+    return {
+      name: 'Firestore Connectivity',
+      passed: false,
+      duration: 0,
+      error: 'Firestore not initialized',
+    };
+  }
+  
   const testDocRef = doc(db, TEST_COLLECTION, TEST_DOC_ID);
 
   try {
@@ -154,6 +164,16 @@ export async function testFirestoreConnectivity(): Promise<TestResult> {
  */
 export async function testFirestoreCRUD(): Promise<TestResult[]> {
   const results: TestResult[] = [];
+  
+  if (!db) {
+    return [{
+      name: 'Firestore CRUD',
+      passed: false,
+      duration: 0,
+      error: 'Firestore not initialized',
+    }];
+  }
+  
   const testId = `test_${Date.now()}`;
 
   // CREATE Test
@@ -274,6 +294,16 @@ export async function testFirestoreCRUD(): Promise<TestResult[]> {
  */
 export async function testRealtimeSubscription(): Promise<TestResult> {
   const startTime = performance.now();
+  
+  if (!db) {
+    return {
+      name: 'Firestore Real-time Subscription',
+      passed: false,
+      duration: 0,
+      error: 'Firestore not initialized',
+    };
+  }
+  
   const testDocRef = doc(db, TEST_COLLECTION, `subscription_test_${Date.now()}`);
 
   return new Promise((resolve) => {
@@ -391,6 +421,16 @@ export async function testAuthAvailability(): Promise<TestResult> {
  */
 export async function testStorageAvailability(): Promise<TestResult> {
   const startTime = performance.now();
+  
+  if (!storage) {
+    return {
+      name: 'Firebase Storage',
+      passed: false,
+      duration: 0,
+      error: 'Storage not initialized',
+    };
+  }
+  
   const testPath = `${TEST_COLLECTION}/test_${Date.now()}.txt`;
 
   try {
@@ -428,6 +468,15 @@ export async function testStorageAvailability(): Promise<TestResult> {
  */
 export async function testOfflinePersistence(): Promise<TestResult> {
   const startTime = performance.now();
+
+  if (!db) {
+    return {
+      name: 'Firestore Offline Persistence',
+      passed: false,
+      duration: 0,
+      error: 'Firestore not initialized',
+    };
+  }
 
   try {
     // Note: This test checks if Firestore supports offline persistence
@@ -555,7 +604,7 @@ export async function runFirebaseTestSuite(): Promise<FirebaseTestSuite> {
  */
 export async function quickConnectivityCheck(): Promise<boolean> {
   try {
-    if (!isFirebaseConfigured()) {
+    if (!isFirebaseConfigured() || !db) {
       return false;
     }
 
@@ -602,6 +651,15 @@ export function logFirebaseOperation(
  */
 export async function verifyCollection(collectionName: string): Promise<TestResult> {
   const startTime = performance.now();
+
+  if (!db) {
+    return {
+      name: `Collection: ${collectionName}`,
+      passed: false,
+      duration: 0,
+      error: 'Firestore not initialized',
+    };
+  }
 
   try {
     const collRef = collection(db, collectionName);

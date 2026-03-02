@@ -30,7 +30,7 @@ const USERS_COLLECTION = 'users';
 
 // Type guard to check if user is configured
 function isFirebaseConfigured(): boolean {
-  return !!(db);
+  return !!db;
 }
 
 /**
@@ -99,7 +99,7 @@ export async function createUser(
   uid: string,
   userData: Omit<User, 'id'>
 ): Promise<User> {
-  if (!isFirebaseConfigured()) {
+  if (!db) {
     throw new Error('Firebase is not configured');
   }
 
@@ -127,7 +127,7 @@ export async function createUser(
  * Get user by ID (UID)
  */
 export async function getUserById(uid: string): Promise<User | null> {
-  if (!isFirebaseConfigured()) {
+  if (!db) {
     return null;
   }
 
@@ -150,7 +150,7 @@ export async function getUserById(uid: string): Promise<User | null> {
  * Get user by email
  */
 export async function getUserByEmail(email: string): Promise<User | null> {
-  if (!isFirebaseConfigured()) {
+  if (!db) {
     return null;
   }
 
@@ -178,7 +178,7 @@ export async function updateUser(
   uid: string,
   updates: Partial<Omit<User, 'id' | 'createdAt'>>
 ): Promise<void> {
-  if (!isFirebaseConfigured()) {
+  if (!db) {
     throw new Error('Firebase is not configured');
   }
 
@@ -201,7 +201,7 @@ export async function updateUser(
  * Note: Also need to delete Firebase Auth user separately
  */
 export async function deleteUser(uid: string): Promise<void> {
-  if (!isFirebaseConfigured()) {
+  if (!db) {
     throw new Error('Firebase is not configured');
   }
 
@@ -218,7 +218,7 @@ export async function deleteUser(uid: string): Promise<void> {
  * Get all users by role
  */
 export async function getUsersByRole(role: UserRole): Promise<User[]> {
-  if (!isFirebaseConfigured()) {
+  if (!db) {
     return [];
   }
 
@@ -275,7 +275,7 @@ export async function updateLastLogin(uid: string): Promise<void> {
 export async function batchUpdateUsers(
   updates: Array<{ uid: string; data: Partial<User> }>
 ): Promise<void> {
-  if (!isFirebaseConfigured()) {
+  if (!db) {
     throw new Error('Firebase is not configured');
   }
 
@@ -284,7 +284,7 @@ export async function batchUpdateUsers(
     const now = dateToTimestamp(new Date());
 
     updates.forEach(({ uid, data }) => {
-      const userRef = doc(db, USERS_COLLECTION, uid);
+      const userRef = doc(db!, USERS_COLLECTION, uid);
       batch.update(userRef, {
         ...serializeUserData(data),
         updatedAt: now,

@@ -137,13 +137,17 @@ export async function analyzeDrawing(request: AgentAnalysisRequest): Promise<Age
     id: request.drawingId,
     projectId: request.projectInfo.id,
     type: request.drawingType,
-    filename: request.filename,
-    content: request.file,
-    metadata: {
-      uploadDate: new Date(),
-      fileSize: request.file instanceof File ? request.file.size : 0,
-      fileType: request.file instanceof File ? request.file.type : 'application/octet-stream',
-    }
+    name: request.filename,
+    fileUrl: request.fileUrl,
+    version: 1,
+    layers: [],
+    dimensions: [],
+    annotations: [],
+    symbols: [],
+    textElements: [],
+    parsedAt: new Date(),
+    parserVersion: '1.0.0',
+    warnings: [],
   };
 
   try {
@@ -161,10 +165,10 @@ export async function analyzeDrawing(request: AgentAnalysisRequest): Promise<Age
         accuracy: ar.complianceScore || 0,
         issues: ar.findings?.map(f => ({
           id: f.id,
-          type: mapFindingTypeToIssueType(f.type),
+          type: mapFindingTypeToIssueType(f.severity),
           severity: f.severity,
           description: f.description,
-          location: f.location,
+          location: f.location ? { x: f.location.x, y: f.location.y } : undefined,
           suggestion: f.suggestion,
           isResolved: f.isResolved || false,
         })) || [],
@@ -195,10 +199,11 @@ export async function analyzeDrawing(request: AgentAnalysisRequest): Promise<Age
 export async function getAnalysisResults(drawingId: string): Promise<AgentAnalysisResult | null> {
   try {
     // Try to get recent audit logs for this drawing to reconstruct results
-    const auditEntries = auditLogger.getEntries({
-      drawingId,
+    const allEntries = auditLogger.getEntries({
       eventTypes: [AuditEventType.AGENT_COMPLETE, AuditEventType.COMPLIANCE_CHECK],
     });
+    // Filter by drawingId manually since AuditFilter doesn't have drawingId
+    const auditEntries = allEntries.filter(entry => entry.drawingId === drawingId);
 
     if (auditEntries.length === 0) {
       // No results found in audit log

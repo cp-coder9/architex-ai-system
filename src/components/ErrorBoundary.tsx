@@ -158,7 +158,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   <p className="text-muted-foreground font-mono text-xs break-all">
                     {error.message}
                   </p>
-                  {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
+                  {import.meta.env.DEV && this.state.errorInfo && (
                     <pre className="mt-2 text-xs text-muted-foreground overflow-auto max-h-32">
                       {this.state.errorInfo.componentStack}
                     </pre>
