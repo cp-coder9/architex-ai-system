@@ -33,6 +33,52 @@ import { db } from '@/config/firebase';
 import { COLLECTIONS } from './utils';
 import type { User, Project, Drawing, Invoice, TimeEntry, Comment } from '@/types';
 
+/**
+ * Check if we're in a development environment
+ * Seeds data ONLY in development mode with emulators or when explicitly allowed
+ */
+function isDevelopmentEnvironment(): boolean {
+  // Check if we're in production build
+  if (import.meta.env.PROD) {
+    return false;
+  }
+
+  // Check for explicit development flag
+  const isDev = import.meta.env.DEV || import.meta.env.MODE === 'development';
+  
+  // Check if emulator mode is enabled (safest for seeding)
+  const emulatorEnabled = import.meta.env.VITE_FIREBASE_EMULATOR === 'true';
+  
+  // Allow seeding if in development with emulator, or if explicitly bypassed
+  const bypassCheck = import.meta.env.VITE_ALLOW_SEEDING === 'true';
+  
+  return isDev && (emulatorEnabled || bypassCheck);
+}
+
+/**
+ * Guard function to prevent accidental production seeding
+ */
+function guardProductionSeeding(): void {
+  if (import.meta.env.PROD) {
+    throw new Error(
+      '⛔ CRITICAL ERROR: Attempted to seed test data in PRODUCTION environment.\n' +
+      'This operation is strictly forbidden to prevent data corruption.\n' +
+      'If you need to seed production data, use the Firebase Console or a dedicated migration script.'
+    );
+  }
+
+  if (!isDevelopmentEnvironment()) {
+    throw new Error(
+      '⛔ Seeding blocked: Environment not safe for test data seeding.\n' +
+      'Required: Development mode with Firebase emulators enabled, or VITE_ALLOW_SEEDING=true\n' +
+      'Current mode: ' + import.meta.env.MODE + '\n' +
+      'VITE_FIREBASE_EMULATOR: ' + import.meta.env.VITE_FIREBASE_EMULATOR
+    );
+  }
+
+  console.log('✅ Development environment verified. Proceeding with test data seeding...');
+}
+
 // Storage key for tracking seeded data
 const SEED_STORAGE_KEY = 'firebase_seed_data';
 
@@ -269,6 +315,7 @@ const generateTestComment = (index: number, projectId: string, userId: string): 
 
 /**
  * Seed test data into Firebase
+ * ⚠️ DEVELOPMENT ONLY - This function will throw in production
  */
 export async function seedTestData(options?: {
   users?: number;
@@ -283,6 +330,9 @@ export async function seedTestData(options?: {
     invoicesPerProject: 1,
     ...options,
   };
+
+  // Prevent accidental production seeding
+  guardProductionSeeding();
 
   console.log('[SeedData] Starting test data seeding...');
 
@@ -415,8 +465,12 @@ export async function seedTestData(options?: {
 
 /**
  * Clear all test data from Firebase
+ * ⚠️ DEVELOPMENT ONLY - This function will throw in production
  */
 export async function clearTestData(): Promise<void> {
+  // Prevent accidental production clearing
+  guardProductionSeeding();
+
   console.log('[SeedData] Clearing test data...');
 
   const seededData = loadSeededData();
@@ -459,8 +513,12 @@ export async function clearTestData(): Promise<void> {
 
 /**
  * Clear all test data by query (fallback method)
+ * ⚠️ DEVELOPMENT ONLY - This function will throw in production
  */
 export async function clearAllTestDataByQuery(): Promise<number> {
+  // Prevent accidental production clearing
+  guardProductionSeeding();
+
   console.log('[SeedData] Clearing all test data by query...');
 
   const collections = [

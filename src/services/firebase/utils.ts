@@ -261,12 +261,21 @@ export const COLLECTIONS = {
   COMMENTS: 'comments',
   MILESTONES: 'milestones',
   NOTIFICATIONS: 'notifications',
+  CHAT_MESSAGES: 'chatMessages',
   AGENT_CONFIGS: 'agent_configs',
   AGENT_MEMORY: 'agent_memory',
   AGENT_LOGS: 'agent_logs',
   AGENT_RULES: 'agent_rules',
   SETTINGS: 'settings',
   AUDIT_LOGS: 'audit_logs',
+  SECURITY_EVENTS: 'security_events',
+  PROJECT_REQUESTS: 'projectRequests',
+  TASKS: 'tasks',
+  TASK_APPLICATIONS: 'taskApplications',
+  HOUR_PACKAGES: 'hourPackages',
+  HOUR_ALLOCATIONS: 'hourAllocations',
+  HOUR_TRANSACTIONS: 'hourTransactions',
+  PROOFS: 'proofs',
 } as const;
 
 /**

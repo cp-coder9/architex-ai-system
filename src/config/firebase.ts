@@ -69,11 +69,31 @@ if (isFirebaseConfigured()) {
   storage = getStorage(app);
   
   // Connect to emulators in development mode
-  if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
+  // Supports both VITE_FIREBASE_EMULATOR and VITE_USE_FIREBASE_EMULATOR for compatibility
+  const useEmulator =
+    import.meta.env.VITE_FIREBASE_EMULATOR === 'true' ||
+    import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true';
+  
+  if (import.meta.env.DEV && useEmulator) {
     console.log('[Firebase] Connecting to local emulators...');
-    connectAuthEmulator(auth, 'http://localhost:9099');
-    connectFirestoreEmulator(db, 'localhost', 8080);
-    connectStorageEmulator(storage, 'localhost', 9199);
+    console.log('[Firebase] Auth emulator: localhost:9099');
+    console.log('[Firebase] Firestore emulator: localhost:8080');
+    console.log('[Firebase] Storage emulator: localhost:9199');
+    
+    try {
+      connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: false });
+      connectFirestoreEmulator(db, 'localhost', 8080);
+      connectStorageEmulator(storage, 'localhost', 9199);
+      console.log('[Firebase] ✅ Successfully connected to all emulators');
+    } catch (error) {
+      console.error('[Firebase] ❌ Failed to connect to emulators:', error);
+      console.warn('[Firebase] Falling back to production Firebase services');
+    }
+  } else {
+    if (import.meta.env.DEV) {
+      console.log('[Firebase] Running in development mode without emulators');
+      console.log('[Firebase] To use emulators, set VITE_FIREBASE_EMULATOR=true in your .env file');
+    }
   }
 } else {
   console.warn('[Firebase] Firebase not configured. Authentication and database features will be unavailable.');

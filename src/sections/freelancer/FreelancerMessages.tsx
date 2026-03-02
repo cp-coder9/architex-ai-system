@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuthStore, useProjectStore, useNotificationStore } from '@/store';
+import { useAuthStore, useProjectStore, useNotificationStore, useSettingsStore } from '@/store';
 import { Project } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,22 +19,11 @@ import {
   Building2,
 } from 'lucide-react';
 
-// Mock client data
-const mockClients: Record<string, { name: string; avatar: string }> = {
-  'client-1': {
-    name: 'John Smith',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=client',
-  },
-  'client-2': {
-    name: 'Jane Doe',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=jane',
-  },
-};
-
 export function FreelancerMessages() {
   const { currentUser } = useAuthStore();
   const { chatMessages, sendMessage } = useNotificationStore();
   const allProjects = useProjectStore(state => state.projects);
+  const getUserById = useSettingsStore(state => state.getUserById);
 
   const projects = useMemo(() =>
     allProjects.filter(p => p.freelancerId === currentUser?.id),
@@ -73,7 +62,11 @@ export function FreelancerMessages() {
   };
 
   const getClientInfo = (clientId: string) => {
-    return mockClients[clientId] || { name: 'Unknown Client', avatar: '' };
+    const user = getUserById(clientId);
+    return {
+      name: user?.name || 'Unknown Client',
+      avatar: user?.avatar || '',
+    };
   };
 
   return (

@@ -1,5 +1,19 @@
 import { create } from 'zustand';
 import { Invoice, HourPackage, TimeEntry, HourAllocation, HourTransaction } from '@/types';
+import { db, isFirebaseConfigured } from '@/config/firebase';
+import {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  Unsubscribe,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
 
 interface InvoiceState {
   invoices: Invoice[];
@@ -7,16 +21,25 @@ interface InvoiceState {
   hourAllocations: HourAllocation[];
   hourTransactions: HourTransaction[];
   isLoading: boolean;
-  
+  error: string | null;
+  unsubscribeInvoices: Unsubscribe | null;
+  unsubscribeHourPackages: Unsubscribe | null;
+  unsubscribeHourAllocations: Unsubscribe | null;
+  unsubscribeHourTransactions: Unsubscribe | null;
+
+  // Initialization
+  initialize: () => void;
+  cleanup: () => void;
+
   // Actions
   createInvoice: (data: Partial<Invoice>) => Promise<Invoice>;
-  updateInvoice: (id: string, updates: Partial<Invoice>) => void;
-  deleteInvoice: (id: string) => void;
-  markInvoiceAsPaid: (id: string) => void;
-  markInvoiceAsSent: (id: string) => void;
+  updateInvoice: (id: string, updates: Partial<Invoice>) => Promise<void>;
+  deleteInvoice: (id: string) => Promise<void>;
+  markInvoiceAsPaid: (id: string) => Promise<void>;
+  markInvoiceAsSent: (id: string) => Promise<void>;
   purchaseHours: (clientId: string, hours: number, pricePerHour: number) => Promise<HourPackage>;
-  createAllocation: (data: Partial<HourAllocation>) => HourAllocation;
-  useHours: (allocationId: string, hours: number, description: string, freelancerId: string, projectId: string, taskId?: string) => boolean;
+  createAllocation: (data: Partial<HourAllocation>) => Promise<HourAllocation>;
+  useHours: (allocationId: string, hours: number, description: string, freelancerId: string, projectId: string, taskId?: string) => Promise<boolean>;
   getClientPackages: (clientId: string) => HourPackage[];
   getClientInvoices: (clientId: string) => Invoice[];
   getFreelancerInvoices: (freelancerId: string) => Invoice[];
@@ -27,402 +50,375 @@ interface InvoiceState {
   generateInvoiceFromTimeEntries: (timeEntries: TimeEntry[], data: Partial<Invoice>) => Promise<Invoice>;
 }
 
-// Generate mock invoices
-const generateMockInvoices = (): Invoice[] => [
-  {
-    id: 'inv-1',
-    invoiceNumber: 'INV-2024-001',
-    clientId: 'client-1',
-    projectId: 'proj-1',
-    freelancerId: 'freelancer-1',
-    timeEntries: ['te-1', 'te-2'],
-    hoursTotal: 12,
-    hourlyRate: 75,
-    subtotal: 900,
-    taxRate: 0.10,
-    taxAmount: 90,
-    total: 990,
-    status: 'paid',
-    createdAt: new Date('2024-02-20'),
-    sentAt: new Date('2024-02-21'),
-    paidAt: new Date('2024-02-25'),
-    dueDate: new Date('2024-03-20'),
-    notes: 'Payment for ground floor plan work',
-  },
-  {
-    id: 'inv-2',
-    invoiceNumber: 'INV-2024-002',
-    clientId: 'client-1',
-    projectId: 'proj-1',
-    freelancerId: 'freelancer-1',
-    timeEntries: ['te-3'],
-    hoursTotal: 6,
-    hourlyRate: 75,
-    subtotal: 450,
-    taxRate: 0.10,
-    taxAmount: 45,
-    total: 495,
-    status: 'sent',
-    createdAt: new Date('2024-02-26'),
-    sentAt: new Date('2024-02-27'),
-    dueDate: new Date('2024-03-26'),
-    notes: 'First floor plan creation',
-  },
-  {
-    id: 'inv-3',
-    invoiceNumber: 'INV-2024-003',
-    clientId: 'client-1',
-    projectId: 'proj-2',
-    freelancerId: 'freelancer-1',
-    timeEntries: ['te-5'],
-    hoursTotal: 12,
-    hourlyRate: 75,
-    subtotal: 900,
-    taxRate: 0.10,
-    taxAmount: 90,
-    total: 990,
-    status: 'draft',
-    createdAt: new Date('2024-03-06'),
-    dueDate: new Date('2024-04-05'),
-    notes: 'Site analysis and planning',
-  },
-];
+// Collection names
+const INVOICES_COLLECTION = 'invoices';
+const HOUR_PACKAGES_COLLECTION = 'hourPackages';
+const HOUR_ALLOCATIONS_COLLECTION = 'hourAllocations';
+const HOUR_TRANSACTIONS_COLLECTION = 'hourTransactions';
 
-// Generate mock hour packages
-const generateMockHourPackages = (): HourPackage[] => [
-  {
-    id: 'pkg-1',
-    clientId: 'client-1',
-    hours: 100,
-    pricePerHour: 70,
-    totalPrice: 7000,
-    hoursUsed: 65,
-    hoursRemaining: 35,
-    purchasedAt: new Date('2024-01-15'),
-    expiresAt: new Date('2024-07-15'),
-    status: 'active',
-    paymentStatus: 'completed',
-  },
-  {
-    id: 'pkg-2',
-    clientId: 'client-1',
-    hours: 200,
-    pricePerHour: 65,
-    totalPrice: 13000,
-    hoursUsed: 80,
-    hoursRemaining: 120,
-    purchasedAt: new Date('2024-02-01'),
-    expiresAt: new Date('2024-08-01'),
-    status: 'active',
-    paymentStatus: 'completed',
-  },
-];
-
-// Generate mock hour allocations
-const generateMockHourAllocations = (): HourAllocation[] => [
-  {
-    id: 'alloc-1',
-    clientId: 'client-1',
-    projectId: 'proj-1',
-    hourPackageId: 'pkg-1',
-    allocatedHours: 50,
-    usedHours: 30,
-    remainingHours: 20,
-    allocatedAt: '2024-01-20T10:00:00Z',
-    expiresAt: '2024-07-20T10:00:00Z',
-    status: 'active',
-  },
-  {
-    id: 'alloc-2',
-    clientId: 'client-1',
-    projectId: 'proj-2',
-    hourPackageId: 'pkg-2',
-    allocatedHours: 80,
-    usedHours: 45,
-    remainingHours: 35,
-    allocatedAt: '2024-02-15T14:30:00Z',
-    expiresAt: '2024-08-15T14:30:00Z',
-    status: 'active',
-  },
-  {
-    id: 'alloc-3',
-    clientId: 'client-1',
-    projectId: 'proj-3',
-    hourPackageId: 'pkg-1',
-    allocatedHours: 15,
-    usedHours: 15,
-    remainingHours: 0,
-    allocatedAt: '2024-02-01T09:00:00Z',
-    expiresAt: '2024-06-01T09:00:00Z',
-    status: 'exhausted',
-  },
-];
-
-// Generate mock hour transactions
-const generateMockHourTransactions = (): HourTransaction[] => [
-  {
-    id: 'txn-1',
-    allocationId: 'alloc-1',
-    projectId: 'proj-1',
-    freelancerId: 'freelancer-1',
-    hours: 8,
-    description: 'Ground floor plan initial drafting',
-    createdAt: '2024-01-22T10:00:00Z',
-    status: 'approved',
-  },
-  {
-    id: 'txn-2',
-    allocationId: 'alloc-1',
-    projectId: 'proj-1',
-    freelancerId: 'freelancer-1',
-    hours: 6,
-    description: 'Ground floor plan revisions',
-    createdAt: '2024-01-25T14:00:00Z',
-    status: 'approved',
-  },
-  {
-    id: 'txn-3',
-    allocationId: 'alloc-1',
-    projectId: 'proj-1',
-    freelancerId: 'freelancer-1',
-    hours: 10,
-    description: 'Floor plan compliance checking',
-    createdAt: '2024-01-28T09:30:00Z',
-    status: 'approved',
-  },
-  {
-    id: 'txn-4',
-    allocationId: 'alloc-1',
-    projectId: 'proj-1',
-    freelancerId: 'freelancer-1',
-    hours: 6,
-    description: 'First floor plan drafting',
-    createdAt: '2024-02-05T11:00:00Z',
-    status: 'approved',
-  },
-  {
-    id: 'txn-5',
-    allocationId: 'alloc-2',
-    projectId: 'proj-2',
-    freelancerId: 'freelancer-1',
-    hours: 12,
-    description: 'Site analysis and layout planning',
-    createdAt: '2024-02-18T08:00:00Z',
-    status: 'approved',
-  },
-  {
-    id: 'txn-6',
-    allocationId: 'alloc-2',
-    projectId: 'proj-2',
-    freelancerId: 'freelancer-1',
-    hours: 8,
-    description: 'Elevation drawings preparation',
-    createdAt: '2024-02-22T13:00:00Z',
-    status: 'approved',
-  },
-  {
-    id: 'txn-7',
-    allocationId: 'alloc-2',
-    projectId: 'proj-2',
-    freelancerId: 'freelancer-1',
-    hours: 15,
-    description: 'Structural elements planning',
-    createdAt: '2024-02-28T10:00:00Z',
-    status: 'approved',
-  },
-  {
-    id: 'txn-8',
-    allocationId: 'alloc-2',
-    projectId: 'proj-2',
-    freelancerId: 'freelancer-1',
-    hours: 10,
-    description: 'Municipal submission documents',
-    createdAt: '2024-03-05T15:00:00Z',
-    status: 'pending',
-  },
-  {
-    id: 'txn-9',
-    allocationId: 'alloc-3',
-    projectId: 'proj-3',
-    freelancerId: 'freelancer-1',
-    hours: 15,
-    description: 'Landscape design work',
-    createdAt: '2024-02-05T09:00:00Z',
-    status: 'approved',
-  },
-];
+// Helper to convert Firestore timestamps to dates
+function convertTimestamps(data: Record<string, unknown>): Record<string, unknown> {
+  const result = { ...data };
+  const dateFields = ['createdAt', 'dueDate', 'sentAt', 'paidAt', 'purchasedAt', 'expiresAt', 'allocatedAt'];
+  
+  for (const field of dateFields) {
+    if (result[field] instanceof Timestamp) {
+      result[field] = result[field].toDate();
+    }
+  }
+  return result;
+}
 
 export const useInvoiceStore = create<InvoiceState>((set, get) => ({
-  invoices: generateMockInvoices(),
-  hourPackages: generateMockHourPackages(),
-  hourAllocations: generateMockHourAllocations(),
-  hourTransactions: generateMockHourTransactions(),
+  invoices: [],
+  hourPackages: [],
+  hourAllocations: [],
+  hourTransactions: [],
   isLoading: false,
+  error: null,
+  unsubscribeInvoices: null,
+  unsubscribeHourPackages: null,
+  unsubscribeHourAllocations: null,
+  unsubscribeHourTransactions: null,
+
+  initialize: () => {
+    if (!isFirebaseConfigured() || !db) {
+      console.warn('[InvoiceStore] Firebase not configured, using empty arrays');
+      return;
+    }
+
+    set({ isLoading: true, error: null });
+
+    // Subscribe to invoices collection
+    const invoicesQuery = query(
+      collection(db, INVOICES_COLLECTION),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribeInvoices = onSnapshot(
+      invoicesQuery,
+      (snapshot) => {
+        const invoices = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...convertTimestamps(doc.data()),
+        })) as Invoice[];
+        set({ invoices, isLoading: false });
+      },
+      (error) => {
+        console.error('[InvoiceStore] Error fetching invoices:', error);
+        set({ error: 'Failed to fetch invoices', isLoading: false });
+      }
+    );
+
+    // Subscribe to hour packages collection
+    const hourPackagesQuery = query(
+      collection(db, HOUR_PACKAGES_COLLECTION),
+      orderBy('purchasedAt', 'desc')
+    );
+
+    const unsubscribeHourPackages = onSnapshot(
+      hourPackagesQuery,
+      (snapshot) => {
+        const hourPackages = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...convertTimestamps(doc.data()),
+        })) as HourPackage[];
+        set({ hourPackages });
+      },
+      (error) => {
+        console.error('[InvoiceStore] Error fetching hour packages:', error);
+      }
+    );
+
+    // Subscribe to hour allocations collection
+    const hourAllocationsQuery = query(
+      collection(db, HOUR_ALLOCATIONS_COLLECTION),
+      orderBy('allocatedAt', 'desc')
+    );
+
+    const unsubscribeHourAllocations = onSnapshot(
+      hourAllocationsQuery,
+      (snapshot) => {
+        const hourAllocations = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...convertTimestamps(doc.data()),
+        })) as HourAllocation[];
+        set({ hourAllocations });
+      },
+      (error) => {
+        console.error('[InvoiceStore] Error fetching hour allocations:', error);
+      }
+    );
+
+    // Subscribe to hour transactions collection
+    const hourTransactionsQuery = query(
+      collection(db, HOUR_TRANSACTIONS_COLLECTION),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribeHourTransactions = onSnapshot(
+      hourTransactionsQuery,
+      (snapshot) => {
+        const hourTransactions = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...convertTimestamps(doc.data()),
+        })) as HourTransaction[];
+        set({ hourTransactions });
+      },
+      (error) => {
+        console.error('[InvoiceStore] Error fetching hour transactions:', error);
+      }
+    );
+
+    set({
+      unsubscribeInvoices,
+      unsubscribeHourPackages,
+      unsubscribeHourAllocations,
+      unsubscribeHourTransactions,
+    });
+  },
+
+  cleanup: () => {
+    const state = get();
+    if (state.unsubscribeInvoices) state.unsubscribeInvoices();
+    if (state.unsubscribeHourPackages) state.unsubscribeHourPackages();
+    if (state.unsubscribeHourAllocations) state.unsubscribeHourAllocations();
+    if (state.unsubscribeHourTransactions) state.unsubscribeHourTransactions();
+    set({
+      unsubscribeInvoices: null,
+      unsubscribeHourPackages: null,
+      unsubscribeHourAllocations: null,
+      unsubscribeHourTransactions: null,
+    });
+  },
 
   createInvoice: async (data) => {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase not configured');
+    }
+
     set({ isLoading: true });
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const invoiceNumber = `INV-${new Date().getFullYear()}-${String(get().invoices.length + 1).padStart(3, '0')}`;
-    
-    const newInvoice: Invoice = {
-      id: `inv-${Date.now()}`,
-      invoiceNumber,
-      clientId: data.clientId!,
-      projectId: data.projectId!,
-      freelancerId: data.freelancerId!,
-      timeEntries: data.timeEntries || [],
-      hoursTotal: data.hoursTotal || 0,
-      hourlyRate: data.hourlyRate || 75,
-      subtotal: data.subtotal || 0,
-      taxRate: data.taxRate || 0.10,
-      taxAmount: data.taxAmount || 0,
-      total: data.total || 0,
-      status: 'draft',
-      createdAt: new Date(),
-      dueDate: data.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      notes: data.notes,
-    };
-    
-    set(state => ({ 
-      invoices: [...state.invoices, newInvoice],
-      isLoading: false 
-    }));
-    
-    return newInvoice;
+
+    try {
+      const invoiceNumber = `INV-${new Date().getFullYear()}-${String(get().invoices.length + 1).padStart(3, '0')}`;
+
+      const newInvoice = {
+        invoiceNumber,
+        clientId: data.clientId!,
+        projectId: data.projectId!,
+        freelancerId: data.freelancerId!,
+        timeEntries: data.timeEntries || [],
+        hoursTotal: data.hoursTotal || 0,
+        hourlyRate: data.hourlyRate || 75,
+        subtotal: data.subtotal || 0,
+        taxRate: data.taxRate || 0.10,
+        taxAmount: data.taxAmount || 0,
+        total: data.total || 0,
+        status: 'draft' as const,
+        createdAt: serverTimestamp(),
+        dueDate: data.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        notes: data.notes,
+      };
+
+      const docRef = await addDoc(collection(db, INVOICES_COLLECTION), newInvoice);
+
+      const createdInvoice: Invoice = {
+        id: docRef.id,
+        ...newInvoice,
+        createdAt: new Date(),
+        status: 'draft',
+      } as Invoice;
+
+      set({ isLoading: false });
+      return createdInvoice;
+    } catch (error) {
+      console.error('[InvoiceStore] Error creating invoice:', error);
+      set({ error: 'Failed to create invoice', isLoading: false });
+      throw error;
+    }
   },
 
-  updateInvoice: (id, updates) => {
-    set(state => ({
-      invoices: state.invoices.map(inv => 
-        inv.id === id ? { ...inv, ...updates } : inv
-      ),
-    }));
+  updateInvoice: async (id, updates) => {
+    if (!isFirebaseConfigured() || !db) return;
+
+    try {
+      const invoiceRef = doc(db, INVOICES_COLLECTION, id);
+      await updateDoc(invoiceRef, updates);
+    } catch (error) {
+      console.error('[InvoiceStore] Error updating invoice:', error);
+      set({ error: 'Failed to update invoice' });
+      throw error;
+    }
   },
 
-  deleteInvoice: (id) => {
-    set(state => ({
-      invoices: state.invoices.filter(inv => inv.id !== id),
-    }));
+  deleteInvoice: async (id) => {
+    if (!isFirebaseConfigured() || !db) return;
+
+    try {
+      await deleteDoc(doc(db, INVOICES_COLLECTION, id));
+    } catch (error) {
+      console.error('[InvoiceStore] Error deleting invoice:', error);
+      set({ error: 'Failed to delete invoice' });
+      throw error;
+    }
   },
 
-  markInvoiceAsPaid: (id) => {
-    set(state => ({
-      invoices: state.invoices.map(inv => 
-        inv.id === id 
-          ? { ...inv, status: 'paid', paidAt: new Date() }
-          : inv
-      ),
-    }));
+  markInvoiceAsPaid: async (id) => {
+    if (!isFirebaseConfigured() || !db) return;
+
+    try {
+      const invoiceRef = doc(db, INVOICES_COLLECTION, id);
+      await updateDoc(invoiceRef, {
+        status: 'paid',
+        paidAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('[InvoiceStore] Error marking invoice as paid:', error);
+      set({ error: 'Failed to mark invoice as paid' });
+      throw error;
+    }
   },
 
-  markInvoiceAsSent: (id) => {
-    set(state => ({
-      invoices: state.invoices.map(inv => 
-        inv.id === id 
-          ? { ...inv, status: 'sent', sentAt: new Date() }
-          : inv
-      ),
-    }));
+  markInvoiceAsSent: async (id) => {
+    if (!isFirebaseConfigured() || !db) return;
+
+    try {
+      const invoiceRef = doc(db, INVOICES_COLLECTION, id);
+      await updateDoc(invoiceRef, {
+        status: 'sent',
+        sentAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('[InvoiceStore] Error marking invoice as sent:', error);
+      set({ error: 'Failed to mark invoice as sent' });
+      throw error;
+    }
   },
 
   purchaseHours: async (clientId, hours, pricePerHour) => {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase not configured');
+    }
+
     set({ isLoading: true });
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const newPackage: HourPackage = {
-      id: `pkg-${Date.now()}`,
-      clientId,
-      hours,
-      pricePerHour,
-      totalPrice: hours * pricePerHour,
-      hoursUsed: 0,
-      hoursRemaining: hours,
-      purchasedAt: new Date(),
-      expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // 6 months
-      status: 'active',
-      paymentStatus: 'completed',
-    };
-    
-    set(state => ({ 
-      hourPackages: [...state.hourPackages, newPackage],
-      isLoading: false 
-    }));
-    
-    return newPackage;
+
+    try {
+      const newPackage = {
+        clientId,
+        hours,
+        pricePerHour,
+        totalPrice: hours * pricePerHour,
+        hoursUsed: 0,
+        hoursRemaining: hours,
+        purchasedAt: serverTimestamp(),
+        expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // 6 months
+        status: 'active' as const,
+        paymentStatus: 'completed' as const,
+      };
+
+      const docRef = await addDoc(collection(db, HOUR_PACKAGES_COLLECTION), newPackage);
+
+      const createdPackage: HourPackage = {
+        id: docRef.id,
+        ...newPackage,
+        purchasedAt: new Date(),
+        expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000),
+      } as HourPackage;
+
+      set({ isLoading: false });
+      return createdPackage;
+    } catch (error) {
+      console.error('[InvoiceStore] Error purchasing hours:', error);
+      set({ error: 'Failed to purchase hours', isLoading: false });
+      throw error;
+    }
   },
 
-  createAllocation: (data) => {
+  createAllocation: async (data) => {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase not configured');
+    }
+
     const pkg = get().hourPackages.find(p => p.id === data.hourPackageId);
     if (!pkg || pkg.hoursRemaining < (data.allocatedHours || 0)) {
       throw new Error('Insufficient hours in package');
     }
-    
-    const expiresAt = data.expiresAt || new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString();
-    const newAllocation: HourAllocation = {
-      id: `alloc-${Date.now()}`,
-      clientId: data.clientId!,
-      projectId: data.projectId!,
-      hourPackageId: data.hourPackageId!,
-      allocatedHours: data.allocatedHours || 0,
-      usedHours: 0,
-      remainingHours: data.allocatedHours || 0,
-      allocatedAt: data.allocatedAt || new Date().toISOString(),
-      expiresAt,
-      status: 'active',
-    };
-    
-    // Update the hour package
-    set(state => ({
-      hourPackages: state.hourPackages.map(p => 
-        p.id === data.hourPackageId 
-          ? { 
-              ...p, 
-              hoursUsed: p.hoursUsed + (data.allocatedHours || 0),
-              hoursRemaining: p.hoursRemaining - (data.allocatedHours || 0),
-              status: p.hoursRemaining - (data.allocatedHours || 0) <= 0 ? 'depleted' : 'active'
-            }
-          : p
-      ),
-      hourAllocations: [...state.hourAllocations, newAllocation],
-    }));
-    
-    return newAllocation;
+
+    try {
+      const newAllocation = {
+        clientId: data.clientId!,
+        projectId: data.projectId!,
+        hourPackageId: data.hourPackageId!,
+        allocatedHours: data.allocatedHours || 0,
+        usedHours: 0,
+        remainingHours: data.allocatedHours || 0,
+        allocatedAt: serverTimestamp(),
+        expiresAt: data.expiresAt || new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'active' as const,
+      };
+
+      const docRef = await addDoc(collection(db, HOUR_ALLOCATIONS_COLLECTION), newAllocation);
+
+      // Update the hour package
+      const pkgRef = doc(db, HOUR_PACKAGES_COLLECTION, data.hourPackageId!);
+      await updateDoc(pkgRef, {
+        hoursUsed: pkg.hoursUsed + (data.allocatedHours || 0),
+        hoursRemaining: pkg.hoursRemaining - (data.allocatedHours || 0),
+        status: pkg.hoursRemaining - (data.allocatedHours || 0) <= 0 ? 'depleted' : 'active',
+      });
+
+      const createdAllocation: HourAllocation = {
+        id: docRef.id,
+        ...newAllocation,
+        allocatedAt: new Date().toISOString(),
+      } as HourAllocation;
+
+      return createdAllocation;
+    } catch (error) {
+      console.error('[InvoiceStore] Error creating allocation:', error);
+      set({ error: 'Failed to create allocation' });
+      throw error;
+    }
   },
 
-  useHours: (allocationId, hours, description, freelancerId, projectId, taskId) => {
+  useHours: async (allocationId, hours, description, freelancerId, projectId, taskId) => {
+    if (!isFirebaseConfigured() || !db) {
+      return false;
+    }
+
     const allocation = get().hourAllocations.find(a => a.id === allocationId);
     if (!allocation || allocation.remainingHours < hours) {
       return false;
     }
-    
-    const newTransaction: HourTransaction = {
-      id: `txn-${Date.now()}`,
-      allocationId,
-      projectId,
-      taskId,
-      freelancerId,
-      hours,
-      description,
-      createdAt: new Date().toISOString(),
-      status: 'pending',
-    };
-    
-    set(state => ({
-      hourAllocations: state.hourAllocations.map(a => 
-        a.id === allocationId 
-          ? { 
-              ...a, 
-              usedHours: a.usedHours + hours,
-              remainingHours: a.remainingHours - hours,
-              status: a.remainingHours - hours <= 0 ? 'exhausted' : 'active'
-            }
-          : a
-      ),
-      hourTransactions: [...state.hourTransactions, newTransaction],
-    }));
-    
-    return true;
+
+    try {
+      const newTransaction = {
+        allocationId,
+        projectId,
+        taskId,
+        freelancerId,
+        hours,
+        description,
+        createdAt: serverTimestamp(),
+        status: 'pending' as const,
+      };
+
+      await addDoc(collection(db, HOUR_TRANSACTIONS_COLLECTION), newTransaction);
+
+      // Update allocation
+      const allocRef = doc(db, HOUR_ALLOCATIONS_COLLECTION, allocationId);
+      await updateDoc(allocRef, {
+        usedHours: allocation.usedHours + hours,
+        remainingHours: allocation.remainingHours - hours,
+        status: allocation.remainingHours - hours <= 0 ? 'exhausted' : 'active',
+      });
+
+      return true;
+    } catch (error) {
+      console.error('[InvoiceStore] Error using hours:', error);
+      set({ error: 'Failed to use hours' });
+      return false;
+    }
   },
 
   getClientPackages: (clientId) => {
@@ -461,7 +457,7 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
     const taxRate = data.taxRate || 0.10;
     const taxAmount = subtotal * taxRate;
     const total = subtotal + taxAmount;
-    
+
     const invoice = await get().createInvoice({
       ...data,
       timeEntries: timeEntries.map(te => te.id),
@@ -472,7 +468,7 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
       taxAmount,
       total,
     });
-    
+
     return invoice;
   },
 }));

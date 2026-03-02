@@ -8,6 +8,9 @@
 import { AgentCheck, AgentIssue } from '@/types';
 import { FileParser, fileParser } from '@/agents/services/FileParser';
 import { DrawingType, DrawingData, ProjectInfo } from '@/types/agent';
+import { agentOrchestrator } from '@/orchestrator/AgentOrchestrator';
+import { auditLogger, AuditEventType } from '@/orchestrator/AuditLogger';
+import { getAgentLogs, getProjectAgentLogs } from '@/services/firebase/agentService';
 
 // Types matching the architecture document
 export interface AgentAnalysisRequest {
@@ -129,164 +132,258 @@ export async function parseDrawingFile(
  * Submit a drawing for analysis by all agents
  */
 export async function analyzeDrawing(request: AgentAnalysisRequest): Promise<AgentAnalysisResult> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  const result: AgentAnalysisResult = {
-    drawingId: request.drawingId,
+  // Use real orchestrator to analyze drawing
+  const drawingData: DrawingData = {
+    id: request.drawingId,
+    projectId: request.projectInfo.id,
+    type: request.drawingType,
     filename: request.filename,
-    status: 'analyzing',
-    results: getAllAgents().map(agent => ({
-      agentId: agent.id,
-      agentName: agent.name,
-      status: 'pending' as const,
-      accuracy: 0,
-      issues: [],
-    })),
-    orchestratorScore: 0,
-    createdAt: new Date(),
+    content: request.file,
+    metadata: {
+      uploadDate: new Date(),
+      fileSize: request.file instanceof File ? request.file.size : 0,
+      fileType: request.file instanceof File ? request.file.type : 'application/octet-stream',
+    }
   };
-  
-  return result;
+
+  try {
+    const result = await agentOrchestrator.analyzeDrawing(drawingData, request.projectInfo);
+
+    // Transform orchestrator result to AgentAnalysisResult format
+    return {
+      drawingId: request.drawingId,
+      filename: request.filename,
+      status: 'completed',
+      results: result.agentResults.map(ar => ({
+        agentId: ar.agentId,
+        agentName: ar.agentName,
+        status: ar.status === 'error' ? 'error' : 'completed',
+        accuracy: ar.complianceScore || 0,
+        issues: ar.findings?.map(f => ({
+          id: f.id,
+          type: mapFindingTypeToIssueType(f.type),
+          severity: f.severity,
+          description: f.description,
+          location: f.location,
+          suggestion: f.suggestion,
+          isResolved: f.isResolved || false,
+        })) || [],
+        processingTime: ar.processingTime,
+        completedAt: ar.completionTime,
+        complianceScore: ar.complianceScore,
+      })),
+      orchestratorScore: result.overallComplianceScore,
+      createdAt: result.timestamp,
+      completedAt: new Date(),
+      summary: {
+        totalFindings: result.allFindings.length,
+        bySeverity: countFindingsBySeverity(result.allFindings),
+        complianceScore: result.overallComplianceScore,
+      }
+    };
+  } catch (error) {
+    console.error('[AgentAPI] Analysis failed:', error);
+    throw new Error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 /**
  * GET /api/agents/results/{drawingId}
  * Get analysis results for a specific drawing
+ * TODO: Implement Firestore fetching for historical analysis results
  */
 export async function getAnalysisResults(drawingId: string): Promise<AgentAnalysisResult | null> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
-  const agents = getAllAgents();
-  
-  // Generate mock results
-  const results: AgentResult[] = agents.map(agent => {
-    const issueCount = Math.floor(Math.random() * 4);
-    const issues: AgentIssue[] = [];
-    
-    const issueTypes: AgentIssue['type'][] = ['compliance', 'dimension', 'scale', 'annotation', 'layer', 'symbol', 'other'];
-    
-    for (let i = 0; i < issueCount; i++) {
-      issues.push({
-        id: `issue-${agent.id}-${i}`,
-        type: issueTypes[Math.floor(Math.random() * issueTypes.length)] as AgentIssue['type'],
-        severity: ['critical', 'high', 'medium', 'low'][Math.floor(Math.random() * 4)] as AgentIssue['severity'],
-        description: `Issue detected by ${agent.name}`,
-        location: { x: Math.random() * 800, y: Math.random() * 600 },
-        suggestion: 'Review and correct the identified issue',
-        isResolved: false,
-      });
-    }
-    
-    return {
-      agentId: agent.id,
-      agentName: agent.name,
-      status: 'completed' as const,
-      accuracy: agent.accuracy,
-      issues,
-      complianceScore: Math.floor(Math.random() * 100),
-      processingTime: Math.random() * 10 + 2,
-      completedAt: new Date(),
-    };
-  });
-  
-  const orchestratorScore = results.reduce((sum, r) => sum + (r.complianceScore || 0), 0) / results.length;
-  
-  // Calculate summary
-  const totalFindings = results.reduce((sum, r) => sum + r.issues.length, 0);
-  const bySeverity: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0 };
-  
-  results.forEach(r => {
-    r.issues.forEach(i => {
-      bySeverity[i.severity] = (bySeverity[i.severity] || 0) + 1;
+  try {
+    // Try to get recent audit logs for this drawing to reconstruct results
+    const auditEntries = auditLogger.getEntries({
+      drawingId,
+      eventTypes: [AuditEventType.AGENT_COMPLETE, AuditEventType.COMPLIANCE_CHECK],
     });
-  });
-  
-  return {
-    drawingId,
-    filename: 'drawing.dwg',
-    status: 'completed',
-    results,
-    orchestratorScore: Math.round(orchestratorScore),
-    createdAt: new Date(Date.now() - 60000),
-    completedAt: new Date(),
-    summary: {
-      totalFindings,
-      bySeverity,
-      complianceScore: Math.round(orchestratorScore)
+
+    if (auditEntries.length === 0) {
+      // No results found in audit log
+      return null;
     }
-  };
+
+    // Get the most recent compliance check entry
+    const complianceEntry = auditEntries.find(e => e.eventType === AuditEventType.COMPLIANCE_CHECK);
+    
+    // Get agent logs from Firestore for more detailed results
+    const agentLogs = await getAgentLogs(drawingId, 100);
+
+    // Reconstruct results from available data
+    const agentResults: AgentResult[] = [];
+    const agents = getAllAgents();
+
+    for (const agent of agents) {
+      const agentLogEntries = auditEntries.filter(e => e.agentId === agent.id);
+      const completedEntry = agentLogEntries.find(e => e.eventType === AuditEventType.AGENT_COMPLETE);
+
+      if (completedEntry) {
+        agentResults.push({
+          agentId: agent.id,
+          agentName: agent.name,
+          status: 'completed',
+          accuracy: completedEntry.details?.complianceScore as number || 0,
+          issues: [], // Issues would need to be fetched from a separate store
+          processingTime: completedEntry.duration,
+          completedAt: completedEntry.timestamp,
+          complianceScore: completedEntry.details?.complianceScore as number || 0,
+        });
+      }
+    }
+
+    const orchestratorScore = complianceEntry?.details?.complianceScore as number || 0;
+
+    return {
+      drawingId,
+      filename: `drawing-${drawingId}.dwg`,
+      status: 'completed',
+      results: agentResults,
+      orchestratorScore,
+      createdAt: auditEntries[0]?.timestamp || new Date(),
+      completedAt: complianceEntry?.timestamp || new Date(),
+      summary: {
+        totalFindings: complianceEntry?.details?.failed as number || 0,
+        bySeverity: { critical: 0, high: 0, medium: 0, low: 0 }, // Would need to calculate from actual findings
+        complianceScore: orchestratorScore,
+      }
+    };
+  } catch (error) {
+    console.error('[AgentAPI] Error fetching analysis results:', error);
+    return null;
+  }
 }
 
 /**
  * POST /api/agents/override
  * Override an agent's decision on an issue
+ * TODO: Implement with Firestore integration for persistence
  */
 export async function overrideAgentDecision(request: AgentOverrideRequest): Promise<{ success: boolean; message: string }> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
-  return {
-    success: true,
-    message: `Issue ${request.issueId} overridden by ${request.overriddenBy}. Reason: ${request.reason}`,
-  };
+  try {
+    // Log the override action
+    auditLogger.log(AuditEventType.FINDING_OVERRIDE, 
+      `Issue ${request.issueId} overridden by ${request.overriddenBy}`,
+      {
+        agentId: request.agentId,
+        drawingId: request.drawingId,
+        details: {
+          issueId: request.issueId,
+          reason: request.reason,
+          overriddenBy: request.overriddenBy,
+        },
+        status: 'success',
+      }
+    );
+
+    return {
+      success: true,
+      message: `Issue ${request.issueId} overridden by ${request.overriddenBy}. Reason: ${request.reason}`,
+    };
+  } catch (error) {
+    console.error('[AgentAPI] Error overriding agent decision:', error);
+    return {
+      success: false,
+      message: `Failed to override issue: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    };
+  }
 }
 
 /**
  * GET /api/agents/accuracy
  * Get accuracy metrics for all agents
+ * Uses real orchestrator metrics
  */
 export async function getAgentAccuracyMetrics(): Promise<AgentAccuracyMetrics> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 200));
-  
-  const agents = getAllAgents();
-  
-  const agentAccuracy: AgentAccuracy[] = agents.map(agent => {
-    const totalChecks = Math.floor(Math.random() * 500) + 500;
-    const successfulChecks = Math.floor(totalChecks * (agent.accuracy / 100));
-    
+  try {
+    const agentMetrics = agentOrchestrator.getAgentMetrics() as Map<string, {
+      agentId: string;
+      agentName: string;
+      tasksCompleted: number;
+      tasksFailed: number;
+      averageProcessingTime: number;
+    }>;
+
+    const agentAccuracy: AgentAccuracy[] = [];
+
+    for (const [, metrics] of agentMetrics) {
+      const totalChecks = metrics.tasksCompleted + metrics.tasksFailed;
+      const successfulChecks = metrics.tasksCompleted;
+      // Calculate accuracy based on successful vs failed tasks
+      const accuracy = totalChecks > 0 ? (successfulChecks / totalChecks) * 100 : 0;
+
+      agentAccuracy.push({
+        agentId: metrics.agentId,
+        agentName: metrics.agentName,
+        accuracy: Math.round(accuracy * 100) / 100,
+        totalChecks,
+        successfulChecks,
+        lastUpdated: new Date(),
+      });
+    }
+
+    const overallAccuracy = agentAccuracy.length > 0
+      ? agentAccuracy.reduce((sum, a) => sum + a.accuracy, 0) / agentAccuracy.length
+      : 0;
+
+    const belowThresholdAgents = agentAccuracy
+      .filter(a => a.accuracy < 98)
+      .map(a => a.agentId);
+
     return {
-      agentId: agent.id,
-      agentName: agent.name,
-      accuracy: agent.accuracy,
-      totalChecks,
-      successfulChecks,
-      lastUpdated: new Date(),
+      agents: agentAccuracy,
+      overallAccuracy: Math.round(overallAccuracy * 100) / 100,
+      threshold: 98,
+      belowThresholdAgents,
     };
-  });
-  
-  const overallAccuracy = agentAccuracy.reduce((sum, a) => sum + a.accuracy, 0) / agentAccuracy.length;
-  const belowThresholdAgents = agentAccuracy
-    .filter(a => a.accuracy < 98)
-    .map(a => a.agentId);
-  
-  return {
-    agents: agentAccuracy,
-    overallAccuracy: Math.round(overallAccuracy * 100) / 100,
-    threshold: 98,
-    belowThresholdAgents,
-  };
+  } catch (error) {
+    console.error('[AgentAPI] Error fetching agent accuracy metrics:', error);
+    // Return empty metrics on error
+    return {
+      agents: [],
+      overallAccuracy: 0,
+      threshold: 98,
+      belowThresholdAgents: [],
+    };
+  }
 }
 
 /**
  * Generate compliance report
+ * TODO: Implement full report generation with Firestore persistence
  */
 export async function generateReport(request: ReportGenerationRequest): Promise<ReportGenerationResult> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  const reportId = `report-${Date.now()}`;
-  
-  return {
-    reportId,
-    projectId: request.projectId,
-    type: request.reportType,
-    format: request.format,
-    generatedAt: new Date(),
-    downloadUrl: `/api/reports/${reportId}/download`,
-  };
+  try {
+    // Log report generation attempt
+    auditLogger.log(
+      AuditEventType.USER_ACTION,
+      `Report generated: ${request.reportType}`,
+      {
+        projectId: request.projectId,
+        drawingId: request.drawingId,
+        details: {
+          reportType: request.reportType,
+          format: request.format,
+          includeCharts: request.includeCharts,
+        }
+      }
+    );
+
+    const reportId = `report-${Date.now()}`;
+
+    return {
+      reportId,
+      projectId: request.projectId,
+      type: request.reportType,
+      format: request.format,
+      generatedAt: new Date(),
+      downloadUrl: `/api/reports/${reportId}/download`,
+    };
+  } catch (error) {
+    console.error('[AgentAPI] Error generating report:', error);
+    throw new Error(`Failed to generate report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 // Helper function to get all 14 agents including new specialized agents
@@ -294,7 +391,7 @@ export function getAllAgents() {
   return [
     // Technical Validation Agents
     {
-      id: 'dimension-validator',
+      id: 'dimension-validator-agent',
       name: 'Dimension Validator',
       type: 'validator',
       status: 'active' as const,
@@ -306,7 +403,7 @@ export function getAllAgents() {
       capabilities: ['Length Verification', 'Width Check', 'Height Validation', 'Tolerance Analysis'],
     },
     {
-      id: 'scale-verifier',
+      id: 'scale-verifier-agent',
       name: 'Scale Verifier',
       type: 'validator',
       status: 'active' as const,
@@ -318,7 +415,7 @@ export function getAllAgents() {
       capabilities: ['Scale Consistency', 'Proportion Check', 'Unit Conversion'],
     },
     {
-      id: 'layer-analyzer',
+      id: 'layer-analyzer-agent',
       name: 'Layer Analyzer',
       type: 'analyzer',
       status: 'idle' as const,
@@ -330,7 +427,7 @@ export function getAllAgents() {
       capabilities: ['Layer Naming', 'Organization Check', 'Visibility Settings'],
     },
     {
-      id: 'symbol-recognizer',
+      id: 'symbol-recognizer-agent',
       name: 'Symbol Recognizer',
       type: 'analyzer',
       status: 'active' as const,
@@ -342,7 +439,7 @@ export function getAllAgents() {
       capabilities: ['Symbol Detection', 'Notation Check', 'Standard Verification'],
     },
     {
-      id: 'text-clarity-checker',
+      id: 'text-clarity-checker-agent',
       name: 'Text Clarity Checker',
       type: 'reviewer',
       status: 'active' as const,
@@ -355,7 +452,7 @@ export function getAllAgents() {
     },
     // SANS 10400 Specialized Agents
     {
-      id: 'site-plan-compliance',
+      id: 'siteplan-compliance-agent',
       name: 'Site Plan Compliance Agent',
       type: 'compliance',
       status: 'active' as const,
@@ -367,7 +464,7 @@ export function getAllAgents() {
       capabilities: ['SANS 10400-A', 'Boundary Requirements', 'Site Access', 'Drainage'],
     },
     {
-      id: 'floor-plan-compliance',
+      id: 'floorplan-compliance-agent',
       name: 'Floor Plan Compliance Agent',
       type: 'compliance',
       status: 'active' as const,
@@ -379,7 +476,7 @@ export function getAllAgents() {
       capabilities: ['SANS 10400-A', 'SANS 10400-O', 'Room Dimensions', 'Sanitary Facilities'],
     },
     {
-      id: 'elevation-compliance',
+      id: 'elevation-compliance-agent',
       name: 'Elevation Compliance Agent',
       type: 'compliance',
       status: 'active' as const,
@@ -391,7 +488,7 @@ export function getAllAgents() {
       capabilities: ['SANS 10400-A', 'SANS 10400-T', 'Height Restrictions', 'Visual Impact'],
     },
     {
-      id: 'section-compliance',
+      id: 'section-compliance-agent',
       name: 'Section Compliance Agent',
       type: 'compliance',
       status: 'active' as const,
@@ -403,7 +500,7 @@ export function getAllAgents() {
       capabilities: ['SANS 10400-A', 'SANS 10400-K', 'Structural Elements', 'Clearances'],
     },
     {
-      id: 'drainage-compliance',
+      id: 'drainage-compliance-agent',
       name: 'Drainage Compliance Agent',
       type: 'compliance',
       status: 'active' as const,
@@ -415,7 +512,7 @@ export function getAllAgents() {
       capabilities: ['SANS 10400-P', 'SANS 10252', 'Drainage Layout', 'Stormwater'],
     },
     {
-      id: 'fire-compliance',
+      id: 'fire-compliance-agent',
       name: 'Fire Compliance Agent',
       type: 'compliance',
       status: 'active' as const,
@@ -427,7 +524,7 @@ export function getAllAgents() {
       capabilities: ['SANS 10400-T', 'Escape Routes', 'Fire Doors', 'Detection Systems'],
     },
     {
-      id: 'energy-compliance',
+      id: 'energy-compliance-agent',
       name: 'Energy Compliance Agent',
       type: 'compliance',
       status: 'active' as const,
@@ -440,7 +537,7 @@ export function getAllAgents() {
     },
     // NEW: Specialized Compliance Agents
     {
-      id: 'structural-compliance',
+      id: 'structural-compliance-agent',
       name: 'Structural Compliance Agent',
       type: 'compliance',
       status: 'active' as const,
@@ -452,7 +549,7 @@ export function getAllAgents() {
       capabilities: ['SANS 10160', 'SANS 10137', 'SANS 10182', 'SANS 10221', 'Load Actions', 'Concrete', 'Steel', 'Timber'],
     },
     {
-      id: 'municipal-requirements',
+      id: 'municipal-requirements-agent',
       name: 'Municipal Requirements Agent',
       type: 'compliance',
       status: 'active' as const,
@@ -464,7 +561,7 @@ export function getAllAgents() {
       capabilities: ['Zoning Compliance', 'FAR', 'Site Coverage', 'Parking', 'Stormwater', 'Building Lines'],
     },
     {
-      id: 'accessibility-compliance',
+      id: 'accessibility-compliance-agent',
       name: 'Accessibility Agent',
       type: 'compliance',
       status: 'active' as const,
@@ -476,7 +573,7 @@ export function getAllAgents() {
       capabilities: ['NBR Part S', 'Wheelchair Access', 'Ramps', 'Door Widths', 'Grab Rails', 'WC Cubicles'],
     },
     {
-      id: 'final-review',
+      id: 'final-review-agent',
       name: 'Final Review Agent',
       type: 'reviewer',
       status: 'active' as const,
@@ -525,65 +622,154 @@ export interface ConflictResolution {
 
 /**
  * Get current orchestrator status
+ * Uses real orchestrator status
  */
 export async function getOrchestratorStatus(): Promise<OrchestratorStatus> {
-  await new Promise(resolve => setTimeout(resolve, 200));
-  
-  return {
-    isActive: true,
-    currentTask: 'Processing drawing draw-2',
-    taskQueue: 3,
-    completedTasks: 156,
-    failedTasks: 2,
-    conflictsDetected: 5,
-    conflictsResolved: 4,
-    lastUpdate: new Date(),
-  };
+  try {
+    const status = agentOrchestrator.getStatus();
+    const agentMetrics = agentOrchestrator.getAgentMetrics() as Map<string, { tasksFailed: number }>;
+
+    // Calculate failed tasks from agent metrics
+    let totalFailedTasks = 0;
+    for (const [, metrics] of agentMetrics) {
+      totalFailedTasks += metrics.tasksFailed;
+    }
+
+    return {
+      isActive: status.activeAgents > 0,
+      currentTask: status.activeAgents > 0 ? `Processing with ${status.activeAgents} agents` : null,
+      taskQueue: status.queueLength,
+      completedTasks: status.auditLogSize, // Using audit log size as proxy for completed tasks
+      failedTasks: totalFailedTasks,
+      conflictsDetected: 0, // Would need to track conflicts separately
+      conflictsResolved: 0,
+      lastUpdate: new Date(),
+    };
+  } catch (error) {
+    console.error('[AgentAPI] Error fetching orchestrator status:', error);
+    // Return default status on error
+    return {
+      isActive: false,
+      currentTask: null,
+      taskQueue: 0,
+      completedTasks: 0,
+      failedTasks: 0,
+      conflictsDetected: 0,
+      conflictsResolved: 0,
+      lastUpdate: new Date(),
+    };
+  }
 }
 
 /**
  * Get task delegation flow
+ * Uses audit logger to get recent task activity
  */
 export async function getTaskDelegationFlow(): Promise<TaskDelegation[]> {
-  await new Promise(resolve => setTimeout(resolve, 200));
-  
-  return [
-    {
-      taskId: 'task-1',
-      drawingId: 'draw-2',
-      assignedAgents: getAllAgents().map(a => a.id),
-      status: 'in_progress',
-      startedAt: new Date(Date.now() - 30000),
-    },
-    {
-      taskId: 'task-2',
-      drawingId: 'draw-3',
-      assignedAgents: getAllAgents().map(a => a.id),
-      status: 'pending',
-      startedAt: new Date(),
-    },
-  ];
+  try {
+    // Get recent audit entries for task-related events
+    const auditEntries = auditLogger.getEntries({
+      eventTypes: [AuditEventType.AGENT_START, AuditEventType.AGENT_COMPLETE],
+    });
+
+    // Group entries by task/drawing
+    const taskMap = new Map<string, TaskDelegation>();
+
+    for (const entry of auditEntries) {
+      const drawingId = entry.drawingId || 'unknown';
+      const taskId = entry.details?.taskId as string || `task-${drawingId}`;
+
+      if (!taskMap.has(taskId)) {
+        taskMap.set(taskId, {
+          taskId,
+          drawingId,
+          assignedAgents: [],
+          status: 'pending',
+          startedAt: entry.timestamp,
+        });
+      }
+
+      const task = taskMap.get(taskId)!;
+
+      if (entry.agentId && !task.assignedAgents.includes(entry.agentId)) {
+        task.assignedAgents.push(entry.agentId);
+      }
+
+      if (entry.eventType === AuditEventType.AGENT_COMPLETE) {
+        task.status = 'completed';
+        task.completedAt = entry.timestamp;
+      } else if (entry.eventType === AuditEventType.AGENT_START && task.status === 'pending') {
+        task.status = 'in_progress';
+      }
+    }
+
+    return Array.from(taskMap.values());
+  } catch (error) {
+    console.error('[AgentAPI] Error fetching task delegation flow:', error);
+    return [];
+  }
 }
 
 /**
  * Get conflict resolution status
+ * TODO: Implement proper conflict tracking with Firestore persistence
  */
 export async function getConflictResolution(): Promise<ConflictResolution[]> {
-  await new Promise(resolve => setTimeout(resolve, 200));
+  try {
+    // Currently conflicts are detected during analysis but not persisted separately
+    // This would need a dedicated Firestore collection for conflict tracking
+    // For now, return empty array - conflicts are logged in audit log
+    
+    const auditEntries = auditLogger.getEntries({
+      eventTypes: [AuditEventType.SYSTEM_ERROR],
+    });
+
+    // Filter entries that might indicate conflicts
+    const conflictEntries = auditEntries.filter(e => 
+      e.description.toLowerCase().includes('conflict') ||
+      e.description.toLowerCase().includes('disagreement')
+    );
+
+    return conflictEntries.map((entry, index) => ({
+      conflictId: `conflict-${index}`,
+      taskId: entry.details?.taskId as string || 'unknown',
+      conflictingAgents: entry.agentId ? [entry.agentId] : [],
+      issue: entry.description,
+      status: 'detected',
+      detectedAt: entry.timestamp,
+    }));
+  } catch (error) {
+    console.error('[AgentAPI] Error fetching conflict resolutions:', error);
+    return [];
+  }
+}
+
+// Helper functions
+function mapFindingTypeToIssueType(findingType: string): AgentIssue['type'] {
+  const typeMap: Record<string, AgentIssue['type']> = {
+    'compliance': 'compliance',
+    'dimension': 'dimension',
+    'scale': 'scale',
+    'annotation': 'annotation',
+    'layer': 'layer',
+    'symbol': 'symbol',
+    'text': 'annotation',
+    'error': 'other',
+  };
+  return typeMap[findingType] || 'other';
+}
+
+function countFindingsBySeverity(findings: { severity: string }[]): Record<string, number> {
+  const bySeverity: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0 };
   
-  return [
-    {
-      conflictId: 'conflict-1',
-      taskId: 'task-1',
-      conflictingAgents: ['dimension-validator', 'scale-verifier'],
-      issue: 'Dimension value disagreement: 3000mm vs 3.0m',
-      status: 'resolved',
-      resolvedBy: 'orchestrator',
-      resolution: 'Standardized to metric units',
-      detectedAt: new Date(Date.now() - 60000),
-      resolvedAt: new Date(Date.now() - 30000),
-    },
-  ];
+  for (const finding of findings) {
+    const severity = finding.severity.toLowerCase();
+    if (severity in bySeverity) {
+      bySeverity[severity] = (bySeverity[severity] || 0) + 1;
+    }
+  }
+  
+  return bySeverity;
 }
 
 // File Parser Exports

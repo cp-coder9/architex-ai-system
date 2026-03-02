@@ -47,3 +47,14 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+# Vercel
+.vercel
+.vercel/output
+.vercel/cache
+
+# Local Vercel environment files
+.env.vercel
+.env.vercel.local
+.env.vercel.production.local
+.env.vercel.preview.local

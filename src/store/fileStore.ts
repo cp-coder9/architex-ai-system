@@ -7,6 +7,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { useAuthStore } from './authStore';
 
 // File type definitions
 export interface FileItem {
@@ -80,6 +81,10 @@ export const useFileStore = create<FileState>()(
 
         clearInterval(progressInterval);
 
+        // Get the actual current user ID from authStore
+        const currentUser = useAuthStore.getState().currentUser;
+        const ownerId = currentUser?.id || 'anonymous';
+
         const newFile: FileItem = {
           id: `file-${Date.now()}`,
           name: file.name,
@@ -88,7 +93,7 @@ export const useFileStore = create<FileState>()(
           uploadedAt: new Date(),
           folder: folderId || null,
           url: URL.createObjectURL(file),
-          ownerId: 'current-user', // This should be replaced with actual user ID
+          ownerId: ownerId,
         };
 
         set((state) => ({

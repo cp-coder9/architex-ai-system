@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useProjectStore, useInvoiceStore } from '@/store';
+import { useProjectStore, useInvoiceStore, useSettingsStore } from '@/store';
 import { Project, ProjectStatus, HourAllocation } from '@/types';
 import { NewProjectDialog } from './NewProjectDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,10 +53,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
-// Mock clients for the dropdown
-const mockClients = [
-  { id: 'client-1', name: 'John Smith', company: 'Smith Architecture Firm' },
-];
+// Clients will be fetched from settingsStore
 
 // Project Card component for grid view
 interface ProjectCardProps { project: Project; getStatusIcon: (status: ProjectStatus) => React.ComponentType<{ className?: string }>; getStatusColor: (status: ProjectStatus) => string; onSelect: (project: Project) => void; } function ProjectCard({ project, getStatusIcon, getStatusColor, onSelect }: ProjectCardProps) {
@@ -201,7 +198,8 @@ function AllocationDetailsDialog({ allocation }: { allocation: HourAllocation })
   const transactions = getTransactionsByAllocationId(allocation.id);
   const packageInfo = hourPackages.find(p => p.id === allocation.hourPackageId);
   const project = useProjectStore(state => state.projects.find(p => p.id === allocation.projectId));
-  const client = mockClients.find(c => c.id === allocation.clientId);
+  const getUserById = useSettingsStore(state => state.getUserById);
+  const client = getUserById(allocation.clientId);
 
   return (
     <div className="space-y-6">
@@ -285,12 +283,16 @@ function AllocationDetailsDialog({ allocation }: { allocation: HourAllocation })
 function AllocateHoursDialog() {
   const { projects } = useProjectStore();
   const { hourPackages, createAllocation } = useInvoiceStore();
+  const { users, getUsersByRole } = useSettingsStore();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string>('');
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [selectedPackage, setSelectedPackage] = useState<string>('');
   const [hoursToAllocate, setHoursToAllocate] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Get all clients from settingsStore
+  const clients = useMemo(() => getUsersByRole('client'), [getUsersByRole, users]);
 
   // Get available packages for selected client
   const availablePackages = useMemo(() => {
@@ -370,9 +372,9 @@ function AllocateHoursDialog() {
                 <SelectValue placeholder="Select a client" />
               </SelectTrigger>
               <SelectContent>
-                {mockClients.map(client => (
+                {clients.map(client => (
                   <SelectItem key={client.id} value={client.id}>
-                    {client.name} - {client.company}
+                    {client.name} - {client.company || 'No company'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -476,19 +478,10 @@ const getAllocationStatusColor = (status: string) => {
   }
 };
 
-// Get client name by ID
-const getClientName = (clientId: string) => {
-  const client = mockClients.find(c => c.id === clientId);
-  return client?.name || 'Unknown Client';
-};
-
-// Get project name by ID (Needs projects array, so will keep internal or pass)
-// Actually these helpers need projects/hourPackages which are in stores.
-// If I move them outside, I need to pass the data.
-
 export function ProjectOversight() {
   const { projects, drawings } = useProjectStore();
   const { hourAllocations, hourPackages } = useInvoiceStore();
+  const { getUserById } = useSettingsStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -522,6 +515,12 @@ export function ProjectOversight() {
   const getPackageInfo = (packageId: string) => {
     const pkg = hourPackages.find(p => p.id === packageId);
     return pkg ? `${pkg.hours} hours @ R${pkg.pricePerHour}/hr` : 'Unknown Package';
+  };
+
+  // Get client name by ID using settingsStore
+  const getClientName = (clientId: string) => {
+    const client = getUserById(clientId);
+    return client?.name || 'Unknown Client';
   };
 
   // Filter and sort projects

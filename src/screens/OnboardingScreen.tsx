@@ -46,7 +46,6 @@ import {
     AlertCircle,
     User,
     MapPin,
-    Search,
     Phone,
     Mail,
 } from 'lucide-react';
@@ -154,32 +153,6 @@ const getFileIcon = (type: string) => {
     return File;
 };
 
-// Mock South African addresses for autocomplete
-const mockSouthAfricanAddresses: Array<{
-    full: string;
-    street: string;
-    suburb: string;
-    city: string;
-    province: string;
-    postalCode: string;
-}> = [
-        { full: '123 Main Street, Sandton, Johannesburg, Gauteng, 2196', street: '123 Main Street', suburb: 'Sandton', city: 'Johannesburg', province: 'Gauteng', postalCode: '2196' },
-        { full: '45 Oxford Road, Rosebank, Johannesburg, Gauteng, 2196', street: '45 Oxford Road', suburb: 'Rosebank', city: 'Johannesburg', province: 'Gauteng', postalCode: '2196' },
-        { full: '78 Victoria Road, Woodstock, Cape Town, Western Cape, 7925', street: '78 Victoria Road', suburb: 'Woodstock', city: 'Cape Town', province: 'Western Cape', postalCode: '7925' },
-        { full: '22 Long Street, City Centre, Cape Town, Western Cape, 8001', street: '22 Long Street', suburb: 'City Centre', city: 'Cape Town', province: 'Western Cape', postalCode: '8001' },
-        { full: '156 Florida Road, Morningside, Durban, KwaZulu-Natal, 4001', street: '156 Florida Road', suburb: 'Morningside', city: 'Durban', province: 'KwaZulu-Natal', postalCode: '4001' },
-        { full: '89 Musgrave Road, Berea, Durban, KwaZulu-Natal, 4001', street: '89 Musgrave Road', suburb: 'Berea', city: 'Durban', province: 'KwaZulu-Natal', postalCode: '4001' },
-        { full: '234 Pretorius Street, Hatfield, Pretoria, Gauteng, 0083', street: '234 Pretorius Street', suburb: 'Hatfield', city: 'Pretoria', province: 'Gauteng', postalCode: '0083' },
-        { full: '567 Church Street, Arcadia, Pretoria, Gauteng, 0007', street: '567 Church Street', suburb: 'Arcadia', city: 'Pretoria', province: 'Gauteng', postalCode: '0007' },
-        { full: '99 Beach Road, Summerstrand, Port Elizabeth, Eastern Cape, 6001', street: '99 Beach Road', suburb: 'Summerstrand', city: 'Port Elizabeth', province: 'Eastern Cape', postalCode: '6001' },
-        { full: '12 Newton Street, Newton Park, Port Elizabeth, Eastern Cape, 6045', street: '12 Newton Street', suburb: 'Newton Park', city: 'Port Elizabeth', province: 'Eastern Cape', postalCode: '6045' },
-        { full: '345 Jan Shoba Street, Hatfield, Pretoria, Gauteng, 0028', street: '345 Jan Shoba Street', suburb: 'Hatfield', city: 'Pretoria', province: 'Gauteng', postalCode: '0028' },
-        { full: '77 Rivonia Road, Sandton, Johannesburg, Gauteng, 2196', street: '77 Rivonia Road', suburb: 'Sandton', city: 'Johannesburg', province: 'Gauteng', postalCode: '2196' },
-        { full: '88 Loop Street, Cape Town City Centre, Cape Town, Western Cape, 8001', street: '88 Loop Street', suburb: 'Cape Town City Centre', city: 'Cape Town', province: 'Western Cape', postalCode: '8001' },
-        { full: '156 Main Road, Sea Point, Cape Town, Western Cape, 8060', street: '156 Main Road', suburb: 'Sea Point', city: 'Cape Town', province: 'Western Cape', postalCode: '8060' },
-        { full: '42 Umhlanga Rocks Drive, Umhlanga, Durban, KwaZulu-Natal, 4320', street: '42 Umhlanga Rocks Drive', suburb: 'Umhlanga', city: 'Durban', province: 'KwaZulu-Natal', postalCode: '4320' },
-    ];
-
 export function OnboardingScreen() {
     const navigate = useNavigate();
     const { setTempOnboardingData, acceptTerms, tempOnboardingData: storedOnboardingData } = useAuthStore();
@@ -193,11 +166,6 @@ export function OnboardingScreen() {
     // Validation state
     const [errors, setErrors] = useState<ValidationErrors>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-    // Address autocomplete state
-    const [addressQuery, setAddressQuery] = useState('');
-    const [addressSuggestions, setAddressSuggestions] = useState<typeof mockSouthAfricanAddresses>([]);
-    const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
 
     const [data, setData] = useState<OnboardingData>({
         serviceType: '',
@@ -380,63 +348,7 @@ export function OnboardingScreen() {
         }
     };
 
-    // Address autocomplete handlers
-    const handleAddressQueryChange = (query: string) => {
-        setAddressQuery(query);
-        setData({
-            ...data,
-            propertyDetails: {
-                ...data.propertyDetails,
-                physicalAddress: {
-                    street: query,
-                    suburb: '',
-                    city: '',
-                    province: '',
-                    postalCode: '',
-                }
-            }
-        });
 
-        if (query.length > 2) {
-            const filtered = mockSouthAfricanAddresses.filter(addr =>
-                addr.full.toLowerCase().includes(query.toLowerCase()) ||
-                addr.street.toLowerCase().includes(query.toLowerCase()) ||
-                addr.suburb.toLowerCase().includes(query.toLowerCase())
-            );
-            setAddressSuggestions(filtered);
-            setShowAddressSuggestions(true);
-        } else {
-            setAddressSuggestions([]);
-            setShowAddressSuggestions(false);
-        }
-    };
-
-    const selectAddress = (address: typeof mockSouthAfricanAddresses[0]) => {
-        setData({
-            ...data,
-            propertyDetails: {
-                ...data.propertyDetails,
-                physicalAddress: {
-                    street: address.street,
-                    suburb: address.suburb,
-                    city: address.city,
-                    province: address.province,
-                    postalCode: address.postalCode,
-                }
-            }
-        });
-        setAddressQuery(address.full);
-        setShowAddressSuggestions(false);
-        // Clear errors for address fields
-        setErrors({
-            ...errors,
-            street: undefined,
-            suburb: undefined,
-            city: undefined,
-            province: undefined,
-            postalCode: undefined,
-        });
-    };
 
     // Check if Step 4 (Personal & Property Details) is valid
     const isStep4Valid = useMemo(() => {
@@ -1259,47 +1171,12 @@ export function OnboardingScreen() {
                                         )}
                                     </div>
 
-                                    {/* Address Autocomplete */}
-                                    <div className="space-y-1.5 relative">
-                                        <Label htmlFor="address" className="text-xs font-medium flex items-center gap-1">
-                                            <Search className="w-3 h-3" />
-                                            Physical Address <span className="text-destructive">*</span>
+                                    {/* Address Section Header */}
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs font-medium flex items-center gap-1 text-muted-foreground">
+                                            <MapPin className="w-3 h-3" />
+                                            Physical Address
                                         </Label>
-                                        <div className="relative">
-                                            <Input
-                                                id="address"
-                                                type="text"
-                                                value={addressQuery}
-                                                onChange={(e) => handleAddressQueryChange(e.target.value)}
-                                                placeholder="Start typing to search for address..."
-                                                className="h-9 text-sm pr-10"
-                                                autoComplete="off"
-                                            />
-                                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                        </div>
-
-                                        {/* Address Suggestions */}
-                                        <AnimatePresence>
-                                            {showAddressSuggestions && addressSuggestions.length > 0 && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: -10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -10 }}
-                                                    className="absolute z-50 w-full bg-popover border rounded-md shadow-md max-h-40 overflow-y-auto mt-1"
-                                                >
-                                                    {addressSuggestions.map((address, index) => (
-                                                        <button
-                                                            key={index}
-                                                            type="button"
-                                                            onClick={() => selectAddress(address)}
-                                                            className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors border-b last:border-b-0"
-                                                        >
-                                                            {address.full}
-                                                        </button>
-                                                    ))}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
                                     </div>
 
                                     {/* Address Fields */}

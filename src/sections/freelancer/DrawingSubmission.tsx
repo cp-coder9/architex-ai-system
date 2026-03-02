@@ -1,6 +1,8 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore, useProjectStore } from '@/store';
+import { storage } from '@/config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { DrawingType } from '@/types/agent';
 import { ProofOfWork, ProofAttachment, AgentCheck, AgentIssue } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -270,32 +272,47 @@ export function DrawingSubmission() {
     const newFiles = Array.from(files);
     setUploadedFiles(prev => [...prev, ...newFiles]);
 
-    // Simulate upload process
     setIsUploading(true);
-    for (let i = 0; i <= 100; i += 10) {
-      setUploadProgress(i);
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
-    setIsUploading(false);
     setUploadProgress(0);
 
     // Add drawings to store
-    for (const file of newFiles) {
-      const drawing = await addDrawing({
-        projectId: selectedProject.id,
-        name: file.name.replace(/\.[^/.]+$/, ''),
-        type: DrawingType.FLOOR_PLAN,
-        fileUrl: URL.createObjectURL(file),
-        uploadedBy: currentUser?.id || '',
-        fileSize: file.size,
-      });
+    for (let i = 0; i < newFiles.length; i++) {
+      const file = newFiles[i];
+      try {
+        // Upload to Firebase Storage
+        let fileUrl = '';
+        if (storage) {
+          const storageRef = ref(storage, `drawings/${selectedProject.id}/${Date.now()}_${file.name}`);
+          await uploadBytes(storageRef, file);
+          fileUrl = await getDownloadURL(storageRef);
+        } else {
+          // Fallback if storage is not configured
+          fileUrl = URL.createObjectURL(file);
+        }
 
-      // Run agent check
-      toast.info(`Starting agent check for ${file.name}...`);
-      await runAgentCheck(drawing.id);
-      toast.success(`Agent check complete for ${file.name}`);
+        setUploadProgress(Math.round(((i + 1) / newFiles.length) * 100));
+
+        const drawing = await addDrawing({
+          projectId: selectedProject.id,
+          name: file.name.replace(/\.[^/.]+$/, ''),
+          type: DrawingType.FLOOR_PLAN,
+          fileUrl,
+          uploadedBy: currentUser?.id || '',
+          fileSize: file.size,
+        });
+
+        // Run agent check
+        toast.info(`Starting agent check for ${file.name}...`);
+        await runAgentCheck(drawing.id);
+        toast.success(`Agent check complete for ${file.name}`);
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        toast.error(`Failed to upload ${file.name}`);
+      }
     }
 
+    setIsUploading(false);
+    setUploadProgress(0);
     setUploadedFiles([]);
   };
 
@@ -321,14 +338,30 @@ export function DrawingSubmission() {
 
     setIsSubmittingProof(true);
     try {
-      // Simulate file upload by creating mock attachments
-      const attachments: ProofAttachment[] = proofAttachments.map((file, index) => ({
-        id: `attach-${Date.now()}-${index}`,
-        fileName: file.name,
-        fileUrl: URL.createObjectURL(file),
-        fileType: file.type.startsWith('image/') ? 'image' : file.type.includes('pdf') ? 'document' : 'other',
-        uploadedAt: new Date().toISOString(),
-      }));
+      // Upload attachments to Firebase Storage
+      const attachments: ProofAttachment[] = [];
+
+      for (let i = 0; i < proofAttachments.length; i++) {
+        const file = proofAttachments[i];
+        let fileUrl = '';
+
+        if (storage) {
+          const storageRef = ref(storage, `proofs/${proofProjectId}/${Date.now()}_${file.name}`);
+          await uploadBytes(storageRef, file);
+          fileUrl = await getDownloadURL(storageRef);
+        } else {
+          // Fallback if storage is not configured
+          fileUrl = URL.createObjectURL(file);
+        }
+
+        attachments.push({
+          id: `attach-${Date.now()}-${i}`,
+          fileName: file.name,
+          fileUrl,
+          fileType: file.type.startsWith('image/') ? 'image' : file.type.includes('pdf') ? 'document' : 'other',
+          uploadedAt: new Date().toISOString(),
+        });
+      }
 
       const proofData = {
         taskId: proofTaskId || `task-${Date.now()}`,

@@ -148,6 +148,149 @@ export {
   updateMilestone,
 } from './projectService';
 
+// Export project request service
+export {
+  // Project Requests
+  createProjectRequest,
+  getProjectRequestById,
+  updateProjectRequest,
+  deleteProjectRequest,
+  getProjectRequestsByClient,
+  getAllProjectRequests,
+  getPendingProjectRequests,
+  approveProjectRequest,
+  rejectProjectRequest,
+  markRequestAsConverted,
+  subscribeToProjectRequest,
+  subscribeToClientProjectRequests,
+} from './projectRequestService';
+
+// Export task service
+export {
+  // Tasks
+  createTask,
+  getTaskById,
+  updateTask,
+  deleteTask,
+  getOpenTasks,
+  getTasksByAdmin,
+  getTasksByFreelancer,
+  publishTask,
+  assignTask,
+  completeTask,
+  subscribeToTask,
+  subscribeToOpenTasks,
+
+  // Task Applications
+  createTaskApplication,
+  getApplicationById,
+  getApplicationsByTask,
+  getApplicationsByFreelancer,
+  acceptApplication,
+  rejectApplication,
+  withdrawApplication,
+} from './taskService';
+
+// Export notification service
+export {
+  // Notifications
+  createNotification,
+  getNotificationById,
+  getNotificationsByUser,
+  getUnreadNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+  deleteAllNotifications,
+  getUnreadNotificationCount,
+
+  // Chat Messages
+  sendChatMessage,
+  getChatMessageById,
+  getChatMessagesByProject,
+  markChatMessageAsRead,
+  deleteChatMessage,
+
+  // Subscriptions
+  subscribeToNotifications,
+  subscribeToChatMessages,
+} from './notificationService';
+
+// Export hour tracking service
+export {
+  // Hour Packages
+  createHourPackage,
+  getHourPackageById,
+  getHourPackagesByClient,
+  getActiveHourPackages,
+  updateHourPackageStatus,
+  updateHourPackagePaymentStatus,
+
+  // Hour Allocations
+  createHourAllocation,
+  getHourAllocationById,
+  getAllocationsByProject,
+  getAllocationsByPackage,
+  updateHourAllocationStatus,
+
+  // Hour Transactions
+  createHourTransaction,
+  getHourTransactionById,
+  getTransactionsByAllocation,
+  getTransactionsByProject,
+  approveHourTransaction,
+  rejectHourTransaction,
+
+  // Subscriptions
+  subscribeToHourPackages,
+  subscribeToProjectAllocations,
+} from './hourTrackingService';
+
+// Export proof service
+export {
+  // Proof of Work
+  submitProof,
+  getProofById,
+  updateProof,
+  deleteProof,
+  getProofsByTask,
+  getProofsByFreelancer,
+  getProofsByProject,
+  getPendingProofs,
+  approveProof,
+  rejectProof,
+
+  // Subscriptions
+  subscribeToTaskProofs,
+  subscribeToFreelancerProofs,
+} from './proofService';
+
+// Export audit service
+export {
+  // Audit Logs
+  createAuditLog,
+  getAuditLogById,
+  getAuditLogsByActor,
+  getAuditLogsByCategory,
+  getAuditLogsBySeverity,
+  getAllAuditLogs,
+  getAuditLogsByEntity,
+
+  // Security Events
+  createSecurityEvent,
+  getSecurityEventById,
+  getSecurityEventsByUser,
+  getSecurityEventsBySeverity,
+  getUnresolvedSecurityEvents,
+  resolveSecurityEvent,
+  getAllSecurityEvents,
+
+  // Subscriptions
+  subscribeToSecurityEvents,
+  subscribeToUnresolvedSecurityEvents,
+  subscribeToAuditLogs,
+} from './auditService';
+
 // Re-export Firebase Auth functions for convenience
 export {
   createUserWithEmailAndPassword,

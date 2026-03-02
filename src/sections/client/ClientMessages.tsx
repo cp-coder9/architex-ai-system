@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuthStore, useProjectStore, useNotificationStore } from '@/store';
+import { useAuthStore, useProjectStore, useNotificationStore, useSettingsStore } from '@/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,19 +17,11 @@ import {
   Check,
 } from 'lucide-react';
 
-// Mock freelancer data
-const mockFreelancer = {
-  id: 'freelancer-1',
-  name: 'Sarah Johnson',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=freelancer',
-  status: 'online',
-  lastSeen: 'Active now',
-};
-
 export function ClientMessages() {
   const { currentUser } = useAuthStore();
   const { chatMessages, sendMessage } = useNotificationStore();
   const allProjects = useProjectStore(state => state.projects);
+  const getUserById = useSettingsStore(state => state.getUserById);
   const projects = useMemo(() => allProjects.filter(p => p.clientId === currentUser?.id), [allProjects, currentUser?.id]);
 
   const [selectedProject, setSelectedProject] = useState(projects[0]);
@@ -38,6 +30,12 @@ export function ClientMessages() {
 
   // Get messages for selected project
   const projectMessages = chatMessages.filter(m => m.projectId === selectedProject?.id);
+
+  // Get freelancer info for the selected project
+  const freelancerInfo = useMemo(() => {
+    if (!selectedProject?.freelancerId) return null;
+    return getUserById(selectedProject.freelancerId);
+  }, [selectedProject, getUserById]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -127,11 +125,11 @@ export function ClientMessages() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={mockFreelancer.avatar} />
-                      <AvatarFallback>{mockFreelancer.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={freelancerInfo?.avatar || ''} />
+                      <AvatarFallback>{freelancerInfo?.name?.charAt(0) || 'F'}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-base">{mockFreelancer.name}</CardTitle>
+                      <CardTitle className="text-base">{freelancerInfo?.name || 'Unassigned'}</CardTitle>
                       <CardDescription className="text-xs">
                         {selectedProject.name}
                       </CardDescription>
@@ -169,8 +167,8 @@ export function ClientMessages() {
                             <div className={`flex items-end gap-2 max-w-[70%] ${isMe ? 'flex-row-reverse' : ''}`}>
                               {!isMe && (
                                 <Avatar className="h-8 w-8">
-                                  <AvatarImage src={mockFreelancer.avatar} />
-                                  <AvatarFallback>{mockFreelancer.name.charAt(0)}</AvatarFallback>
+                                  <AvatarImage src={freelancerInfo?.avatar || ''} />
+                                  <AvatarFallback>{freelancerInfo?.name?.charAt(0) || 'F'}</AvatarFallback>
                                 </Avatar>
                               )}
                               <div

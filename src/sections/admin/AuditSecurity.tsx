@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,199 +38,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { AuditLog, SecurityEvent } from '@/types';
-
-// Generate mock audit logs
-const generateMockAuditLogs = (): AuditLog[] => [
-  {
-    id: 'log-1',
-    actorId: 'admin-1',
-    actorName: 'John Smith',
-    actorEmail: 'john.smith@archflow.com',
-    action: 'User created',
-    category: 'user',
-    severity: 'info',
-    status: 'success',
-    details: 'Created new user account for client: Sarah Johnson',
-    ipAddress: '192.168.1.100',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    timestamp: new Date('2024-02-26T10:30:00'),
-    relatedEntityId: 'client-1',
-    relatedEntityType: 'user',
-  },
-  {
-    id: 'log-2',
-    actorId: 'freelancer-1',
-    actorName: 'Michael Chen',
-    actorEmail: 'michael.chen@archflow.com',
-    action: 'Drawing uploaded',
-    category: 'drawing',
-    severity: 'info',
-    status: 'success',
-    details: 'Uploaded new drawing: Ground Floor Plan v3',
-    ipAddress: '192.168.1.105',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-    timestamp: new Date('2024-02-26T09:45:00'),
-    relatedEntityId: 'draw-1',
-    relatedEntityType: 'drawing',
-  },
-  {
-    id: 'log-3',
-    actorId: 'client-1',
-    actorName: 'Sarah Johnson',
-    actorEmail: 'sarah.johnson@techcorp.com',
-    action: 'Project created',
-    category: 'project',
-    severity: 'info',
-    status: 'success',
-    details: 'Created new project request: TechCorp Office Expansion',
-    ipAddress: '203.45.67.89',
-    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)',
-    timestamp: new Date('2024-02-26T08:15:00'),
-    relatedEntityId: 'pr-1',
-    relatedEntityType: 'project_request',
-  },
-  {
-    id: 'log-4',
-    actorId: 'admin-1',
-    actorName: 'John Smith',
-    actorEmail: 'john.smith@archflow.com',
-    action: 'Invoice generated',
-    category: 'invoice',
-    severity: 'info',
-    status: 'success',
-    details: 'Generated invoice INV-2024-001 for project: Modern Villa Renovation',
-    ipAddress: '192.168.1.100',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    timestamp: new Date('2024-02-25T16:30:00'),
-    relatedEntityId: 'inv-1',
-    relatedEntityType: 'invoice',
-  },
-  {
-    id: 'log-5',
-    actorId: 'system',
-    actorName: 'System',
-    actorEmail: 'system@archflow.com',
-    action: 'Agent check completed',
-    category: 'system',
-    severity: 'info',
-    status: 'success',
-    details: 'AI agent completed compliance check on drawing: First Floor Plan - 2 issues found',
-    timestamp: new Date('2024-02-25T14:20:00'),
-    relatedEntityId: 'draw-2',
-    relatedEntityType: 'drawing',
-  },
-  {
-    id: 'log-6',
-    actorId: 'admin-2',
-    actorName: 'Jane Doe',
-    actorEmail: 'jane.doe@archflow.com',
-    action: 'Permission denied',
-    category: 'security',
-    severity: 'warning',
-    status: 'failed',
-    details: 'Attempted to access restricted analytics dashboard',
-    ipAddress: '192.168.1.110',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    timestamp: new Date('2024-02-25T12:00:00'),
-  },
-  {
-    id: 'log-7',
-    actorId: 'client-2',
-    actorName: 'Robert Williams',
-    actorEmail: 'r.williams@residential.com',
-    action: 'Login failed',
-    category: 'security',
-    severity: 'critical',
-    status: 'failed',
-    details: 'Multiple failed login attempts - account temporarily locked',
-    ipAddress: '45.67.89.101',
-    userAgent: 'Mozilla/5.0 (Linux; Android 14)',
-    timestamp: new Date('2024-02-24T18:45:00'),
-  },
-  {
-    id: 'log-8',
-    actorId: 'freelancer-2',
-    actorName: 'Lisa Anderson',
-    actorEmail: 'lisa.anderson@archflow.com',
-    action: 'Drawing approved',
-    category: 'drawing',
-    severity: 'info',
-    status: 'success',
-    details: 'Approved drawing: Site Plan v2 - All checks passed',
-    ipAddress: '192.168.1.108',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-    timestamp: new Date('2024-02-24T15:30:00'),
-    relatedEntityId: 'draw-4',
-    relatedEntityType: 'drawing',
-  },
-];
-
-// Generate mock security events
-const generateMockSecurityEvents = (): SecurityEvent[] => [
-  {
-    id: 'sec-1',
-    eventType: 'failed_login',
-    severity: 'high',
-    userId: 'client-2',
-    userName: 'Robert Williams',
-    description: 'Multiple failed login attempts (5) from IP 45.67.89.101',
-    ipAddress: '45.67.89.101',
-    timestamp: new Date('2024-02-24T18:45:00'),
-    resolved: true,
-    resolvedBy: 'admin-1',
-    resolvedAt: new Date('2024-02-24T19:00:00'),
-  },
-  {
-    id: 'sec-2',
-    eventType: 'permission_denied',
-    severity: 'medium',
-    userId: 'admin-2',
-    userName: 'Jane Doe',
-    description: 'Attempted to access restricted system configuration',
-    ipAddress: '192.168.1.110',
-    timestamp: new Date('2024-02-25T12:00:00'),
-    resolved: true,
-    resolvedBy: 'admin-1',
-    resolvedAt: new Date('2024-02-25T12:30:00'),
-  },
-  {
-    id: 'sec-3',
-    eventType: 'threat_detected',
-    severity: 'critical',
-    userId: 'system',
-    userName: 'Security Monitor',
-    description: 'Unusual API access pattern detected - potential automated attack',
-    ipAddress: '78.90.123.456',
-    timestamp: new Date('2024-02-23T03:15:00'),
-    resolved: true,
-    resolvedBy: 'admin-1',
-    resolvedAt: new Date('2024-02-23T03:45:00'),
-  },
-  {
-    id: 'sec-4',
-    eventType: 'data_access',
-    severity: 'low',
-    userId: 'freelancer-1',
-    userName: 'Michael Chen',
-    description: 'Accessed project data outside assigned scope',
-    ipAddress: '192.168.1.105',
-    timestamp: new Date('2024-02-22T14:20:00'),
-    resolved: false,
-  },
-  {
-    id: 'sec-5',
-    eventType: 'configuration_change',
-    severity: 'medium',
-    userId: 'admin-1',
-    userName: 'John Smith',
-    description: 'Modified system security settings - disabled 2FA for test accounts',
-    ipAddress: '192.168.1.100',
-    timestamp: new Date('2024-02-21T10:00:00'),
-    resolved: true,
-    resolvedBy: 'admin-1',
-    resolvedAt: new Date('2024-02-21T10:30:00'),
-  },
-];
+import { db } from '@/config/firebase';
+import { collection, query, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 
 // Audit Log Table Component
 function AuditLogTable({ logs }: { logs: AuditLog[] }) {
@@ -421,14 +230,81 @@ function SecurityEventsTable({ events }: { events: SecurityEvent[] }) {
 }
 
 export function AuditSecurity() {
-  const [auditLogs] = useState<AuditLog[]>(generateMockAuditLogs());
-  const [securityEvents] = useState<SecurityEvent[]>(generateMockSecurityEvents());
-  
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<string>('all');
+
+  // Fetch audit logs from Firestore
+  useEffect(() => {
+    if (!db) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Subscribe to audit logs
+    const auditQuery = query(
+      collection(db, 'audit_logs'),
+      orderBy('timestamp', 'desc')
+    );
+
+    const unsubscribeAudit = onSnapshot(
+      auditQuery,
+      (snapshot) => {
+        const logs = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            timestamp: data.timestamp instanceof Timestamp ? data.timestamp.toDate() : new Date(data.timestamp),
+          };
+        }) as AuditLog[];
+        setAuditLogs(logs);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Error fetching audit logs:', error);
+        setIsLoading(false);
+      }
+    );
+
+    // Subscribe to security events
+    const securityQuery = query(
+      collection(db, 'security_events'),
+      orderBy('timestamp', 'desc')
+    );
+
+    const unsubscribeSecurity = onSnapshot(
+      securityQuery,
+      (snapshot) => {
+        const events = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            timestamp: data.timestamp instanceof Timestamp ? data.timestamp.toDate() : new Date(data.timestamp),
+            resolvedAt: data.resolvedAt instanceof Timestamp ? data.resolvedAt.toDate() : data.resolvedAt ? new Date(data.resolvedAt) : undefined,
+          };
+        }) as SecurityEvent[];
+        setSecurityEvents(events);
+      },
+      (error) => {
+        console.error('Error fetching security events:', error);
+      }
+    );
+
+    return () => {
+      unsubscribeAudit();
+      unsubscribeSecurity();
+    };
+  }, []);
 
   // Filter audit logs
   const filteredLogs = useMemo(() => {

@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:vercel": "npm run build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "vercel:deploy": "vercel --prod",
+    "vercel:preview": "vercel"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
