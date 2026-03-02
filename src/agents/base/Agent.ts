@@ -214,10 +214,26 @@ export abstract class Agent {
   
   /**
    * Fetch rules from the rules engine
+   * 
+   * This method is called during agent initialization to load compliance rules.
+   * Subclasses can override this method to provide custom rule fetching logic,
+   * or rely on the loadRules() override which is the preferred approach.
+   * 
+   * Default implementation returns an empty array. Subclasses should either:
+   * 1. Override loadRules() to set this.rules directly with static/hardcoded rules
+   * 2. Override fetchRules() to dynamically fetch rules from an external source
+   * 
+   * Future implementation may integrate with:
+   * - Firestore 'complianceRules' collection for dynamic rule management
+   * - External rules engine API
+   * - Cached rules with TTL for performance
+   * 
+   * @returns Promise<ComplianceRule[]> Array of compliance rules to be evaluated
+   * @protected
    */
   protected async fetchRules(): Promise<ComplianceRule[]> {
-    // TODO: Integrate with rules engine
-    // This is a placeholder that should be replaced with actual rules fetch
+    // Default implementation returns empty array
+    // Subclasses should override loadRules() or fetchRules() to provide actual rules
     return [];
   }
   

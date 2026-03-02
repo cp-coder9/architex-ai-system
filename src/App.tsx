@@ -3,10 +3,12 @@ import { useAuthStore } from '@/store';
 import { Toaster } from '@/components/ui/sonner';
 
 // Screens
+import { OnboardingScreen } from '@/screens/OnboardingScreen';
 import { LoginScreen } from '@/screens/LoginScreen';
 import { AdminDashboard } from '@/screens/AdminDashboard';
 import { ClientDashboard } from '@/screens/ClientDashboard';
 import { FreelancerDashboard } from '@/screens/FreelancerDashboard';
+import { DebugPage } from '@/screens/DebugPage';
 
 // Components
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -16,7 +18,7 @@ function App() {
 
   // Redirect based on role when already authenticated
   const getDefaultRoute = () => {
-    if (!isAuthenticated || !currentUser) return '/login';
+    if (!isAuthenticated || !currentUser) return '/onboarding';
     switch (currentUser.role) {
       case 'admin':
         return '/admin';
@@ -25,7 +27,7 @@ function App() {
       case 'freelancer':
         return '/freelancer';
       default:
-        return '/login';
+        return '/onboarding';
     }
   };
 
@@ -34,13 +36,19 @@ function App() {
       <div className="min-h-screen bg-background font-sans antialiased">
         <Routes>
           {/* Public Routes */}
-          <Route 
-            path="/login" 
+          <Route
+            path="/onboarding"
+            element={
+              isAuthenticated ? <Navigate to={getDefaultRoute()} replace /> : <OnboardingScreen />
+            }
+          />
+          <Route
+            path="/login"
             element={
               isAuthenticated ? <Navigate to={getDefaultRoute()} replace /> : <LoginScreen />
-            } 
+            }
           />
-          
+
           {/* Admin Routes */}
           <Route
             path="/admin/*"
@@ -50,7 +58,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           {/* Client Routes */}
           <Route
             path="/client/*"
@@ -60,7 +68,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           {/* Freelancer Routes */}
           <Route
             path="/freelancer/*"
@@ -70,20 +78,28 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           {/* Default Redirect */}
-          <Route 
-            path="/" 
-            element={<Navigate to={getDefaultRoute()} replace />} 
+          <Route
+            path="/"
+            element={<Navigate to={getDefaultRoute()} replace />}
           />
-          
+
+          {/* Debug Route - Development Only */}
+          {import.meta.env.DEV && (
+            <Route
+              path="/debug"
+              element={<DebugPage />}
+            />
+          )}
+
           {/* Catch All */}
-          <Route 
-            path="*" 
-            element={<Navigate to={getDefaultRoute()} replace />} 
+          <Route
+            path="*"
+            element={<Navigate to={getDefaultRoute()} replace />}
           />
         </Routes>
-        
+
         <Toaster position="top-right" richColors />
       </div>
     </BrowserRouter>

@@ -170,7 +170,7 @@ export async function getAnalysisResults(drawingId: string): Promise<AgentAnalys
     for (let i = 0; i < issueCount; i++) {
       issues.push({
         id: `issue-${agent.id}-${i}`,
-        type: issueTypes[Math.floor(Math.random() * issueTypes.length)],
+        type: issueTypes[Math.floor(Math.random() * issueTypes.length)] as AgentIssue['type'],
         severity: ['critical', 'high', 'medium', 'low'][Math.floor(Math.random() * 4)] as AgentIssue['severity'],
         description: `Issue detected by ${agent.name}`,
         location: { x: Math.random() * 800, y: Math.random() * 600 },

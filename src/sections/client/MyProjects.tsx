@@ -1,17 +1,15 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore, useProjectStore } from '@/store';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast } from 'sonner';
+import { Project } from '@/types';
 import {
-  FolderKanban,
   Search,
   Eye,
   Clock,
@@ -20,12 +18,11 @@ import {
   Calendar,
   MapPin,
   Building2,
-  TrendingUp,
   AlertCircle,
 } from 'lucide-react';
 
 // Project Detail Dialog
-function ProjectDetailDialog({ project, isOpen, onClose }: { project: any; isOpen: boolean; onClose: () => void }) {
+function ProjectDetailDialog({ project, isOpen, onClose }: { project: Project; isOpen: boolean; onClose: () => void }) {
   const allDrawings = useProjectStore(state => state.drawings);
   const allTimeEntries = useProjectStore(state => state.timeEntries);
 
@@ -60,7 +57,7 @@ function ProjectDetailDialog({ project, isOpen, onClose }: { project: any; isOpe
             </div>
             <div className="p-4 rounded-lg bg-muted">
               <p className="text-sm text-muted-foreground">Budget</p>
-              <p className="font-medium">R${project.budget.toLocaleString()}</p>
+              <p className="font-medium">R{project.budget.toLocaleString()}</p>
             </div>
             <div className="p-4 rounded-lg bg-muted">
               <p className="text-sm text-muted-foreground">Deadline</p>
@@ -139,7 +136,7 @@ export function MyProjects() {
     [allProjects, currentUser?.id]
   );
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   // Filter projects

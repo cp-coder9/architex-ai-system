@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuthStore, useProjectStore, useInvoiceStore } from '@/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,77 +7,39 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { toast } from 'sonner';
 import {
   Briefcase,
   Clock,
   DollarSign,
-  TrendingUp,
-  CheckCircle2,
-  AlertCircle,
   FileText,
-  Star,
   Zap,
   BarChart3,
   ArrowRight,
   Plus,
 } from 'lucide-react';
 
-// Animated Counter - uses useRef and useEffect to avoid infinite loop
-function AnimatedCounter({ value, prefix = '' }: { value: number; prefix?: string }) {
-  const [displayValue, setDisplayValue] = useState(0);
-  const targetValue = useRef(value);
-  const animationRef = useRef<number | undefined>(undefined);
-  
-  useEffect(() => {
-    targetValue.current = value;
-    
-    const animate = () => {
-      setDisplayValue(prev => {
-        if (prev < targetValue.current) {
-          const diff = targetValue.current - prev;
-          const increment = Math.max(1, Math.ceil(diff / 20));
-          return Math.min(prev + increment, targetValue.current);
-        }
-        return prev;
-      });
-      
-      if (displayValue < targetValue.current) {
-        animationRef.current = requestAnimationFrame(animate);
-      }
-    };
-    
-    animationRef.current = requestAnimationFrame(animate);
-    
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [value]);
-  
-  return <span>{prefix}{displayValue.toLocaleString()}</span>;
-}
+
 
 export function FreelancerOverview() {
+  const navigate = useNavigate();
   const { currentUser } = useAuthStore();
   const allProjects = useProjectStore(state => state.projects);
   const allDrawings = useProjectStore(state => state.drawings);
   const allTimeEntries = useProjectStore(state => state.timeEntries);
   const allInvoices = useInvoiceStore(state => state.invoices);
-  
+
   // Memoize filtered data to avoid creating new arrays on every render
-  const projects = useMemo(() => 
-    allProjects.filter(p => p.freelancerId === currentUser?.id), 
+  const projects = useMemo(() =>
+    allProjects.filter(p => p.freelancerId === currentUser?.id),
     [allProjects, currentUser?.id]
   );
   const drawings = useMemo(() => allDrawings, [allDrawings]);
-  const timeEntries = useMemo(() => 
-    allTimeEntries.filter(te => te.freelancerId === currentUser?.id), 
+  const timeEntries = useMemo(() =>
+    allTimeEntries.filter(te => te.freelancerId === currentUser?.id),
     [allTimeEntries, currentUser?.id]
   );
-  const invoices = useMemo(() => 
-    allInvoices.filter(inv => inv.freelancerId === currentUser?.id), 
+  const invoices = useMemo(() =>
+    allInvoices.filter(inv => inv.freelancerId === currentUser?.id),
     [allInvoices, currentUser?.id]
   );
 
@@ -85,11 +48,11 @@ export function FreelancerOverview() {
   const totalHoursThisMonth = timeEntries
     .filter(te => new Date(te.date).getMonth() === new Date().getMonth())
     .reduce((sum, te) => sum + te.hours, 0);
-  
+
   const totalEarnings = invoices
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + inv.total, 0);
-  
+
   const pendingEarnings = invoices
     .filter(inv => inv.status === 'sent')
     .reduce((sum, inv) => sum + inv.total, 0);
@@ -126,7 +89,7 @@ export function FreelancerOverview() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -140,13 +103,13 @@ export function FreelancerOverview() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Earnings</p>
-                <p className="text-3xl font-bold">R${totalEarnings.toLocaleString()}</p>
+                <p className="text-3xl font-bold">R{totalEarnings.toLocaleString()}</p>
               </div>
               <div className="p-3 rounded-xl bg-purple-500">
                 <DollarSign className="w-6 h-6 text-white" />
@@ -154,7 +117,7 @@ export function FreelancerOverview() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -237,11 +200,11 @@ export function FreelancerOverview() {
             <CardContent className="space-y-4">
               <div className="p-4 rounded-lg bg-green-50">
                 <p className="text-sm text-muted-foreground">Total Earned</p>
-                <p className="text-2xl font-bold text-green-600">R${totalEarnings.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-600">R{totalEarnings.toLocaleString()}</p>
               </div>
               <div className="p-4 rounded-lg bg-yellow-50">
                 <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">R${pendingEarnings.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-yellow-600">R{pendingEarnings.toLocaleString()}</p>
               </div>
             </CardContent>
           </Card>
@@ -255,22 +218,38 @@ export function FreelancerOverview() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" className="h-auto py-3 flex flex-col items-center gap-1">
-                  <Plus className="w-4 h-4" />
-                  <span className="text-xs">Log Time</span>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                  onClick={() => navigate('/freelancer/time')}
+                >
+                  <Plus className="w-5 h-5 text-primary" />
+                  <span className="text-sm font-medium">Log Time</span>
                 </Button>
-                <Button variant="outline" className="h-auto py-3 flex flex-col items-center gap-1">
-                  <FileText className="w-4 h-4" />
-                  <span className="text-xs">Submit Drawing</span>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                  onClick={() => navigate('/freelancer/drawings')}
+                >
+                  <FileText className="w-5 h-5 text-primary" />
+                  <span className="text-sm font-medium">Submit Drawing</span>
                 </Button>
-                <Button variant="outline" className="h-auto py-3 flex flex-col items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span className="text-xs">View Schedule</span>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                  onClick={() => navigate('/freelancer/work')}
+                >
+                  <Clock className="w-5 h-5 text-primary" />
+                  <span className="text-sm font-medium">View Schedule</span>
                 </Button>
-                <Button variant="outline" className="h-auto py-3 flex flex-col items-center gap-1">
-                  <BarChart3 className="w-4 h-4" />
-                  <span className="text-xs">Analytics</span>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                  onClick={() => navigate('/freelancer/earnings')}
+                >
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                  <span className="text-sm font-medium">Analytics</span>
                 </Button>
               </div>
             </CardContent>
@@ -299,16 +278,14 @@ export function FreelancerOverview() {
                   className="flex items-center justify-between p-3 rounded-lg border"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${
-                      drawing.status === 'approved' ? 'bg-green-100' :
+                    <div className={`p-2 rounded-lg ${drawing.status === 'approved' ? 'bg-green-100' :
                       drawing.status === 'pending' ? 'bg-gray-100' :
-                      drawing.status === 'in_review' ? 'bg-blue-100' : 'bg-orange-100'
-                    }`}>
-                      <FileText className={`w-4 h-4 ${
-                        drawing.status === 'approved' ? 'text-green-600' :
+                        drawing.status === 'in_review' ? 'bg-blue-100' : 'bg-orange-100'
+                      }`}>
+                      <FileText className={`w-4 h-4 ${drawing.status === 'approved' ? 'text-green-600' :
                         drawing.status === 'pending' ? 'text-gray-600' :
-                        drawing.status === 'in_review' ? 'text-blue-600' : 'text-orange-600'
-                      }`} />
+                          drawing.status === 'in_review' ? 'text-blue-600' : 'text-orange-600'
+                        }`} />
                     </div>
                     <div>
                       <p className="font-medium text-sm">{drawing.name}</p>

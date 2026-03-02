@@ -5,3 +5,4 @@ export { useNotificationStore } from './notificationStore';
 export { useSettingsStore } from './settingsStore';
 export { useProjectRequestStore } from './projectRequestStore';
 export { useTaskStore } from './taskStore';
+export { useFileStore } from './fileStore';

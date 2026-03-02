@@ -58,7 +58,7 @@ const generateMockNotifications = (): Notification[] => [
     userId: 'client-1',
     type: 'invoice',
     title: 'New Invoice',
-    message: 'Invoice INV-2024-002 for $495 has been generated.',
+    message: 'Invoice INV-2024-002 for R8,910 has been generated.',
     read: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
     link: '/client/invoices',

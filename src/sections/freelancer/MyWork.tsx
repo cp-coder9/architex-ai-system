@@ -22,10 +22,8 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  FolderKanban,
   Calendar,
   MapPin,
-  TrendingUp,
   FileText,
   Eye,
   Plus,
@@ -37,10 +35,19 @@ import {
   X,
 } from 'lucide-react';
 
-import { Project, Drawing, Task } from '@/types';
+import { Task, TaskApplication } from '@/types';
+
+interface MockTask {
+  id: string;
+  name: string;
+  description: string;
+  projectName: string;
+  status: string;
+  dueDate: Date;
+}
 
 // Task Card Component for assigned tasks
-function TaskCard({ task, onStatusChange }: { task: any; onStatusChange: (status: string) => void }) {
+function TaskCard({ task, onStatusChange }: { task: MockTask; onStatusChange: (status: string) => void }) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed': return <CheckCircle2 className="w-5 h-5 text-green-500" />;
@@ -164,7 +171,7 @@ function MarketplaceTaskCard({ task, onApply }: { task: Task; onApply: (task: Ta
 }
 
 // Application Card Component
-function ApplicationCard({ application, task }: { application: any; task: Task | undefined }) {
+function ApplicationCard({ application, task }: { application: TaskApplication; task: Task | undefined }) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
@@ -219,12 +226,10 @@ function ApplicationCard({ application, task }: { application: any; task: Task |
 export function MyWork() {
   const { currentUser } = useAuthStore();
   const { projects, drawings } = useProjectStore();
-  const { 
-    tasks: marketplaceTasks, 
-    getOpenTasks, 
-    getMyTasks, 
-    getApplicationsByFreelancerId,
-    submitApplication 
+  const {
+    tasks: marketplaceTasks,
+    applications,
+    submitApplication
   } = useTaskStore();
 
   // Application dialog state
@@ -250,33 +255,36 @@ export function MyWork() {
   );
 
   // Get marketplace data
-  const openTasks = useMemo(() => getOpenTasks(), [marketplaceTasks]);
-  const myAssignedTasks = useMemo(() => 
-    currentUser ? getMyTasks(currentUser.id) : [], 
+  const openTasks = useMemo(() =>
+    marketplaceTasks.filter(t => t.status === 'open'),
+    [marketplaceTasks]
+  );
+  const myAssignedTasks = useMemo(() =>
+    currentUser ? marketplaceTasks.filter(t => t.assignedTo === currentUser.id) : [],
     [currentUser, marketplaceTasks]
   );
-  const myApplications = useMemo(() => 
-    currentUser ? getApplicationsByFreelancerId(currentUser.id) : [],
-    [currentUser, marketplaceTasks]
+  const myApplications = useMemo(() =>
+    currentUser ? applications.filter(a => a.freelancerId === currentUser.id) : [],
+    [currentUser, applications]
   );
 
   // Filter marketplace tasks
   const filteredTasks = useMemo(() => {
     let filtered = openTasks;
-    
+
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(task => task.category === selectedCategory);
     }
-    
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(task => 
+      filtered = filtered.filter(task =>
         task.title.toLowerCase().includes(query) ||
         task.description.toLowerCase().includes(query) ||
         task.requiredSkills.some(skill => skill.toLowerCase().includes(query))
       );
     }
-    
+
     return filtered;
   }, [openTasks, selectedCategory, searchQuery]);
 
@@ -287,7 +295,7 @@ export function MyWork() {
   }, [openTasks]);
 
   // Mock tasks for assigned tasks view
-  const [tasks, setTasks] = useState([
+  const [tasks, setTasks] = useState(() => [
     {
       id: 'task-1',
       name: 'Create ground floor plan',
@@ -712,7 +720,7 @@ export function MyWork() {
 
               <ScrollArea className="h-[500px]">
                 <div className="space-y-4">
-                  {myApplications.map((application, index) => (
+                  {myApplications.map((application) => (
                     <ApplicationCard
                       key={application.id}
                       application={application}
@@ -723,10 +731,10 @@ export function MyWork() {
                     <div className="text-center py-12 text-muted-foreground">
                       <Send className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>You haven't applied to any tasks yet</p>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="mt-4"
-                        onClick={() => document.querySelector('[data-value="marketplace"]')?.click()}
+                        onClick={() => (document.querySelector('[data-value="marketplace"]') as HTMLElement | null)?.click()}
                       >
                         Browse Marketplace
                       </Button>
@@ -833,7 +841,7 @@ export function MyWork() {
               <X className="w-4 h-4 mr-1" />
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleSubmitApplication}
               disabled={!coverLetter || !proposedRate || !estimatedDuration || !proposedStartDate}
             >

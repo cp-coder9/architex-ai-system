@@ -1,12 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useAuthStore, useProjectStore, useInvoiceStore, useSettingsStore, useNotificationStore } from '@/store';
+import { useAuthStore, useNotificationStore } from '@/store';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarInset,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -39,6 +40,7 @@ import { AuditSecurity } from '@/sections/admin/AuditSecurity';
 import { ProjectRequests } from '@/sections/admin/ProjectRequests';
 import { AdminMessages } from '@/sections/admin/AdminMessages';
 import { FreelancerMarketplace } from '@/sections/admin/FreelancerMarketplace';
+import { AdminFiles } from '@/sections/admin/AdminFiles';
 
 import {
   LayoutDashboard,
@@ -52,19 +54,19 @@ import {
   Bell,
   Building2,
   ChevronDown,
-  Menu,
-  X,
   Shield,
   FolderInput,
   MessageSquare,
   Briefcase,
+  Folder,
 } from 'lucide-react';
 const sidebarItems = [
-  { path: '', label: 'Overview', icon: LayoutDashboard },
+  { path: 'overview', label: 'Overview', icon: LayoutDashboard },
   { path: 'users', label: 'User Management', icon: Users },
   { path: 'projects', label: 'Project Oversight', icon: FolderKanban },
   { path: 'messages', label: 'Messages', icon: MessageSquare },
   { path: 'marketplace', label: 'Freelancer Marketplace', icon: Briefcase },
+  { path: 'files', label: 'File Management', icon: Folder },
   { path: 'agents', label: 'Agent Monitor', icon: Bot },
   { path: 'invoices', label: 'Invoices', icon: FileText },
   { path: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -99,7 +101,8 @@ function AdminSidebar() {
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shrink-0">
             <Building2 className="w-6 h-6 text-white" />
           </div>
-          <div className="group-data-[collapsible=icon]:hidden">\n            <span className="text-xl font-bold truncate">Architex Axis</span>
+          <div className="group-data-[collapsible=icon]:hidden">
+            <span className="text-xl font-bold truncate">Architex Axis</span>
             <p className="text-xs text-sidebar-foreground/60 truncate">Admin Portal</p>
           </div>
         </div>
@@ -113,7 +116,7 @@ function AdminSidebar() {
                 <SidebarMenuButton asChild tooltip={item.label}>
                   <NavLink
                     to={`/admin/${item.path}`}
-                    end={item.path === ''}
+                    end={item.path === 'overview'}
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0 group-data-[collapsible=icon]:size-10 ${isActive
                         ? 'bg-primary text-primary-foreground'
@@ -150,8 +153,8 @@ function AdminSidebar() {
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel>Notifications</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {userNotifications.slice(0, 5).map((notif) => (
-                <DropdownMenuItem key={notif.id} className="flex flex-col items-start py-2">
+              {userNotifications.slice(0, 5).map((notif, index) => (
+                <DropdownMenuItem key={notif.id || index} className="flex flex-col items-start py-2">
                   <span className="font-medium text-sm">{notif.title}</span>
                   <span className="text-xs text-sidebar-foreground/60 line-clamp-2">{notif.message}</span>
                 </DropdownMenuItem>
@@ -194,15 +197,22 @@ function AdminSidebar() {
     </Sidebar>
   );
 }
-
 export function AdminDashboard() {
   return (
     <SidebarProvider>
       <AdminSidebar />
-      <main className="flex-1 flex flex-col min-h-screen overflow-auto">
+      <SidebarInset>
+        {/* Desktop Header with Toggle */}
+        <header className="hidden md:flex items-center justify-between p-4 border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <h1 className="text-lg font-semibold">Admin Dashboard</h1>
+          </div>
+        </header>
+
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between p-4 border-b sticky top-0 bg-background z-20">
-          <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <Building2 className="w-5 h-5 text-white" />
             </div>
@@ -213,21 +223,25 @@ export function AdminDashboard() {
 
         {/* Page Content */}
         <div className="flex-1 p-4 md:p-6 lg:p-8">
-          <Routes>
-            <Route path="/" element={<AdminOverview />} />
-            <Route path="/users" element={<UserManagement />} />
-            <Route path="/projects" element={<ProjectOversight />} />
-            <Route path="/messages" element={<AdminMessages />} />
-            <Route path="/agents" element={<AgentMonitor />} />
-            <Route path="/invoices" element={<InvoiceManagement />} />
-            <Route path="/analytics" element={<SystemAnalytics />} />
-            <Route path="/settings" element={<AdminSettings />} />
-            <Route path="/audit-security" element={<AuditSecurity />} />
-            <Route path="/project-requests" element={<ProjectRequests />} />
-            <Route path="/marketplace" element={<FreelancerMarketplace />} />
-          </Routes>
+          <ErrorBoundary componentName="Admin Dashboard">
+            <Routes>
+              <Route path="/" element={<AdminOverview />} />
+              <Route path="/overview" element={<AdminOverview />} />
+              <Route path="/users" element={<UserManagement />} />
+              <Route path="/projects" element={<ProjectOversight />} />
+              <Route path="/messages" element={<AdminMessages />} />
+              <Route path="/marketplace" element={<FreelancerMarketplace />} />
+              <Route path="/files" element={<AdminFiles />} />
+              <Route path="/agents" element={<AgentMonitor />} />
+              <Route path="/invoices" element={<InvoiceManagement />} />
+              <Route path="/analytics" element={<SystemAnalytics />} />
+              <Route path="/settings" element={<AdminSettings />} />
+              <Route path="/audit-security" element={<AuditSecurity />} />
+              <Route path="/project-requests" element={<ProjectRequests />} />
+            </Routes>
+          </ErrorBoundary>
         </div>
-      </main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

@@ -1,25 +1,46 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Settings, User, UserRole } from '@/types';
+import { db, isFirebaseConfigured } from '@/config/firebase';
+import {
+  collection,
+  doc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  Unsubscribe,
+  serverTimestamp,
+} from 'firebase/firestore';
 
 interface SettingsState {
   settings: Record<string, Settings>;
   users: User[];
   isLoading: boolean;
-  
+  error: string | null;
+  unsubscribeUsers: Unsubscribe | null;
+
+  // Initialization
+  initialize: () => void;
+  cleanup: () => void;
+
   // Settings actions
   getSettings: (userId: string) => Settings;
   updateSettings: (userId: string, updates: Partial<Settings>) => void;
   resetSettings: (userId: string) => void;
-  
+
   // User management actions (admin only)
   getAllUsers: () => User[];
   getUsersByRole: (role: UserRole) => User[];
   createUser: (userData: Partial<User>) => Promise<User>;
-  updateUser: (id: string, updates: Partial<User>) => void;
-  deleteUser: (id: string) => void;
-  activateUser: (id: string) => void;
-  deactivateUser: (id: string) => void;
+  updateUser: (id: string, updates: Partial<User>) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
+  activateUser: (id: string) => Promise<void>;
+  deactivateUser: (id: string) => Promise<void>;
   getUserById: (id: string) => User | undefined;
   getUserStats: () => { total: number; byRole: Record<UserRole, number>; active: number };
 }
@@ -47,85 +68,57 @@ const defaultSettings: Settings = {
   },
 };
 
-// Generate mock users
-const generateMockUsers = (): User[] => [
-  {
-    id: 'admin-1',
-    email: 'admin@archflow.com',
-    name: 'System Administrator',
-    role: 'admin',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
-    isActive: true,
-    phone: '+1 (555) 000-0001',
-    company: 'Architex Axis Systems',
-  },
-  {
-    id: 'client-1',
-    email: 'client@example.com',
-    name: 'John Smith',
-    role: 'client',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=client',
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date(),
-    isActive: true,
-    phone: '+1 (555) 123-4567',
-    company: 'Smith Architecture Firm',
-  },
-  {
-    id: 'client-2',
-    email: 'jane.doe@buildcorp.com',
-    name: 'Jane Doe',
-    role: 'client',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=jane',
-    createdAt: new Date('2024-02-01'),
-    updatedAt: new Date(),
-    isActive: true,
-    phone: '+1 (555) 234-5678',
-    company: 'BuildCorp Development',
-  },
-  {
-    id: 'freelancer-1',
-    email: 'freelancer@example.com',
-    name: 'Sarah Johnson',
-    role: 'freelancer',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=freelancer',
-    createdAt: new Date('2024-02-01'),
-    updatedAt: new Date(),
-    isActive: true,
-    phone: '+1 (555) 987-6543',
-  },
-  {
-    id: 'freelancer-2',
-    email: 'mike.chen@designpro.com',
-    name: 'Mike Chen',
-    role: 'freelancer',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=mike',
-    createdAt: new Date('2024-02-15'),
-    updatedAt: new Date(),
-    isActive: true,
-    phone: '+1 (555) 876-5432',
-  },
-  {
-    id: 'freelancer-3',
-    email: 'emma.wilson@archstudio.com',
-    name: 'Emma Wilson',
-    role: 'freelancer',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=emma',
-    createdAt: new Date('2024-03-01'),
-    updatedAt: new Date(),
-    isActive: false,
-    phone: '+1 (555) 765-4321',
-  },
-];
+// Collection name
+const USERS_COLLECTION = 'users';
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       settings: {},
-      users: generateMockUsers(),
+      users: [],
       isLoading: false,
+      error: null,
+      unsubscribeUsers: null,
+
+      initialize: () => {
+        if (!isFirebaseConfigured() || !db) {
+          console.warn('[SettingsStore] Firebase not configured, using empty arrays');
+          return;
+        }
+
+        set({ isLoading: true, error: null });
+
+        // Subscribe to users collection
+        const usersQuery = query(
+          collection(db, USERS_COLLECTION),
+          orderBy('createdAt', 'desc')
+        );
+
+        const unsubscribeUsers = onSnapshot(
+          usersQuery,
+          (snapshot) => {
+            const users = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            })) as User[];
+            set({ users, isLoading: false });
+          },
+          (error) => {
+            console.error('[SettingsStore] Error fetching users:', error);
+            set({ error: 'Failed to fetch users', isLoading: false });
+          }
+        );
+
+        set({ unsubscribeUsers });
+      },
+
+      cleanup: () => {
+        const { unsubscribeUsers } = get();
+        if (unsubscribeUsers) {
+          unsubscribeUsers();
+        }
+        set({ unsubscribeUsers: null });
+      },
 
       getSettings: (userId) => {
         return get().settings[userId] || { ...defaultSettings, userId };
@@ -159,59 +152,115 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       createUser: async (userData) => {
+        if (!isFirebaseConfigured() || !db) {
+          console.warn('[SettingsStore] Firebase not configured');
+          throw new Error('Firebase not configured');
+        }
+
         set({ isLoading: true });
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const newUser: User = {
-          id: `user-${Date.now()}`,
-          email: userData.email!,
-          name: userData.name!,
-          role: userData.role!,
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          isActive: true,
-          phone: userData.phone,
-          company: userData.company,
-          address: userData.address,
-        };
-        
-        set(state => ({ 
-          users: [...state.users, newUser],
-          isLoading: false 
-        }));
-        
-        return newUser;
+
+        try {
+          const newUser = {
+            email: userData.email!,
+            name: userData.name!,
+            role: userData.role!,
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            isActive: true,
+            phone: userData.phone,
+            company: userData.company,
+            address: userData.address,
+          };
+
+          const docRef = await addDoc(collection(db, USERS_COLLECTION), newUser);
+
+          const createdUser: User = {
+            id: docRef.id,
+            ...newUser,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          } as User;
+
+          set({ isLoading: false });
+          return createdUser;
+        } catch (error) {
+          console.error('[SettingsStore] Error creating user:', error);
+          set({ error: 'Failed to create user', isLoading: false });
+          throw error;
+        }
       },
 
-      updateUser: (id, updates) => {
-        set(state => ({
-          users: state.users.map(u => 
-            u.id === id ? { ...u, ...updates, updatedAt: new Date() } : u
-          ),
-        }));
+      updateUser: async (id, updates) => {
+        if (!isFirebaseConfigured() || !db) {
+          console.warn('[SettingsStore] Firebase not configured');
+          return;
+        }
+
+        try {
+          const userRef = doc(db, USERS_COLLECTION, id);
+          await updateDoc(userRef, {
+            ...updates,
+            updatedAt: serverTimestamp(),
+          });
+        } catch (error) {
+          console.error('[SettingsStore] Error updating user:', error);
+          set({ error: 'Failed to update user' });
+          throw error;
+        }
       },
 
-      deleteUser: (id) => {
-        set(state => ({
-          users: state.users.filter(u => u.id !== id),
-        }));
+      deleteUser: async (id) => {
+        if (!isFirebaseConfigured() || !db) {
+          console.warn('[SettingsStore] Firebase not configured');
+          return;
+        }
+
+        try {
+          await deleteDoc(doc(db, USERS_COLLECTION, id));
+        } catch (error) {
+          console.error('[SettingsStore] Error deleting user:', error);
+          set({ error: 'Failed to delete user' });
+          throw error;
+        }
       },
 
-      activateUser: (id) => {
-        set(state => ({
-          users: state.users.map(u => 
-            u.id === id ? { ...u, isActive: true, updatedAt: new Date() } : u
-          ),
-        }));
+      activateUser: async (id) => {
+        if (!isFirebaseConfigured() || !db) {
+          console.warn('[SettingsStore] Firebase not configured');
+          return;
+        }
+
+        try {
+          const userRef = doc(db, USERS_COLLECTION, id);
+          await updateDoc(userRef, {
+            isActive: true,
+            updatedAt: serverTimestamp(),
+          });
+        } catch (error) {
+          console.error('[SettingsStore] Error activating user:', error);
+          set({ error: 'Failed to activate user' });
+          throw error;
+        }
       },
 
-      deactivateUser: (id) => {
-        set(state => ({
-          users: state.users.map(u => 
-            u.id === id ? { ...u, isActive: false, updatedAt: new Date() } : u
-          ),
-        }));
+      deactivateUser: async (id) => {
+        if (!isFirebaseConfigured() || !db) {
+          console.warn('[SettingsStore] Firebase not configured');
+          return;
+        }
+
+        try {
+          const userRef = doc(db, USERS_COLLECTION, id);
+          await updateDoc(userRef, {
+            isActive: false,
+            updatedAt: serverTimestamp(),
+          });
+        } catch (error) {
+          console.error('[SettingsStore] Error deactivating user:', error);
+          set({ error: 'Failed to deactivate user' });
+          throw error;
+        }
       },
 
       getUserById: (id) => {

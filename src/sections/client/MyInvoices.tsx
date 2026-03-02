@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Invoice } from '@/types';
 import {
   FileText,
   DollarSign,
@@ -14,13 +15,10 @@ import {
   Clock,
   AlertCircle,
   Download,
-  Eye,
-  TrendingUp,
-  Calendar,
 } from 'lucide-react';
 
 // Invoice Detail Dialog
-function InvoiceDetailDialog({ invoice, isOpen, onClose }: { invoice: any; isOpen: boolean; onClose: () => void }) {
+function InvoiceDetailDialog({ invoice, isOpen, onClose }: { invoice: Invoice; isOpen: boolean; onClose: () => void }) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
@@ -46,18 +44,18 @@ function InvoiceDetailDialog({ invoice, isOpen, onClose }: { invoice: any; isOpe
             </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground">Total Amount</p>
-              <p className="text-2xl font-bold">R${invoice.total.toLocaleString()}</p>
+              <p className="text-2xl font-bold">R{invoice.total.toLocaleString()}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg border">
               <p className="text-sm text-muted-foreground">Subtotal</p>
-              <p className="text-lg font-semibold">R${invoice.subtotal.toLocaleString()}</p>
+              <p className="text-lg font-semibold">R{invoice.subtotal.toLocaleString()}</p>
             </div>
             <div className="p-4 rounded-lg border">
               <p className="text-sm text-muted-foreground">Tax ({(invoice.taxRate * 100).toFixed(0)}%)</p>
-              <p className="text-lg font-semibold">R${invoice.taxAmount.toLocaleString()}</p>
+              <p className="text-lg font-semibold">R{invoice.taxAmount.toLocaleString()}</p>
             </div>
             <div className="p-4 rounded-lg border">
               <p className="text-sm text-muted-foreground">Hours</p>
@@ -65,7 +63,7 @@ function InvoiceDetailDialog({ invoice, isOpen, onClose }: { invoice: any; isOpe
             </div>
             <div className="p-4 rounded-lg border">
               <p className="text-sm text-muted-foreground">Hourly Rate</p>
-              <p className="text-lg font-semibold">R${invoice.hourlyRate}</p>
+              <p className="text-lg font-semibold">R{invoice.hourlyRate}</p>
             </div>
           </div>
 
@@ -107,7 +105,7 @@ export function MyInvoices() {
     allInvoices.filter(inv => inv.clientId === currentUser?.id),
     [allInvoices, currentUser?.id]
   );
-  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   // Calculate stats
@@ -162,7 +160,7 @@ export function MyInvoices() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Paid</p>
-                <p className="text-3xl font-bold text-green-600">R${totalPaid.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-green-600">R{totalPaid.toLocaleString()}</p>
               </div>
               <div className="p-3 rounded-xl bg-green-500">
                 <CheckCircle2 className="w-6 h-6 text-white" />
@@ -176,7 +174,7 @@ export function MyInvoices() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-3xl font-bold text-blue-600">R${totalPending.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-blue-600">R{totalPending.toLocaleString()}</p>
               </div>
               <div className="p-3 rounded-xl bg-blue-500">
                 <Clock className="w-6 h-6 text-white" />
@@ -190,7 +188,7 @@ export function MyInvoices() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Overdue</p>
-                <p className="text-3xl font-bold text-red-600">R${totalOverdue.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-red-600">R{totalOverdue.toLocaleString()}</p>
               </div>
               <div className="p-3 rounded-xl bg-red-500">
                 <AlertCircle className="w-6 h-6 text-white" />
@@ -243,7 +241,7 @@ export function MyInvoices() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold">R${invoice.total.toLocaleString()}</p>
+                          <p className="font-bold">R{invoice.total.toLocaleString()}</p>
                           <Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>
                             {invoice.status}
                           </Badge>
@@ -292,7 +290,7 @@ export function MyInvoices() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold">R${invoice.total.toLocaleString()}</p>
+                          <p className="font-bold">R{invoice.total.toLocaleString()}</p>
                           <Button size="sm">Pay Now</Button>
                         </div>
                       </motion.div>
@@ -338,7 +336,7 @@ export function MyInvoices() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold">R${invoice.total.toLocaleString()}</p>
+                          <p className="font-bold">R{invoice.total.toLocaleString()}</p>
                           <Badge>Paid</Badge>
                         </div>
                       </motion.div>

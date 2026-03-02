@@ -1,260 +1,234 @@
 import { create } from 'zustand';
 import { ProjectRequest, ProjectRequestStatus } from '@/types';
+import { db, isFirebaseConfigured } from '@/config/firebase';
+import {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  Unsubscribe,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
 
 interface ProjectRequestState {
   projectRequests: ProjectRequest[];
   isLoading: boolean;
-  
+  error: string | null;
+  unsubscribeRequests: Unsubscribe | null;
+
+  // Initialization
+  initialize: () => void;
+  cleanup: () => void;
+
   // Actions
   setProjectRequests: (requests: ProjectRequest[]) => void;
   createRequest: (request: Partial<ProjectRequest>) => Promise<ProjectRequest>;
-  updateRequest: (id: string, updates: Partial<ProjectRequest>) => void;
-  deleteRequest: (id: string) => void;
-  approveRequest: (id: string, approvedBy: string) => void;
-  rejectRequest: (id: string, rejectedBy: string, reason: string) => void;
-  convertToProject: (id: string, projectId: string) => void;
+  updateRequest: (id: string, updates: Partial<ProjectRequest>) => Promise<void>;
+  deleteRequest: (id: string) => Promise<void>;
+  approveRequest: (id: string, approvedBy: string) => Promise<void>;
+  rejectRequest: (id: string, rejectedBy: string, reason: string) => Promise<void>;
+  convertToProject: (id: string, projectId: string) => Promise<void>;
   getRequestById: (id: string) => ProjectRequest | undefined;
   getRequestsByStatus: (status: ProjectRequestStatus) => ProjectRequest[];
 }
 
-// Generate mock project requests
-const generateMockProjectRequests = (): ProjectRequest[] => [
-  {
-    id: 'pr-1',
-    clientId: 'client-1',
-    clientName: 'Sarah Johnson',
-    clientEmail: 'sarah.johnson@techcorp.com',
-    freelancerId: 'freelancer-1',
-    freelancerName: 'Michael Chen',
-    projectName: 'TechCorp Office Expansion',
-    description: 'Complete renovation of 3-floor office building including new meeting rooms, open workspace redesign, and smart building integration.',
-    projectType: 'commercial',
-    hoursRequested: 150,
-    budget: 25000,
-    status: 'pending',
-    address: '500 Tech Park Drive, San Francisco, CA',
-    createdAt: new Date('2024-02-15'),
-    updatedAt: new Date('2024-02-15'),
-  },
-  {
-    id: 'pr-2',
-    clientId: 'client-2',
-    clientName: 'Robert Williams',
-    clientEmail: 'r.williams@residential.com',
-    projectName: 'Modern Villa Design',
-    description: 'New construction of a 4-bedroom modern villa with pool, home theater, and landscape architecture.',
-    projectType: 'residential',
-    hoursRequested: 200,
-    budget: 35000,
-    status: 'pending',
-    address: '123 Ocean View Lane, Malibu, CA',
-    createdAt: new Date('2024-02-18'),
-    updatedAt: new Date('2024-02-18'),
-  },
-  {
-    id: 'pr-3',
-    clientId: 'client-3',
-    clientName: 'Emily Davis',
-    clientEmail: 'emily@greenbuild.com',
-    freelancerId: 'freelancer-2',
-    freelancerName: 'Lisa Anderson',
-    projectName: 'Eco-Friendly Warehouse',
-    description: 'Design of sustainable warehouse facility with solar panels, rainwater harvesting, and green roof system.',
-    projectType: 'industrial',
-    hoursRequested: 300,
-    budget: 55000,
-    status: 'approved',
-    address: '800 Industrial Blvd, Austin, TX',
-    createdAt: new Date('2024-02-10'),
-    updatedAt: new Date('2024-02-12'),
-    approvedBy: 'admin-1',
-    approvedAt: new Date('2024-02-12'),
-  },
-  {
-    id: 'pr-4',
-    clientId: 'client-4',
-    clientName: 'James Miller',
-    clientEmail: 'j.miller@citydev.com',
-    projectName: 'Downtown Mixed-Use Development',
-    description: 'Large-scale mixed-use development with retail, office, and residential spaces across 5 towers.',
-    projectType: 'commercial',
-    hoursRequested: 500,
-    budget: 150000,
-    status: 'approved',
-    address: '100 Main Street, Downtown District',
-    createdAt: new Date('2024-02-05'),
-    updatedAt: new Date('2024-02-08'),
-    approvedBy: 'admin-1',
-    approvedAt: new Date('2024-02-08'),
-  },
-  {
-    id: 'pr-5',
-    clientId: 'client-5',
-    clientName: 'Amanda Brown',
-    clientEmail: 'amanda.brown@homestyle.com',
-    projectName: 'Suburban Home Renovation',
-    description: 'Complete renovation of 1950s home with modern additions while preserving historical character.',
-    projectType: 'residential',
-    hoursRequested: 80,
-    budget: 12000,
-    status: 'rejected',
-    address: '45 Heritage Lane, Boston, MA',
-    createdAt: new Date('2024-02-01'),
-    updatedAt: new Date('2024-02-03'),
-    rejectedBy: 'admin-1',
-    rejectedAt: new Date('2024-02-03'),
-    rejectionReason: 'Scope too small for minimum project requirements. Client should consider direct freelancer engagement.',
-  },
-  {
-    id: 'pr-6',
-    clientId: 'client-1',
-    clientName: 'Sarah Johnson',
-    clientEmail: 'sarah.johnson@techcorp.com',
-    freelancerId: 'freelancer-1',
-    freelancerName: 'Michael Chen',
-    projectName: 'TechCorp HQ Phase 2',
-    description: 'Phase 2 of TechCorp headquarters expansion including rooftop garden and fitness center.',
-    projectType: 'commercial',
-    hoursRequested: 180,
-    budget: 32000,
-    status: 'converted',
-    address: '500 Tech Park Drive, San Francisco, CA',
-    createdAt: new Date('2024-01-20'),
-    updatedAt: new Date('2024-01-25'),
-    approvedBy: 'admin-1',
-    approvedAt: new Date('2024-01-22'),
-    convertedToProjectId: 'proj-3',
-    convertedAt: new Date('2024-01-25'),
-  },
-  {
-    id: 'pr-7',
-    clientId: 'client-6',
-    clientName: 'David Wilson',
-    clientEmail: 'd.wilson@parkserv.com',
-    projectName: 'Community Park Master Plan',
-    description: 'Comprehensive master plan for 50-acre community park including trails, recreational facilities, and environmental restoration.',
-    projectType: 'landscape',
-    hoursRequested: 120,
-    budget: 18000,
-    status: 'pending',
-    address: '1500 Parkside Avenue, Denver, CO',
-    createdAt: new Date('2024-02-20'),
-    updatedAt: new Date('2024-02-20'),
-  },
-  {
-    id: 'pr-8',
-    clientId: 'client-7',
-    clientName: 'Michelle Taylor',
-    clientEmail: 'm.taylor@medcenter.org',
-    projectName: 'Medical Clinic Expansion',
-    description: 'Addition of new patient wing and renovation of existing facilities to meet growing community healthcare needs.',
-    projectType: 'commercial',
-    hoursRequested: 250,
-    budget: 45000,
-    status: 'pending',
-    address: '200 Health Center Drive, Seattle, WA',
-    createdAt: new Date('2024-02-22'),
-    updatedAt: new Date('2024-02-22'),
-  },
-];
+// Collection name
+const PROJECT_REQUESTS_COLLECTION = 'projectRequests';
+
+// Helper to convert Firestore timestamps to dates
+function convertTimestamps(data: Record<string, unknown>): Record<string, unknown> {
+  const result = { ...data };
+  const dateFields = ['createdAt', 'updatedAt', 'approvedAt', 'rejectedAt', 'convertedAt'];
+  
+  for (const field of dateFields) {
+    if (result[field] instanceof Timestamp) {
+      result[field] = result[field].toDate();
+    }
+  }
+  return result;
+}
 
 export const useProjectRequestStore = create<ProjectRequestState>((set, get) => ({
-  projectRequests: generateMockProjectRequests(),
+  projectRequests: [],
   isLoading: false,
+  error: null,
+  unsubscribeRequests: null,
+
+  initialize: () => {
+    if (!isFirebaseConfigured() || !db) {
+      console.warn('[ProjectRequestStore] Firebase not configured, using empty arrays');
+      return;
+    }
+
+    set({ isLoading: true, error: null });
+
+    // Subscribe to project requests collection
+    const requestsQuery = query(
+      collection(db, PROJECT_REQUESTS_COLLECTION),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribeRequests = onSnapshot(
+      requestsQuery,
+      (snapshot) => {
+        const projectRequests = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...convertTimestamps(doc.data()),
+        })) as ProjectRequest[];
+        set({ projectRequests, isLoading: false });
+      },
+      (error) => {
+        console.error('[ProjectRequestStore] Error fetching project requests:', error);
+        set({ error: 'Failed to fetch project requests', isLoading: false });
+      }
+    );
+
+    set({ unsubscribeRequests });
+  },
+
+  cleanup: () => {
+    const { unsubscribeRequests } = get();
+    if (unsubscribeRequests) {
+      unsubscribeRequests();
+    }
+    set({ unsubscribeRequests: null });
+  },
 
   setProjectRequests: (requests) => set({ projectRequests: requests }),
-  
+
   createRequest: async (requestData) => {
+    if (!isFirebaseConfigured() || !db) {
+      throw new Error('Firebase not configured');
+    }
+
     set({ isLoading: true });
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const newRequest: ProjectRequest = {
-      id: `pr-${Date.now()}`,
-      clientId: requestData.clientId!,
-      clientName: requestData.clientName!,
-      clientEmail: requestData.clientEmail!,
-      freelancerId: requestData.freelancerId,
-      freelancerName: requestData.freelancerName,
-      projectName: requestData.projectName!,
-      description: requestData.description || '',
-      projectType: requestData.projectType || 'residential',
-      hoursRequested: requestData.hoursRequested || 0,
-      budget: requestData.budget || 0,
-      status: 'pending',
-      address: requestData.address,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    set(state => ({ 
-      projectRequests: [...state.projectRequests, newRequest],
-      isLoading: false 
-    }));
-    
-    return newRequest;
+
+    try {
+      const newRequest = {
+        clientId: requestData.clientId!,
+        clientName: requestData.clientName!,
+        clientEmail: requestData.clientEmail!,
+        freelancerId: requestData.freelancerId,
+        freelancerName: requestData.freelancerName,
+        projectName: requestData.projectName!,
+        description: requestData.description || '',
+        projectType: requestData.projectType || 'residential',
+        hoursRequested: requestData.hoursRequested || 0,
+        budget: requestData.budget || 0,
+        status: 'pending' as ProjectRequestStatus,
+        address: requestData.address,
+        propertyDetails: requestData.propertyDetails,
+        serviceDetails: requestData.serviceDetails,
+        attachments: requestData.attachments,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      const docRef = await addDoc(collection(db, PROJECT_REQUESTS_COLLECTION), newRequest);
+
+      const createdRequest: ProjectRequest = {
+        id: docRef.id,
+        ...newRequest,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        status: 'pending',
+      } as ProjectRequest;
+
+      set({ isLoading: false });
+      return createdRequest;
+    } catch (error) {
+      console.error('[ProjectRequestStore] Error creating request:', error);
+      set({ error: 'Failed to create request', isLoading: false });
+      throw error;
+    }
   },
 
-  updateRequest: (id, updates) => {
-    set(state => ({
-      projectRequests: state.projectRequests.map(pr => 
-        pr.id === id ? { ...pr, ...updates, updatedAt: new Date() } : pr
-      ),
-    }));
+  updateRequest: async (id, updates) => {
+    if (!isFirebaseConfigured() || !db) return;
+
+    try {
+      const requestRef = doc(db, PROJECT_REQUESTS_COLLECTION, id);
+      await updateDoc(requestRef, {
+        ...updates,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('[ProjectRequestStore] Error updating request:', error);
+      set({ error: 'Failed to update request' });
+      throw error;
+    }
   },
 
-  deleteRequest: (id) => {
-    set(state => ({
-      projectRequests: state.projectRequests.filter(pr => pr.id !== id),
-    }));
+  deleteRequest: async (id) => {
+    if (!isFirebaseConfigured() || !db) return;
+
+    try {
+      await deleteDoc(doc(db, PROJECT_REQUESTS_COLLECTION, id));
+    } catch (error) {
+      console.error('[ProjectRequestStore] Error deleting request:', error);
+      set({ error: 'Failed to delete request' });
+      throw error;
+    }
   },
 
-  approveRequest: (id, approvedBy) => {
-    set(state => ({
-      projectRequests: state.projectRequests.map(pr => 
-        pr.id === id 
-          ? { 
-              ...pr, 
-              status: 'approved' as ProjectRequestStatus, 
-              approvedBy, 
-              approvedAt: new Date(),
-              updatedAt: new Date() 
-            } 
-          : pr
-      ),
-    }));
+  approveRequest: async (id, approvedBy) => {
+    if (!isFirebaseConfigured() || !db) return;
+
+    try {
+      const requestRef = doc(db, PROJECT_REQUESTS_COLLECTION, id);
+      await updateDoc(requestRef, {
+        status: 'approved',
+        approvedBy,
+        approvedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('[ProjectRequestStore] Error approving request:', error);
+      set({ error: 'Failed to approve request' });
+      throw error;
+    }
   },
 
-  rejectRequest: (id, rejectedBy, reason) => {
-    set(state => ({
-      projectRequests: state.projectRequests.map(pr => 
-        pr.id === id 
-          ? { 
-              ...pr, 
-              status: 'rejected' as ProjectRequestStatus, 
-              rejectedBy, 
-              rejectedAt: new Date(),
-              rejectionReason: reason,
-              updatedAt: new Date() 
-            } 
-          : pr
-      ),
-    }));
+  rejectRequest: async (id, rejectedBy, reason) => {
+    if (!isFirebaseConfigured() || !db) return;
+
+    try {
+      const requestRef = doc(db, PROJECT_REQUESTS_COLLECTION, id);
+      await updateDoc(requestRef, {
+        status: 'rejected',
+        rejectedBy,
+        rejectedAt: serverTimestamp(),
+        rejectionReason: reason,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('[ProjectRequestStore] Error rejecting request:', error);
+      set({ error: 'Failed to reject request' });
+      throw error;
+    }
   },
 
-  convertToProject: (id, projectId) => {
-    set(state => ({
-      projectRequests: state.projectRequests.map(pr => 
-        pr.id === id 
-          ? { 
-              ...pr, 
-              status: 'converted' as ProjectRequestStatus, 
-              convertedToProjectId: projectId,
-              convertedAt: new Date(),
-              updatedAt: new Date() 
-            } 
-          : pr
-      ),
-    }));
+  convertToProject: async (id, projectId) => {
+    if (!isFirebaseConfigured() || !db) return;
+
+    try {
+      const requestRef = doc(db, PROJECT_REQUESTS_COLLECTION, id);
+      await updateDoc(requestRef, {
+        status: 'converted',
+        convertedToProjectId: projectId,
+        convertedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('[ProjectRequestStore] Error converting request:', error);
+      set({ error: 'Failed to convert request' });
+      throw error;
+    }
   },
 
   getRequestById: (id) => {

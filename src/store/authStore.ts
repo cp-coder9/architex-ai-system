@@ -1,113 +1,171 @@
+/**
+ * Authentication Store
+ * 
+ * Manages authentication state using Firebase Auth.
+ * Provides login, registration, and session management for three user types:
+ * - Admin
+ * - Client
+ * - Freelancer
+ * 
+ * Firebase Integration:
+ * - Uses Firebase Auth for email/password authentication
+ * - Stores user profiles in Firestore
+ * - Maintains session state with onAuthStateChanged
+ */
+
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { User, UserRole, Client, Freelancer, Admin } from '@/types';
+import {
+  auth,
+  isFirebaseConfigured,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  updateProfile,
+  type FirebaseUser,
+} from '@/services/firebase';
+import {
+  getUserById,
+  updateUser,
+  createClientUser,
+  createFreelancerUser,
+  createAdminUser,
+  updateLastLogin,
+} from '@/services/firebase/userService';
+
+// Uploaded file type for onboarding
+type UploadedFile = {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  progress: number;
+  preview?: string;
+};
+
+type PhysicalAddress = {
+  street: string;
+  suburb: string;
+  city: string;
+  province: string;
+  postalCode: string;
+};
+
+// Full onboarding data type matching OnboardingScreen
+type OnboardingData = {
+  serviceType: string;
+  customServiceDescription: string;
+  propertyType: string;
+  urgency: string;
+  uploadedFiles: UploadedFile[];
+  personalDetails: {
+    firstName: string;
+    surname: string;
+    phoneNumber: string;
+    email: string;
+  };
+  propertyDetails: {
+    identifierType: 'erf' | 'stand';
+    identifierNumber: string;
+    physicalAddress: PhysicalAddress;
+  };
+};
 
 interface AuthState {
   currentUser: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  
+  firebaseUser: FirebaseUser | null;
+  tempOnboardingData: OnboardingData | null;
+  termsAccepted: boolean;
+  termsAcceptedAt: Date | null;
+  credentialsToNote: { email: string; password: string } | null;
+
   // Actions
   login: (email: string, password: string, role: UserRole) => Promise<boolean>;
   register: (userData: Partial<User> & { password: string }) => Promise<boolean>;
-  logout: () => void;
-  updateUser: (updates: Partial<User>) => void;
+  logout: () => Promise<void>;
+  updateUser: (updates: Partial<User>) => Promise<void>;
+  setTempOnboardingData: (data: AuthState['tempOnboardingData']) => void;
+  acceptTerms: () => void;
   clearError: () => void;
-}
-
-// Interface for stored mock user with password hash
-interface MockUserWithPassword extends User {
-  passwordHash: string;
-  permissions?: string[];
-  lastLogin?: Date;
+  setCredentialsToNote: (creds: AuthState['credentialsToNote']) => void;
+  initializeAuth: () => () => void;
 }
 
 /**
- * Hash a password using Web Crypto API (SHA-256 with salt)
- * This provides secure password hashing without external dependencies
+ * Convert Firebase Auth user to our User type
  */
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+async function getUserFromFirebase(firebaseUser: FirebaseUser): Promise<User | null> {
+  try {
+    const userData = await getUserById(firebaseUser.uid);
+    return userData;
+  } catch (error) {
+    console.error('[AuthStore] Error fetching user data:', error);
+    return null;
+  }
 }
 
 /**
- * Verify a password against a stored hash
+ * Create role-specific user data
  */
-async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
-  const hashedPassword = await hashPassword(password);
-  return hashedPassword === storedHash;
+function createRoleSpecificUserData(
+  userData: Partial<User>,
+  uid: string
+): Omit<User, 'id' | 'createdAt' | 'updatedAt'> {
+  const baseUser = {
+    email: userData.email!,
+    name: userData.name!,
+    role: userData.role!,
+    avatar: userData.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${uid}`,
+    isActive: true,
+    phone: userData.phone,
+    company: userData.company,
+    address: userData.address,
+  };
+
+  switch (userData.role) {
+    case 'client':
+      return {
+        ...baseUser,
+        role: 'client',
+        totalHoursPurchased: 0,
+        totalHoursUsed: 0,
+        projects: [],
+        paymentMethods: [],
+      } as unknown as Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
+
+    case 'freelancer':
+      return {
+        ...baseUser,
+        role: 'freelancer',
+        hourlyRate: (userData as unknown as Freelancer).hourlyRate || 0,
+        skills: (userData as unknown as Freelancer).skills || [],
+        totalHoursWorked: 0,
+        totalEarnings: 0,
+        rating: 0,
+        availability: 'available',
+        currentProjects: [],
+        certifications: (userData as unknown as Freelancer).certifications || [],
+      } as unknown as Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
+
+    case 'admin':
+      return {
+        ...baseUser,
+        role: 'admin',
+        permissions: ['all'],
+        lastLogin: new Date(),
+      } as unknown as Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
+
+    default:
+      throw new Error('Invalid user role');
+  }
 }
 
-// Generate password hashes for mock users (pre-computed for demo)
-// Passwords: admin123, client123, freelancer123
-const MOCK_PASSWORD_HASHES: Record<string, string> = {
-  'admin@archflow.com': 'f5d1278e8109f4c5d1f3b9e78d5e2c4a8b9f5d6e7c8b9a0f1e2d3c4b5a6f7e8d', // admin123
-  'client@example.com': 'a3b9c2d1e4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3y4z5a6b7c8d9e0f1', // client123
-  'freelancer@example.com': 'b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h', // freelancer123
-};
-
-// Mock users for demo with password hashes
-const mockUsers: Record<string, MockUserWithPassword> = {
-  'admin@archflow.com': {
-    id: 'admin-1',
-    email: 'admin@archflow.com',
-    name: 'System Administrator',
-    role: 'admin',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
-    isActive: true,
-    phone: '+1 (555) 000-0001',
-    company: 'Architex Axis Systems',
-    permissions: ['all'],
-    lastLogin: new Date(),
-    passwordHash: MOCK_PASSWORD_HASHES['admin@archflow.com'],
-  } as MockUserWithPassword,
-  'client@example.com': {
-    id: 'client-1',
-    email: 'client@example.com',
-    name: 'John Smith',
-    role: 'client',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=client',
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date(),
-    isActive: true,
-    phone: '+1 (555) 123-4567',
-    company: 'Smith Architecture Firm',
-    totalHoursPurchased: 500,
-    totalHoursUsed: 320,
-    projects: ['proj-1', 'proj-2'],
-    paymentMethods: [
-      { id: 'pm-1', type: 'card', last4: '4242', expiryMonth: 12, expiryYear: 2026, isDefault: true },
-    ],
-    passwordHash: MOCK_PASSWORD_HASHES['client@example.com'],
-  } as MockUserWithPassword,
-  'freelancer@example.com': {
-    id: 'freelancer-1',
-    email: 'freelancer@example.com',
-    name: 'Sarah Johnson',
-    role: 'freelancer',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=freelancer',
-    createdAt: new Date('2024-02-01'),
-    updatedAt: new Date(),
-    isActive: true,
-    phone: '+1 (555) 987-6543',
-    hourlyRate: 75,
-    skills: ['AutoCAD', 'Revit', 'SketchUp', '3D Rendering', 'Structural Design'],
-    totalHoursWorked: 320,
-    totalEarnings: 24000,
-    rating: 4.8,
-    availability: 'available',
-    currentProjects: ['proj-1'],
-    certifications: ['LEED AP', 'Licensed Architect'],
-    passwordHash: MOCK_PASSWORD_HASHES['freelancer@example.com'],
-  } as MockUserWithPassword,
-};
+// ============ ZUSTAND STORE ============
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -116,126 +174,339 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      firebaseUser: null,
+      tempOnboardingData: null,
+      termsAccepted: false,
+      termsAcceptedAt: null,
+      credentialsToNote: null,
 
+      /**
+       * Initialize authentication listener
+       * Returns unsubscribe function
+       */
+      initializeAuth: () => {
+        // Check if Firebase is configured
+        if (!isFirebaseConfigured()) {
+          console.warn('[AuthStore] Firebase not configured - authentication unavailable');
+          set({
+            isLoading: false,
+            error: 'Authentication service unavailable. Please contact support.'
+          });
+          return () => { };
+        }
+
+        set({ isLoading: true });
+
+        const unsubscribe = onAuthStateChanged(
+          auth!,
+          async (firebaseUser) => {
+            if (firebaseUser) {
+              const userData = await getUserFromFirebase(firebaseUser);
+              if (userData) {
+                set({
+                  firebaseUser,
+                  currentUser: userData,
+                  isAuthenticated: true,
+                  isLoading: false,
+                });
+              } else {
+                // User exists in Auth but not in Firestore
+                set({
+                  firebaseUser,
+                  currentUser: null,
+                  isAuthenticated: false,
+                  isLoading: false,
+                  error: 'User profile not found',
+                });
+              }
+            } else {
+              set({
+                firebaseUser: null,
+                currentUser: null,
+                isAuthenticated: false,
+                isLoading: false,
+              });
+            }
+          },
+          (error) => {
+            console.error('[AuthStore] Auth state error:', error);
+            set({
+              firebaseUser: null,
+              currentUser: null,
+              isAuthenticated: false,
+              isLoading: false,
+              error: 'Authentication error',
+            });
+          }
+        );
+
+        return unsubscribe;
+      },
+
+      /**
+       * Login user
+       */
       login: async (email: string, password: string, role: UserRole) => {
         set({ isLoading: true, error: null });
-        
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const user = mockUsers[email.toLowerCase()];
-        
-        // Verify user exists, role matches, and password is correct
-        if (user && user.role === role) {
-          const isPasswordValid = await verifyPassword(password, user.passwordHash);
-          
-          if (isPasswordValid) {
-            // Update lastLogin for admin users
-            if (user.role === 'admin') {
-              user.lastLogin = new Date();
-            }
-            
-            // Remove passwordHash from user object before storing in state
-            const { passwordHash, ...userWithoutPassword } = user;
-            
-            set({ 
-              currentUser: userWithoutPassword as User, 
-              isAuthenticated: true, 
-              isLoading: false 
-            });
-            return true;
-          }
-        }
-        
-        set({ 
-          error: 'Invalid credentials or role selection', 
-          isLoading: false 
-        });
-        return false;
-      },
 
-      register: async (userData) => {
-        set({ isLoading: true, error: null });
-        
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        if (mockUsers[userData.email!]) {
-          set({ error: 'User already exists', isLoading: false });
+        // Check if Firebase is configured
+        if (!isFirebaseConfigured()) {
+          set({
+            error: 'Authentication service unavailable. Please contact support.',
+            isLoading: false,
+          });
           return false;
         }
-        
-        // Hash the password before storing
-        const passwordHash = await hashPassword(userData.password);
-        
-        const newUser: MockUserWithPassword = {
-          id: `user-${Date.now()}`,
-          email: userData.email!,
-          name: userData.name!,
-          role: userData.role!,
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          isActive: true,
-          phone: userData.phone,
-          company: userData.company,
-          passwordHash,
-        };
-        
-        // Add role-specific fields
-        if (userData.role === 'admin') {
-          newUser.permissions = ['all'];
-          newUser.lastLogin = new Date();
-        } else if (userData.role === 'client') {
-          (newUser as unknown as Client).totalHoursPurchased = 0;
-          (newUser as unknown as Client).totalHoursUsed = 0;
-          (newUser as unknown as Client).projects = [];
-          (newUser as unknown as Client).paymentMethods = [];
-        } else if (userData.role === 'freelancer') {
-          (newUser as unknown as Freelancer).hourlyRate = 0;
-          (newUser as unknown as Freelancer).skills = [];
-          (newUser as unknown as Freelancer).totalHoursWorked = 0;
-          (newUser as unknown as Freelancer).totalEarnings = 0;
-          (newUser as unknown as Freelancer).rating = 0;
-          (newUser as unknown as Freelancer).availability = 'available';
-          (newUser as unknown as Freelancer).currentProjects = [];
-          (newUser as unknown as Freelancer).certifications = [];
+
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth!, email, password);
+          const firebaseUser = userCredential.user;
+
+          // Fetch user data from Firestore
+          const userData = await getUserById(firebaseUser.uid);
+
+          if (!userData) {
+            await firebaseSignOut(auth!);
+            set({
+              error: 'User profile not found',
+              isLoading: false,
+            });
+            return false;
+          }
+
+          // Verify role matches
+          if (userData.role !== role) {
+            await firebaseSignOut(auth!);
+            set({
+              error: 'Invalid role selection for this account',
+              isLoading: false,
+            });
+            return false;
+          }
+
+          // Update last login for admins
+          if (userData.role === 'admin') {
+            await updateLastLogin(firebaseUser.uid);
+          }
+
+          set({
+            firebaseUser,
+            currentUser: userData,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+
+          return true;
+        } catch (error) {
+          console.error('[AuthStore] Login error:', error);
+
+          let errorMessage = 'Login failed';
+          if (error instanceof Error) {
+            // Handle Firebase auth errors
+            if (error.message.includes('auth/user-not-found')) {
+              errorMessage = 'User not found';
+            } else if (error.message.includes('auth/wrong-password')) {
+              errorMessage = 'Invalid password';
+            } else if (error.message.includes('auth/invalid-email')) {
+              errorMessage = 'Invalid email address';
+            } else if (error.message.includes('auth/too-many-requests')) {
+              errorMessage = 'Too many failed attempts. Please try again later.';
+            } else if (error.message.includes('auth/invalid-credential')) {
+              errorMessage = 'Invalid email or password';
+            }
+          }
+
+          set({
+            error: errorMessage,
+            isLoading: false,
+          });
+          return false;
         }
-        
-        mockUsers[userData.email!] = newUser;
-        
-        // Remove passwordHash from user object before storing in state
-        const { passwordHash: _, ...userWithoutPassword } = newUser;
-        
-        set({ 
-          currentUser: userWithoutPassword as User, 
-          isAuthenticated: true, 
-          isLoading: false 
-        });
-        
-        return true;
       },
 
-      logout: () => {
-        set({ 
-          currentUser: null, 
-          isAuthenticated: false, 
-          error: null 
-        });
+      /**
+       * Register new user
+       */
+      register: async (userData) => {
+        set({ isLoading: true, error: null });
+
+        // Check if Firebase is configured
+        if (!isFirebaseConfigured()) {
+          set({
+            error: 'Authentication service unavailable. Please contact support.',
+            isLoading: false,
+          });
+          return false;
+        }
+
+        try {
+          const userCredential = await createUserWithEmailAndPassword(
+            auth!,
+            userData.email!,
+            userData.password
+          );
+
+          const firebaseUser = userCredential.user;
+
+          // Update Firebase Auth profile
+          if (userData.name) {
+            await updateProfile(firebaseUser, {
+              displayName: userData.name,
+            });
+          }
+
+          // Create user document in Firestore
+          const userProfileData = createRoleSpecificUserData(userData, firebaseUser.uid);
+
+          let newUser: User;
+          switch (userData.role) {
+            case 'client':
+              newUser = await createClientUser(firebaseUser.uid, userProfileData as unknown as Omit<Client, 'id' | 'createdAt' | 'updatedAt' | 'role'>);
+              break;
+            case 'freelancer':
+              newUser = await createFreelancerUser(firebaseUser.uid, userProfileData as unknown as Omit<Freelancer, 'id' | 'createdAt' | 'updatedAt' | 'role'>);
+              break;
+            case 'admin':
+              newUser = await createAdminUser(firebaseUser.uid, userProfileData as unknown as Omit<Admin, 'id' | 'createdAt' | 'updatedAt' | 'role' | 'permissions'>);
+              break;
+            default:
+              throw new Error('Invalid user role');
+          }
+
+          set({
+            firebaseUser,
+            currentUser: newUser,
+            isAuthenticated: true,
+            isLoading: false,
+            credentialsToNote: { email: userData.email!, password: userData.password },
+          });
+
+          return true;
+        } catch (error) {
+          console.error('[AuthStore] Registration error:', error);
+
+          let errorMessage = 'Registration failed';
+          if (error instanceof Error) {
+            if (error.message.includes('auth/email-already-in-use')) {
+              errorMessage = 'Email already registered';
+            } else if (error.message.includes('auth/invalid-email')) {
+              errorMessage = 'Invalid email address';
+            } else if (error.message.includes('auth/weak-password')) {
+              errorMessage = 'Password is too weak';
+            }
+          }
+
+          set({
+            error: errorMessage,
+            isLoading: false,
+          });
+          return false;
+        }
       },
 
-      updateUser: (updates) => {
-        const { currentUser } = get();
-        if (currentUser) {
-          set({ 
-            currentUser: { ...currentUser, ...updates, updatedAt: new Date() } 
+      /**
+       * Logout user
+       */
+      logout: async () => {
+        set({ isLoading: true });
+
+        try {
+          if (isFirebaseConfigured() && auth) {
+            await firebaseSignOut(auth);
+          }
+
+          set({
+            currentUser: null,
+            isAuthenticated: false,
+            firebaseUser: null,
+            error: null,
+            isLoading: false,
+          });
+        } catch (error) {
+          console.error('[AuthStore] Logout error:', error);
+          set({
+            error: 'Logout failed',
+            isLoading: false,
           });
         }
       },
 
+      /**
+       * Update user profile
+       */
+      updateUser: async (updates) => {
+        const { currentUser, firebaseUser } = get();
+
+        if (!currentUser) return;
+
+        try {
+          // Update in Firestore if using Firebase
+          if (firebaseUser) {
+            await updateUser(firebaseUser.uid, updates);
+          }
+
+          // Update local state
+          set({
+            currentUser: { ...currentUser, ...updates, updatedAt: new Date() },
+          });
+        } catch (error) {
+          console.error('[AuthStore] Update user error:', error);
+          set({ error: 'Failed to update profile' });
+        }
+      },
+
+      /**
+       * Set temporary onboarding data
+       */
+      setTempOnboardingData: (data) => set({ tempOnboardingData: data }),
+
+      /**
+       * Accept terms of use
+       */
+      acceptTerms: () => set({ termsAccepted: true, termsAcceptedAt: new Date() }),
+
+      /**
+       * Clear error message
+       */
       clearError: () => set({ error: null }),
+
+      /**
+       * Set credentials to be noted/shown in a popup
+       */
+      setCredentialsToNote: (creds) => set({ credentialsToNote: creds }),
     }),
     {
       name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        currentUser: state.currentUser,
+        isAuthenticated: state.isAuthenticated,
+        tempOnboardingData: state.tempOnboardingData,
+        credentialsToNote: state.credentialsToNote,
+      }),
+      // Custom serialization/deserialization to handle Date objects
+      onRehydrateStorage: () => (state) => {
+        if (state?.currentUser) {
+          // Restore Date objects from ISO strings
+          const user = state.currentUser;
+          if (user.createdAt && typeof user.createdAt === 'string') {
+            user.createdAt = new Date(user.createdAt);
+          }
+          if (user.updatedAt && typeof user.updatedAt === 'string') {
+            user.updatedAt = new Date(user.updatedAt);
+          }
+          // Handle role-specific date fields
+          if ('lastLogin' in user && user.lastLogin && typeof user.lastLogin === 'string') {
+            (user as Admin).lastLogin = new Date(user.lastLogin);
+          }
+        }
+      },
     }
   )
 );
+
+// Initialize auth listener on app start
+// This should be called in your app's entry point (e.g., main.tsx)
+export function initializeAuth(): () => void {
+  return useAuthStore.getState().initializeAuth();
+}

@@ -9,26 +9,22 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from 'sonner';
 import {
   Clock,
-  Plus,
   CheckCircle2,
-  AlertCircle,
-  TrendingUp,
   Package,
-  Calendar,
   DollarSign,
   ShoppingCart,
 } from 'lucide-react';
 
 // Hour Package Card
-function PackageCard({ 
-  pkg, 
-  onPurchase 
-}: { 
+function PackageCard({
+  pkg,
+  onPurchase
+}: {
   pkg: { hours: number; pricePerHour: number; name: string; description: string; popular?: boolean };
   onPurchase: () => void;
 }) {
   const totalPrice = pkg.hours * pkg.pricePerHour;
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -40,17 +36,17 @@ function PackageCard({
           <Badge className="bg-primary">Most Popular</Badge>
         </div>
       )}
-      
+
       <div className="text-center mb-6">
         <h3 className="text-xl font-bold">{pkg.name}</h3>
         <p className="text-sm text-muted-foreground mt-1">{pkg.description}</p>
       </div>
-      
+
       <div className="text-center mb-6">
-        <span className="text-4xl font-bold">R${pkg.pricePerHour}</span>
+        <span className="text-4xl font-bold">R{pkg.pricePerHour}</span>
         <span className="text-muted-foreground">/hour</span>
       </div>
-      
+
       <div className="space-y-3 mb-6">
         <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
           <span className="text-sm">Hours Included</span>
@@ -58,14 +54,14 @@ function PackageCard({
         </div>
         <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
           <span className="text-sm">Total Price</span>
-          <span className="font-bold">R${totalPrice.toLocaleString()}</span>
+          <span className="font-bold">R{totalPrice.toLocaleString()}</span>
         </div>
         <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
           <span className="text-sm">Validity</span>
           <span className="font-bold">6 months</span>
         </div>
       </div>
-      
+
       <Button className="w-full" onClick={onPurchase}>
         <ShoppingCart className="w-4 h-4 mr-2" />
         Purchase
@@ -78,11 +74,11 @@ export function HourPackages() {
   const { currentUser } = useAuthStore();
   const { hourPackages, purchaseHours } = useInvoiceStore();
   const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState<any>(null);
+  const [selectedPackage, setSelectedPackage] = useState<{ hours: number; pricePerHour: number; name: string } | null>(null);
 
   // Get client's packages
   const clientPackages = hourPackages.filter(pkg => pkg.clientId === currentUser?.id);
-  
+
   const totalHoursPurchased = clientPackages.reduce((sum, pkg) => sum + pkg.hours, 0);
   const totalHoursUsed = clientPackages.reduce((sum, pkg) => sum + pkg.hoursUsed, 0);
   const totalHoursRemaining = totalHoursPurchased - totalHoursUsed;
@@ -134,7 +130,7 @@ export function HourPackages() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -149,7 +145,7 @@ export function HourPackages() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -174,8 +170,8 @@ export function HourPackages() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <Progress 
-              value={totalHoursPurchased > 0 ? (totalHoursUsed / totalHoursPurchased) * 100 : 0} 
+            <Progress
+              value={totalHoursPurchased > 0 ? (totalHoursUsed / totalHoursPurchased) * 100 : 0}
               className="h-4"
             />
             <div className="flex items-center justify-between text-sm">
@@ -210,7 +206,7 @@ export function HourPackages() {
                         Purchased {new Date(pkg.purchasedAt).toLocaleDateString()}
                       </span>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Total Hours</span>
@@ -226,17 +222,17 @@ export function HourPackages() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Price/Hour</span>
-                        <span className="font-bold">R${pkg.pricePerHour}</span>
+                        <span className="font-bold">R{pkg.pricePerHour}</span>
                       </div>
                     </div>
-                    
+
                     <div className="mt-4">
-                      <Progress 
-                        value={(pkg.hoursUsed / pkg.hours) * 100} 
+                      <Progress
+                        value={(pkg.hoursUsed / pkg.hours) * 100}
                         className="h-2"
                       />
                     </div>
-                    
+
                     {pkg.expiresAt && (
                       <p className="text-xs text-muted-foreground mt-3">
                         Expires: {new Date(pkg.expiresAt).toLocaleDateString()}
@@ -254,7 +250,7 @@ export function HourPackages() {
       <div>
         <h2 className="text-xl font-semibold mb-4">Purchase Hours</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {availablePackages.map((pkg, index) => (
+          {availablePackages.map((pkg) => (
             <PackageCard
               key={pkg.name}
               pkg={pkg}
@@ -273,10 +269,10 @@ export function HourPackages() {
           <DialogHeader>
             <DialogTitle>Confirm Purchase</DialogTitle>
             <DialogDescription>
-              You are about to purchase {selectedPackage?.hours} hours at ${selectedPackage?.pricePerHour}/hour.
+              You are about to purchase {selectedPackage?.hours} hours at R{selectedPackage?.pricePerHour}/hour.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="p-4 rounded-lg bg-muted">
             <div className="flex items-center justify-between mb-2">
               <span>Hours</span>
@@ -284,18 +280,18 @@ export function HourPackages() {
             </div>
             <div className="flex items-center justify-between mb-2">
               <span>Price per hour</span>
-              <span className="font-bold">R${selectedPackage?.pricePerHour}</span>
+              <span className="font-bold">R{selectedPackage?.pricePerHour}</span>
             </div>
             <div className="border-t pt-2 mt-2">
               <div className="flex items-center justify-between">
                 <span className="font-bold">Total</span>
                 <span className="font-bold text-xl">
-                  R${selectedPackage ? (selectedPackage.hours * selectedPackage.pricePerHour).toLocaleString() : 0}
+                  R{selectedPackage ? (selectedPackage.hours * selectedPackage.pricePerHour).toLocaleString() : 0}
                 </span>
               </div>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsPurchaseDialogOpen(false)}>
               Cancel

@@ -236,8 +236,8 @@ function KPICard({
 }) {
   const displayValue = format === 'percent' 
     ? `${value}%` 
-    : format === 'currency' 
-      ? `R${Number(value).toLocaleString()}` 
+      : format === 'currency'
+      ? `R{Number(value).toLocaleString()}`
       : value;
 
   return (
@@ -692,7 +692,7 @@ export function SystemAnalytics() {
         />
         <MetricCard
           title="Total Revenue"
-          value={`R${totalRevenue.toLocaleString()}`}
+          value={`R{totalRevenue.toLocaleString()}`}
           change={`${revenueChange} from previous period`}
           icon={DollarSign}
           color="bg-orange-500"
@@ -1031,8 +1031,8 @@ export function SystemAnalytics() {
                     <div className="flex items-center justify-between text-sm">
                       <span>{item.label}</span>
                       <div className="flex gap-4">
-                        <span className="text-blue-600">Budget: R${item.budget.toLocaleString()}</span>
-                        <span className="text-orange-600">Actual: R${item.actual.toLocaleString()}</span>
+                        <span className="text-blue-600">Budget: R{item.budget.toLocaleString()}</span>
+                        <span className="text-orange-600">Actual: R{item.actual.toLocaleString()}</span>
                       </div>
                     </div>
                     <div className="h-3 bg-muted rounded-full overflow-hidden flex">

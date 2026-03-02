@@ -6,9 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { toast } from 'sonner';
 import {
   MessageSquare,
   Send,
@@ -16,8 +14,6 @@ import {
   MoreVertical,
   Phone,
   Video,
-  Search,
-  Clock,
   CheckCheck,
   Check,
   Building2,
@@ -173,7 +169,7 @@ export function FreelancerMessages() {
                 <ScrollArea className="h-[calc(100%-140px)] p-4">
                   <div className="space-y-4">
                     <AnimatePresence>
-                      {projectMessages.map((message, index) => {
+                      {projectMessages.map((message) => {
                         const isMe = message.senderId === currentUser?.id;
                         return (
                           <motion.div

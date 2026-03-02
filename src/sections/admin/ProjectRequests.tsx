@@ -52,12 +52,12 @@ import {
 } from 'lucide-react';
 
 // Project Request Table Component
-function ProjectRequestTable({ 
-  requests, 
-  onApprove, 
-  onReject, 
-  onConvert 
-}: { 
+function ProjectRequestTable({
+  requests,
+  onApprove,
+  onReject,
+  onConvert
+}: {
   requests: ProjectRequest[];
   onApprove: (request: ProjectRequest) => void;
   onReject: (request: ProjectRequest) => void;
@@ -109,7 +109,7 @@ function ProjectRequestTable({
       <TableBody>
         {requests.map((request, index) => (
           <motion.tr
-            key={request.id}
+            key={request.id || index}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
@@ -168,18 +168,18 @@ function ProjectRequestTable({
             <TableCell className="text-right">
               {request.status === 'pending' && (
                 <div className="flex items-center justify-end gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    size="sm"
+                    variant="outline"
                     className="h-8 gap-1"
                     onClick={() => onApprove(request)}
                   >
                     <CheckCircle2 className="w-3 h-3" />
                     Approve
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    size="sm"
+                    variant="outline"
                     className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
                     onClick={() => onReject(request)}
                   >
@@ -189,9 +189,9 @@ function ProjectRequestTable({
                 </div>
               )}
               {request.status === 'approved' && (
-                <Button 
-                  size="sm" 
-                  variant="outline" 
+                <Button
+                  size="sm"
+                  variant="outline"
                   className="h-8 gap-1"
                   onClick={() => onConvert(request)}
                 >
@@ -266,10 +266,10 @@ function EmptyState({ tab }: { tab: string }) {
 
 export function ProjectRequests() {
   const { projectRequests, approveRequest, rejectRequest, convertToProject } = useProjectRequestStore();
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<ProjectRequestStatus | 'all'>('all');
-  
+
   // Dialog states
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
@@ -280,13 +280,13 @@ export function ProjectRequests() {
   // Filter requests
   const filteredRequests = useMemo(() => {
     return projectRequests.filter(request => {
-      const matchesSearch = 
+      const matchesSearch =
         request.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         request.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         request.description.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       const matchesTab = activeTab === 'all' || request.status === activeTab;
-      
+
       return matchesSearch && matchesTab;
     });
   }, [projectRequests, searchQuery, activeTab]);
@@ -377,7 +377,7 @@ export function ProjectRequests() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -391,7 +391,7 @@ export function ProjectRequests() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -405,7 +405,7 @@ export function ProjectRequests() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -419,7 +419,7 @@ export function ProjectRequests() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -443,7 +443,7 @@ export function ProjectRequests() {
               <CardTitle>All Project Requests</CardTitle>
               <CardDescription>Review and manage client project requests</CardDescription>
             </div>
-            
+
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -456,7 +456,7 @@ export function ProjectRequests() {
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent>
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ProjectRequestStatus | 'all')} className="w-full">
             <TabsList className="mb-4">
@@ -485,7 +485,7 @@ export function ProjectRequests() {
                 <Badge variant="secondary" className="ml-1">{stats.converted}</Badge>
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value={activeTab}>
               <ScrollArea className="h-[500px]">
                 {filteredRequests.length === 0 ? (
@@ -525,7 +525,7 @@ export function ProjectRequests() {
                   </span>
                   <span className="flex items-center gap-1">
                     <DollarSign className="w-3 h-3" />
-                    R${selectedRequest.budget.toLocaleString()}
+                    R{selectedRequest.budget.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -603,7 +603,7 @@ export function ProjectRequests() {
                   </span>
                   <span className="flex items-center gap-1">
                     <DollarSign className="w-3 h-3" />
-                    R${selectedRequest.budget.toLocaleString()}
+                    R{selectedRequest.budget.toLocaleString()}
                   </span>
                 </div>
               </div>

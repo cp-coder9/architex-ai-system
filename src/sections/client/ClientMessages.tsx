@@ -1,13 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore, useProjectStore, useNotificationStore } from '@/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { toast } from 'sonner';
 import {
   MessageSquare,
   Send,
@@ -15,8 +13,6 @@ import {
   MoreVertical,
   Phone,
   Video,
-  Search,
-  Clock,
   CheckCheck,
   Check,
 } from 'lucide-react';
@@ -32,9 +28,10 @@ const mockFreelancer = {
 
 export function ClientMessages() {
   const { currentUser } = useAuthStore();
-  const { chatMessages, sendMessage, markMessageAsRead } = useNotificationStore();
-  const projects = useProjectStore(state => state.projects.filter(p => p.clientId === currentUser?.id));
-  
+  const { chatMessages, sendMessage } = useNotificationStore();
+  const allProjects = useProjectStore(state => state.projects);
+  const projects = useMemo(() => allProjects.filter(p => p.clientId === currentUser?.id), [allProjects, currentUser?.id]);
+
   const [selectedProject, setSelectedProject] = useState(projects[0]);
   const [messageInput, setMessageInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -49,13 +46,13 @@ export function ClientMessages() {
 
   const handleSendMessage = () => {
     if (!messageInput.trim() || !selectedProject) return;
-    
+
     sendMessage({
       projectId: selectedProject.id,
       senderId: currentUser?.id || '',
       content: messageInput,
     });
-    
+
     setMessageInput('');
   };
 
@@ -98,11 +95,10 @@ export function ClientMessages() {
                   <button
                     key={project.id}
                     onClick={() => setSelectedProject(project)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
-                      selectedProject?.id === project.id
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${selectedProject?.id === project.id
                         ? 'bg-primary text-primary-foreground'
                         : 'hover:bg-muted'
-                    }`}
+                      }`}
                   >
                     <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                       <span className="font-bold text-sm">
@@ -160,7 +156,7 @@ export function ClientMessages() {
                 <ScrollArea className="h-[calc(100%-140px)] p-4">
                   <div className="space-y-4">
                     <AnimatePresence>
-                      {projectMessages.map((message, index) => {
+                      {projectMessages.map((message) => {
                         const isMe = message.senderId === currentUser?.id;
                         return (
                           <motion.div
@@ -178,11 +174,10 @@ export function ClientMessages() {
                                 </Avatar>
                               )}
                               <div
-                                className={`px-4 py-2 rounded-2xl ${
-                                  isMe
+                                className={`px-4 py-2 rounded-2xl ${isMe
                                     ? 'bg-primary text-primary-foreground rounded-br-none'
                                     : 'bg-muted rounded-bl-none'
-                                }`}
+                                  }`}
                               >
                                 <p className="text-sm">{message.content}</p>
                                 <p className={`text-xs mt-1 ${isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>

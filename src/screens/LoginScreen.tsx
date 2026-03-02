@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid, Line } from '@react-three/drei';
 import * as THREE from 'three';
-import { useAuthStore } from '@/store';
+import { useAuthStore, useProjectRequestStore } from '@/store';
 import { UserRole } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,14 +12,14 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Building2, 
-  User, 
-  HardHat, 
-  Shield, 
-  Mail, 
-  Lock, 
-  Eye, 
+import {
+  Building2,
+  User,
+  HardHat,
+  Shield,
+  Mail,
+  Lock,
+  Eye,
   EyeOff,
   ArrowRight,
   Loader2,
@@ -29,7 +29,7 @@ import {
 // 3D Architectural Wireframe Component
 function ArchitecturalWireframe() {
   const groupRef = useRef<THREE.Group>(null);
-  
+
   useFrame((state) => {
     if (groupRef.current) {
       groupRef.current.rotation.y = state.clock.elapsedTime * 0.05;
@@ -95,7 +95,7 @@ function ArchitecturalWireframe() {
         fadeStrength={1}
         infiniteGrid
       />
-      
+
       {/* Building Wireframe */}
       {buildingLines.map((line, index) => (
         <Line
@@ -107,7 +107,7 @@ function ArchitecturalWireframe() {
           opacity={0.8}
         />
       ))}
-      
+
       {/* Glowing points at vertices */}
       {[
         [-3, 0, -3], [3, 0, -3], [3, 0, 3], [-3, 0, 3],
@@ -136,8 +136,8 @@ function BackgroundScene() {
       <pointLight position={[10, 10, 10]} intensity={1} color="#0D9488" />
       <pointLight position={[-10, -10, -10]} intensity={0.5} color="#14B8A6" />
       <ArchitecturalWireframe />
-      <OrbitControls 
-        enableZoom={false} 
+      <OrbitControls
+        enableZoom={false}
         enablePan={false}
         autoRotate
         autoRotateSpeed={0.5}
@@ -148,38 +148,39 @@ function BackgroundScene() {
 
 export function LoginScreen() {
   const navigate = useNavigate();
-  const { login, register, isLoading, error, clearError } = useAuthStore();
-  
+  const { login, register, isLoading, error, clearError, tempOnboardingData, setTempOnboardingData } = useAuthStore();
+  const { createRequest } = useProjectRequestStore();
+
   const [activeTab, setActiveTab] = useState('login');
   const [selectedRole, setSelectedRole] = useState<UserRole>('client');
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // Form states
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  
+
   const [registerName, setRegisterName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerPhone, setRegisterPhone] = useState('');
   const [registerCompany, setRegisterCompany] = useState('');
-  
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
-    
+
     const success = await login(loginEmail, loginPassword, selectedRole);
-    
+
     if (success) {
       const route = selectedRole === 'admin' ? '/admin' : selectedRole === 'client' ? '/client' : '/freelancer';
       navigate(route);
     }
   };
-  
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
-    
+
     const success = await register({
       name: registerName,
       email: registerEmail,
@@ -188,8 +189,51 @@ export function LoginScreen() {
       phone: registerPhone,
       company: registerCompany,
     });
-    
+
     if (success) {
+      // If we have onboarding data, create a project request for the new client
+      if (selectedRole === 'client' && tempOnboardingData) {
+        try {
+          const serviceLabel = tempOnboardingData.serviceType === 'other'
+            ? tempOnboardingData.customServiceDescription
+            : tempOnboardingData.serviceType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+          await createRequest({
+            clientId: registerEmail,
+            clientName: `${tempOnboardingData.personalDetails.firstName} ${tempOnboardingData.personalDetails.surname}`,
+            clientEmail: registerEmail,
+            projectName: `${serviceLabel} - ${tempOnboardingData.propertyDetails.physicalAddress.city}`,
+            description: tempOnboardingData.customServiceDescription || `Service request for ${tempOnboardingData.serviceType} at ${tempOnboardingData.propertyDetails.physicalAddress.street}`,
+            projectType: tempOnboardingData.propertyType as 'residential' | 'commercial' | 'industrial' | 'landscape',
+            hoursRequested: 0,
+            budget: 0,
+            status: 'pending',
+            address: tempOnboardingData.propertyDetails.physicalAddress.street,
+            propertyDetails: {
+              identifierType: tempOnboardingData.propertyDetails.identifierType,
+              identifierNumber: tempOnboardingData.propertyDetails.identifierNumber,
+              physicalAddress: tempOnboardingData.propertyDetails.physicalAddress
+            },
+            serviceDetails: {
+              serviceType: tempOnboardingData.serviceType,
+              customDescription: tempOnboardingData.customServiceDescription,
+              urgency: tempOnboardingData.urgency
+            },
+            attachments: tempOnboardingData.uploadedFiles?.map(file => ({
+              id: file.id,
+              name: file.name,
+              preview: file.preview,
+              type: file.type,
+              size: file.size
+            }))
+          });
+          // Clear onboarding data
+          setTempOnboardingData(null);
+        } catch (err) {
+          console.error('[Login] Project request creation failed:', err);
+        }
+      }
+
       const route = selectedRole === 'admin' ? '/admin' : selectedRole === 'client' ? '/client' : '/freelancer';
       navigate(route);
     }
@@ -206,7 +250,7 @@ export function LoginScreen() {
       {/* 3D Background - Left Side */}
       <div className="hidden lg:block lg:w-3/5 relative">
         <BackgroundScene />
-        
+
         {/* Overlay Content */}
         <div className="absolute inset-0 flex flex-col justify-center items-start p-12 pointer-events-none">
           <motion.div
@@ -225,11 +269,11 @@ export function LoginScreen() {
               <span className="text-primary">Management</span> System
             </h1>
             <p className="text-xl text-white/80 max-w-lg">
-              Streamline your architectural workflow with AI-powered drawing verification, 
+              Streamline your architectural workflow with AI-powered drawing verification,
               real-time collaboration, and automated invoicing.
             </p>
           </motion.div>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -249,7 +293,7 @@ export function LoginScreen() {
           </motion.div>
         </div>
       </div>
-      
+
       {/* Login Form - Right Side */}
       <div className="w-full lg:w-2/5 bg-background flex items-center justify-center p-6">
         <motion.div
@@ -265,13 +309,13 @@ export function LoginScreen() {
             </div>
             <span className="text-2xl font-bold">Architex Axis</span>
           </div>
-          
+
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Sign In</TabsTrigger>
               <TabsTrigger value="register">Create Account</TabsTrigger>
             </TabsList>
-            
+
             <AnimatePresence mode="popLayout">
               {/* Login Form */}
               <TabsContent value="login" className="mt-0">
@@ -299,25 +343,22 @@ export function LoginScreen() {
                                 key={role.value}
                                 type="button"
                                 onClick={() => setSelectedRole(role.value)}
-                                className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
-                                  selectedRole === role.value
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-border hover:border-primary/50'
-                                }`}
+                                className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${selectedRole === role.value
+                                  ? 'border-primary bg-primary/5'
+                                  : 'border-border hover:border-primary/50'
+                                  }`}
                               >
-                                <role.icon className={`w-5 h-5 ${
-                                  selectedRole === role.value ? 'text-primary' : 'text-muted-foreground'
-                                }`} />
-                                <span className={`text-xs font-medium ${
-                                  selectedRole === role.value ? 'text-primary' : 'text-muted-foreground'
-                                }`}>
+                                <role.icon className={`w-5 h-5 ${selectedRole === role.value ? 'text-primary' : 'text-muted-foreground'
+                                  }`} />
+                                <span className={`text-xs font-medium ${selectedRole === role.value ? 'text-primary' : 'text-muted-foreground'
+                                  }`}>
                                   {role.label}
                                 </span>
                               </button>
                             ))}
                           </div>
                         </div>
-                        
+
                         {/* Email */}
                         <div className="space-y-2">
                           <Label htmlFor="login-email">Email</Label>
@@ -331,10 +372,11 @@ export function LoginScreen() {
                               onChange={(e) => setLoginEmail(e.target.value)}
                               className="pl-10"
                               required
+                              autoComplete="email"
                             />
                           </div>
                         </div>
-                        
+
                         {/* Password */}
                         <div className="space-y-2">
                           <Label htmlFor="login-password">Password</Label>
@@ -359,17 +401,17 @@ export function LoginScreen() {
                             </button>
                           </div>
                         </div>
-                        
+
                         {/* Error */}
                         {error && (
                           <Alert variant="destructive">
                             <AlertDescription>{error}</AlertDescription>
                           </Alert>
                         )}
-                        
+
                         {/* Submit */}
-                        <Button 
-                          type="submit" 
+                        <Button
+                          type="submit"
                           className="w-full"
                           disabled={isLoading}
                         >
@@ -385,17 +427,19 @@ export function LoginScreen() {
                             </>
                           )}
                         </Button>
-                        
-                        {/* Demo Credentials */}
-                        <div className="text-xs text-muted-foreground text-center">
-                          Demo: {selectedRole === 'admin' ? 'admin@archflow.com' : `${selectedRole}@example.com`} / any password
-                        </div>
+
+                        {/* Demo Credentials - Development Only */}
+                        {import.meta.env.DEV && (
+                          <div className="text-xs text-muted-foreground text-center">
+                            Demo: {selectedRole === 'admin' ? 'admin@archflow.com' : `${selectedRole}@example.com`} / any password
+                          </div>
+                        )}
                       </form>
                     </CardContent>
                   </Card>
                 </motion.div>
               </TabsContent>
-              
+
               {/* Register Form */}
               <TabsContent value="register" className="mt-0">
                 <motion.div
@@ -422,25 +466,22 @@ export function LoginScreen() {
                                 key={role.value}
                                 type="button"
                                 onClick={() => setSelectedRole(role.value)}
-                                className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
-                                  selectedRole === role.value
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-border hover:border-primary/50'
-                                }`}
+                                className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${selectedRole === role.value
+                                  ? 'border-primary bg-primary/5'
+                                  : 'border-border hover:border-primary/50'
+                                  }`}
                               >
-                                <role.icon className={`w-5 h-5 ${
-                                  selectedRole === role.value ? 'text-primary' : 'text-muted-foreground'
-                                }`} />
-                                <span className={`text-xs font-medium ${
-                                  selectedRole === role.value ? 'text-primary' : 'text-muted-foreground'
-                                }`}>
+                                <role.icon className={`w-5 h-5 ${selectedRole === role.value ? 'text-primary' : 'text-muted-foreground'
+                                  }`} />
+                                <span className={`text-xs font-medium ${selectedRole === role.value ? 'text-primary' : 'text-muted-foreground'
+                                  }`}>
                                   {role.label}
                                 </span>
                               </button>
                             ))}
                           </div>
                         </div>
-                        
+
                         {/* Name */}
                         <div className="space-y-2">
                           <Label htmlFor="register-name">Full Name</Label>
@@ -456,7 +497,7 @@ export function LoginScreen() {
                             />
                           </div>
                         </div>
-                        
+
                         {/* Email */}
                         <div className="space-y-2">
                           <Label htmlFor="register-email">Email</Label>
@@ -473,7 +514,7 @@ export function LoginScreen() {
                             />
                           </div>
                         </div>
-                        
+
                         {/* Password */}
                         <div className="space-y-2">
                           <Label htmlFor="register-password">Password</Label>
@@ -498,7 +539,7 @@ export function LoginScreen() {
                             </button>
                           </div>
                         </div>
-                        
+
                         {/* Phone */}
                         <div className="space-y-2">
                           <Label htmlFor="register-phone">Phone (Optional)</Label>
@@ -510,7 +551,7 @@ export function LoginScreen() {
                             onChange={(e) => setRegisterPhone(e.target.value)}
                           />
                         </div>
-                        
+
                         {/* Company */}
                         <div className="space-y-2">
                           <Label htmlFor="register-company">Company (Optional)</Label>
@@ -521,17 +562,17 @@ export function LoginScreen() {
                             onChange={(e) => setRegisterCompany(e.target.value)}
                           />
                         </div>
-                        
+
                         {/* Error */}
                         {error && (
                           <Alert variant="destructive">
                             <AlertDescription>{error}</AlertDescription>
                           </Alert>
                         )}
-                        
+
                         {/* Submit */}
-                        <Button 
-                          type="submit" 
+                        <Button
+                          type="submit"
                           className="w-full"
                           disabled={isLoading}
                         >

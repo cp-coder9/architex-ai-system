@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore, useInvoiceStore, useProjectStore } from '@/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,8 +9,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import {
   DollarSign,
-  TrendingUp,
-  TrendingDown,
   CheckCircle2,
   Clock,
   AlertCircle,
@@ -101,7 +99,7 @@ export function FreelancerEarnings() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Earned</p>
-                <p className="text-3xl font-bold text-green-600">R${totalEarned.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-green-600">R{totalEarned.toLocaleString()}</p>
               </div>
               <div className="p-3 rounded-xl bg-green-500">
                 <DollarSign className="w-6 h-6 text-white" />
@@ -115,7 +113,7 @@ export function FreelancerEarnings() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-3xl font-bold text-yellow-600">R${pendingPayment.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-yellow-600">R{pendingPayment.toLocaleString()}</p>
               </div>
               <div className="p-3 rounded-xl bg-yellow-500">
                 <Clock className="w-6 h-6 text-white" />
@@ -129,7 +127,7 @@ export function FreelancerEarnings() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">This Month</p>
-                <p className="text-3xl font-bold text-blue-600">R${thisMonthEarnings.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-blue-600">R{thisMonthEarnings.toLocaleString()}</p>
               </div>
               <div className="p-3 rounded-xl bg-blue-500">
                 <Calendar className="w-6 h-6 text-white" />
@@ -144,7 +142,7 @@ export function FreelancerEarnings() {
               <div>
                 <p className="text-sm text-muted-foreground">Total Hours</p>
                 <p className="text-3xl font-bold">{totalHours}</p>
-                <p className="text-xs text-muted-foreground">@ R${avgHourlyRate}/hr</p>
+                <p className="text-xs text-muted-foreground">@ R{avgHourlyRate}/hr</p>
               </div>
               <div className="p-3 rounded-xl bg-purple-500">
                 <Wallet className="w-6 h-6 text-white" />
@@ -177,7 +175,7 @@ export function FreelancerEarnings() {
                   <span className="font-medium">{data.month}</span>
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-muted-foreground">{data.hours} hrs</span>
-                    <span className="font-bold">R${data.earnings.toLocaleString()}</span>
+                    <span className="font-bold">R{data.earnings.toLocaleString()}</span>
                   </div>
                 </div>
                 <Progress
@@ -227,7 +225,7 @@ export function FreelancerEarnings() {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <p className="font-bold">R${invoice.total.toLocaleString()}</p>
+                          <p className="font-bold">R{invoice.total.toLocaleString()}</p>
                           <Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>
                             {invoice.status}
                           </Badge>
@@ -276,7 +274,7 @@ export function FreelancerEarnings() {
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
-                          <p className="font-bold">R${invoice.total.toLocaleString()}</p>
+                          <p className="font-bold">R{invoice.total.toLocaleString()}</p>
                           <Button variant="ghost" size="icon">
                             <Download className="w-4 h-4" />
                           </Button>
@@ -318,7 +316,7 @@ export function FreelancerEarnings() {
                             </p>
                           </div>
                         </div>
-                        <p className="font-bold">R${invoice.total.toLocaleString()}</p>
+                        <p className="font-bold">R{invoice.total.toLocaleString()}</p>
                       </motion.div>
                     ))}
                 </div>

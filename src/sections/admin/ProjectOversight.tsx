@@ -1,14 +1,13 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useProjectStore, useInvoiceStore } from '@/store';
-import { Project, ProjectStatus, HourAllocation, HourTransaction, HourPackage } from '@/types';
+import { Project, ProjectStatus, HourAllocation } from '@/types';
 import { NewProjectDialog } from './NewProjectDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
@@ -40,23 +39,18 @@ import {
   FolderKanban,
   Search,
   Plus,
-  MoreHorizontal,
   Clock,
   CheckCircle2,
   AlertCircle,
   PauseCircle,
   XCircle,
-  Calendar,
-  Users,
-  TrendingUp,
   Eye,
   FileText,
-  BarChart3,
   LayoutGrid,
   List,
   Wallet,
-  ArrowUpDown,
   History,
+  TrendingUp,
 } from 'lucide-react';
 
 // Mock clients for the dropdown
@@ -66,10 +60,11 @@ const mockClients = [
 
 // Project Card component for grid view
 interface ProjectCardProps { project: Project; getStatusIcon: (status: ProjectStatus) => React.ComponentType<{ className?: string }>; getStatusColor: (status: ProjectStatus) => string; onSelect: (project: Project) => void; } function ProjectCard({ project, getStatusIcon, getStatusColor, onSelect }: ProjectCardProps) {
-  const projectDrawings = useProjectStore(state => state.drawings.filter(d => d.projectId === project.id));
+  const allDrawings = useProjectStore(state => state.drawings);
+  const projectDrawings = useMemo(() => allDrawings.filter(d => d.projectId === project.id), [allDrawings, project.id]);
   const StatusIcon = getStatusIcon(project.status);
   const progress = project.hoursAllocated > 0 ? Math.round((project.hoursUsed / project.hoursAllocated) * 100) : 0;
-  
+
   return (
     <Card className="overflow-hidden">
       {project.thumbnail ? (
@@ -92,7 +87,7 @@ interface ProjectCardProps { project: Project; getStatusIcon: (status: ProjectSt
             {project.status}
           </Badge>
         </div>
-        
+
         <div className="mb-3">
           <div className="flex items-center justify-between text-sm mb-1">
             <span>Progress</span>
@@ -100,29 +95,18 @@ interface ProjectCardProps { project: Project; getStatusIcon: (status: ProjectSt
           </div>
           <Progress value={progress} className="h-2" />
         </div>
-        
+
         <div className="flex items-center justify-between text-sm mb-3">
           <span className="text-muted-foreground">
             {project.hoursUsed} / {project.hoursAllocated} hrs
           </span>
           <Badge variant="outline">{projectDrawings.length} drawings</Badge>
         </div>
-        
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="w-full" onClick={() => onSelect(project)}>
-              <Eye className="w-4 h-4 mr-2" />
-              View Details
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>{project.name}</DialogTitle>
-              <DialogDescription>{project.description}</DialogDescription>
-            </DialogHeader>
-            <ProjectDetailDialog project={project} />
-          </DialogContent>
-        </Dialog>
+
+        <Button variant="outline" className="w-full" onClick={() => onSelect(project)}>
+          <Eye className="w-4 h-4 mr-2" />
+          View Details
+        </Button>
       </CardContent>
     </Card>
   );
@@ -130,9 +114,9 @@ interface ProjectCardProps { project: Project; getStatusIcon: (status: ProjectSt
 
 // Project Detail Dialog
 function ProjectDetailDialog({ project }: { project: Project }) {
-  const drawings = useProjectStore(state => state.drawings.filter(d => d.projectId === project.id));
-  const timeEntries = useProjectStore(state => state.timeEntries.filter(te => te.projectId === project.id));
-  
+  const allDrawings = useProjectStore(state => state.drawings);
+  const drawings = useMemo(() => allDrawings.filter(d => d.projectId === project.id), [allDrawings, project.id]);
+
   return (
     <div className="space-y-6">
       {/* Project Info */}
@@ -147,14 +131,14 @@ function ProjectDetailDialog({ project }: { project: Project }) {
         </div>
         <div>
           <p className="text-sm text-muted-foreground">Budget</p>
-          <p className="font-medium">R${project.budget.toLocaleString()}</p>
+          <p className="font-medium">R{project.budget.toLocaleString()}</p>
         </div>
         <div>
           <p className="text-sm text-muted-foreground">Deadline</p>
           <p className="font-medium">{project.deadline ? new Date(project.deadline).toLocaleDateString() : 'Not set'}</p>
         </div>
       </div>
-      
+
       {/* Hours Progress */}
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -165,7 +149,7 @@ function ProjectDetailDialog({ project }: { project: Project }) {
         </div>
         <Progress value={project.hoursAllocated > 0 ? (project.hoursUsed / project.hoursAllocated) * 100 : 0} className="h-3" />
       </div>
-      
+
       {/* Drawings */}
       <div>
         <p className="text-sm font-medium mb-3">Drawings ({drawings.length})</p>
@@ -183,7 +167,7 @@ function ProjectDetailDialog({ project }: { project: Project }) {
           ))}
         </div>
       </div>
-      
+
       {/* Milestones */}
       <div>
         <p className="text-sm font-medium mb-3">Milestones</p>
@@ -233,7 +217,7 @@ function AllocationDetailsDialog({ allocation }: { allocation: HourAllocation })
         </div>
         <div>
           <p className="text-sm text-muted-foreground">Hour Package</p>
-          <p className="font-medium">{packageInfo ? `${packageInfo.hours} hours (R${packageInfo.pricePerHour}/hr)` : 'Unknown'}</p>
+          <p className="font-medium">{packageInfo ? `${packageInfo.hours} hours (R{packageInfo.pricePerHour}/hr)` : 'Unknown'}</p>
         </div>
         <div>
           <p className="text-sm text-muted-foreground">Status</p>
@@ -269,7 +253,7 @@ function AllocationDetailsDialog({ allocation }: { allocation: HourAllocation })
         </div>
         <Progress value={allocation.allocatedHours > 0 ? (allocation.usedHours / allocation.allocatedHours) * 100 : 0} className="h-3" />
       </div>
-      
+
       {/* Transactions */}
       <div>
         <p className="text-sm font-medium mb-3">Transaction History ({transactions.length})</p>
@@ -354,7 +338,7 @@ function AllocateHoursDialog() {
       });
       toast.success('Hours allocated successfully');
       handleOpenChange(false);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to allocate hours');
     } finally {
       setIsSubmitting(false);
@@ -376,7 +360,7 @@ function AllocateHoursDialog() {
             Allocate hours from a client's hour package to a specific project.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           {/* Client Selection */}
           <div className="space-y-2">
@@ -461,8 +445,49 @@ function AllocateHoursDialog() {
   );
 }
 
+const getStatusIcon = (status: ProjectStatus) => {
+  switch (status) {
+    case 'active': return CheckCircle2;
+    case 'draft': return FileText;
+    case 'on_hold': return PauseCircle;
+    case 'completed': return CheckCircle2;
+    case 'cancelled': return XCircle;
+    default: return FolderKanban;
+  }
+};
+
+const getStatusColor = (status: ProjectStatus) => {
+  switch (status) {
+    case 'active': return 'bg-green-500';
+    case 'draft': return 'bg-gray-500';
+    case 'on_hold': return 'bg-yellow-500';
+    case 'completed': return 'bg-blue-500';
+    case 'cancelled': return 'bg-red-500';
+    default: return 'bg-gray-500';
+  }
+};
+
+const getAllocationStatusColor = (status: string) => {
+  switch (status) {
+    case 'active': return 'bg-green-500';
+    case 'exhausted': return 'bg-orange-500';
+    case 'expired': return 'bg-red-500';
+    default: return 'bg-gray-500';
+  }
+};
+
+// Get client name by ID
+const getClientName = (clientId: string) => {
+  const client = mockClients.find(c => c.id === clientId);
+  return client?.name || 'Unknown Client';
+};
+
+// Get project name by ID (Needs projects array, so will keep internal or pass)
+// Actually these helpers need projects/hourPackages which are in stores.
+// If I move them outside, I need to pass the data.
+
 export function ProjectOversight() {
-  const { projects, drawings, updateProject } = useProjectStore();
+  const { projects, drawings } = useProjectStore();
   const { hourAllocations, hourPackages } = useInvoiceStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('all');
@@ -472,12 +497,13 @@ export function ProjectOversight() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [selectedAllocation, setSelectedAllocation] = useState<HourAllocation | null>(null);
+  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+  const [isAllocationDialogOpen, setIsAllocationDialogOpen] = useState(false);
 
   // Calculate stats
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'active').length;
   const completedProjects = projects.filter(p => p.status === 'completed').length;
-  const totalDrawings = drawings.length;
   const pendingDrawings = drawings.filter(d => d.status === 'pending').length;
 
   // Calculate allocation stats
@@ -486,18 +512,30 @@ export function ProjectOversight() {
   const totalHoursAllocated = hourAllocations.reduce((sum, a) => sum + a.allocatedHours, 0);
   const totalHoursUsed = hourAllocations.reduce((sum, a) => sum + a.usedHours, 0);
 
+  // Get project name by ID
+  const getProjectName = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    return project?.name || 'Unknown Project';
+  };
+
+  // Get package info by ID
+  const getPackageInfo = (packageId: string) => {
+    const pkg = hourPackages.find(p => p.id === packageId);
+    return pkg ? `${pkg.hours} hours @ R${pkg.pricePerHour}/hr` : 'Unknown Package';
+  };
+
   // Filter and sort projects
   const filteredProjects = useMemo(() => {
-    let filtered = projects.filter(project => {
+    const filtered = projects.filter(project => {
       const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           project.description.toLowerCase().includes(searchQuery.toLowerCase());
+        project.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
       const matchesType = typeFilter === 'all' || project.projectType === typeFilter;
       return matchesSearch && matchesStatus && matchesType;
     });
 
     // Apply sorting
-    return filtered.sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'name_asc':
           return a.name.localeCompare(b.name);
@@ -511,64 +549,16 @@ export function ProjectOversight() {
           if (!a.deadline) return 1;
           if (!b.deadline) return -1;
           return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-        case 'progress_desc':
+        case 'progress_desc': {
           const progressA = a.hoursAllocated > 0 ? (a.hoursUsed / a.hoursAllocated) * 100 : 0;
           const progressB = b.hoursAllocated > 0 ? (b.hoursUsed / b.hoursAllocated) * 100 : 0;
           return progressB - progressA;
+        }
         default:
           return 0;
       }
     });
   }, [projects, searchQuery, statusFilter, typeFilter, sortBy]);
-
-  const getStatusIcon = (status: ProjectStatus) => {
-    switch (status) {
-      case 'active': return CheckCircle2;
-      case 'draft': return FileText;
-      case 'on_hold': return PauseCircle;
-      case 'completed': return CheckCircle2;
-      case 'cancelled': return XCircle;
-      default: return FolderKanban;
-    }
-  };
-
-  const getStatusColor = (status: ProjectStatus) => {
-    switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'draft': return 'bg-gray-500';
-      case 'on_hold': return 'bg-yellow-500';
-      case 'completed': return 'bg-blue-500';
-      case 'cancelled': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const getAllocationStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'exhausted': return 'bg-orange-500';
-      case 'expired': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  // Get client name by ID
-  const getClientName = (clientId: string) => {
-    const client = mockClients.find(c => c.id === clientId);
-    return client?.name || 'Unknown Client';
-  };
-
-  // Get project name by ID
-  const getProjectName = (projectId: string) => {
-    const project = projects.find(p => p.id === projectId);
-    return project?.name || 'Unknown Project';
-  };
-
-  // Get package info by ID
-  const getPackageInfo = (packageId: string) => {
-    const pkg = hourPackages.find(p => p.id === packageId);
-    return pkg ? `${pkg.hours} hours @ R${pkg.pricePerHour}/hr` : 'Unknown Package';
-  };
 
   return (
     <div className="space-y-6">
@@ -599,7 +589,7 @@ export function ProjectOversight() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -613,7 +603,7 @@ export function ProjectOversight() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -627,7 +617,7 @@ export function ProjectOversight() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -665,7 +655,7 @@ export function ProjectOversight() {
                   <CardTitle>All Projects</CardTitle>
                   <CardDescription>View and manage project details</CardDescription>
                 </div>
-                
+
                 <div className="flex flex-wrap gap-2">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -676,7 +666,7 @@ export function ProjectOversight() {
                       className="pl-10 w-[200px]"
                     />
                   </div>
-                  
+
                   <Select value={statusFilter} onValueChange={(v: ProjectStatus | 'all') => setStatusFilter(v)}>
                     <SelectTrigger className="w-[150px]">
                       <SelectValue placeholder="Status" />
@@ -690,7 +680,7 @@ export function ProjectOversight() {
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
-                  
+
                   <Select value={typeFilter} onValueChange={setTypeFilter}>
                     <SelectTrigger className="w-[150px]">
                       <SelectValue placeholder="Type" />
@@ -703,7 +693,7 @@ export function ProjectOversight() {
                       <SelectItem value="landscape">Landscape</SelectItem>
                     </SelectContent>
                   </Select>
-                  
+
                   <Select value={sortBy} onValueChange={setSortBy}>
                     <SelectTrigger className="w-[160px]">
                       <SelectValue placeholder="Sort by" />
@@ -717,7 +707,7 @@ export function ProjectOversight() {
                       <SelectItem value="progress_desc">Progress (High–Low)</SelectItem>
                     </SelectContent>
                   </Select>
-                  
+
                   <div className="flex gap-1 border rounded-md p-1">
                     <Button
                       variant={viewMode === 'list' ? 'default' : 'outline'}
@@ -734,7 +724,7 @@ export function ProjectOversight() {
                       <LayoutGrid className="w-4 h-4" />
                     </Button>
                   </div>
-                  
+
                   <Button className="gap-2" onClick={() => setIsNewProjectOpen(true)}>
                     <Plus className="w-4 h-4" />
                     New Project
@@ -742,7 +732,7 @@ export function ProjectOversight() {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent>
               {viewMode === 'list' ? (
                 <ScrollArea className="h-[500px]">
@@ -761,7 +751,7 @@ export function ProjectOversight() {
                       {filteredProjects.map((project, index) => {
                         const projectDrawings = drawings.filter(d => d.projectId === project.id);
                         const StatusIcon = getStatusIcon(project.status);
-                        
+
                         return (
                           <motion.tr
                             key={project.id}
@@ -793,8 +783,8 @@ export function ProjectOversight() {
                             </TableCell>
                             <TableCell>
                               <div className="w-[100px]">
-                                <Progress 
-                                  value={project.hoursAllocated > 0 ? (project.hoursUsed / project.hoursAllocated) * 100 : 0} 
+                                <Progress
+                                  value={project.hoursAllocated > 0 ? (project.hoursUsed / project.hoursAllocated) * 100 : 0}
                                   className="h-2"
                                 />
                                 <p className="text-xs text-muted-foreground mt-1">
@@ -809,25 +799,17 @@ export function ProjectOversight() {
                               <Badge variant="outline">{projectDrawings.length}</Badge>
                             </TableCell>
                             <TableCell className="text-right">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => setSelectedProject(project)}
-                                  >
-                                    <Eye className="w-4 h-4 mr-2" />
-                                    View
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[600px]">
-                                  <DialogHeader>
-                                    <DialogTitle>{project.name}</DialogTitle>
-                                    <DialogDescription>{project.description}</DialogDescription>
-                                  </DialogHeader>
-                                  <ProjectDetailDialog project={project} />
-                                </DialogContent>
-                              </Dialog>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedProject(project);
+                                  setIsProjectDialogOpen(true);
+                                }}
+                              >
+                                <Eye className="w-4 h-4 mr-2" />
+                                View
+                              </Button>
                             </TableCell>
                           </motion.tr>
                         );
@@ -844,7 +826,15 @@ export function ProjectOversight() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <ProjectCard project={project} getStatusIcon={getStatusIcon} getStatusColor={getStatusColor} onSelect={(project) => setSelectedProject(project)} />
+                      <ProjectCard
+                        project={project}
+                        getStatusIcon={getStatusIcon}
+                        getStatusColor={getStatusColor}
+                        onSelect={(project) => {
+                          setSelectedProject(project);
+                          setIsProjectDialogOpen(true);
+                        }}
+                      />
                     </motion.div>
                   ))}
                 </div>
@@ -870,7 +860,7 @@ export function ProjectOversight() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -884,7 +874,7 @@ export function ProjectOversight() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -898,7 +888,7 @@ export function ProjectOversight() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -922,11 +912,11 @@ export function ProjectOversight() {
                   <CardTitle>Hour Allocations</CardTitle>
                   <CardDescription>Manage hour allocations from client packages to projects</CardDescription>
                 </div>
-                
+
                 <AllocateHoursDialog />
               </div>
             </CardHeader>
-            
+
             <CardContent>
               <ScrollArea className="h-[500px]">
                 <Table>
@@ -980,27 +970,17 @@ export function ProjectOversight() {
                             <p className="text-sm">{new Date(allocation.allocatedAt).toLocaleDateString()}</p>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => setSelectedAllocation(allocation)}
-                                >
-                                  <Eye className="w-4 h-4 mr-2" />
-                                  View
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="sm:max-w-[600px]">
-                                <DialogHeader>
-                                  <DialogTitle>Allocation Details</DialogTitle>
-                                  <DialogDescription>
-                                    View allocation details and transaction history
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <AllocationDetailsDialog allocation={allocation} />
-                              </DialogContent>
-                            </Dialog>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedAllocation(allocation);
+                                setIsAllocationDialogOpen(true);
+                              }}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              View
+                            </Button>
                           </TableCell>
                         </motion.tr>
                       ))
@@ -1025,7 +1005,31 @@ export function ProjectOversight() {
           </Card>
         </TabsContent>
       </Tabs>
-      
+
+      {/* Project Detail Dialog */}
+      <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{selectedProject?.name}</DialogTitle>
+            <DialogDescription>{selectedProject?.description}</DialogDescription>
+          </DialogHeader>
+          {selectedProject && <ProjectDetailDialog project={selectedProject} />}
+        </DialogContent>
+      </Dialog>
+
+      {/* Allocation Detail Dialog */}
+      <Dialog open={isAllocationDialogOpen} onOpenChange={setIsAllocationDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Allocation Details</DialogTitle>
+            <DialogDescription>
+              View allocation details and transaction history
+            </DialogDescription>
+          </DialogHeader>
+          {selectedAllocation && <AllocationDetailsDialog allocation={selectedAllocation} />}
+        </DialogContent>
+      </Dialog>
+
       <NewProjectDialog open={isNewProjectOpen} onOpenChange={setIsNewProjectOpen} />
     </div>
   );

@@ -1,6 +1,8 @@
-import type { DrawingType as AgentDrawingType } from './agent';
+import { DrawingType as AgentDrawingType } from './agent';
 
 export type UserRole = 'admin' | 'client' | 'freelancer';
+
+// DrawingType is re-exported at the end of this file
 
 export interface User {
   id: string;
@@ -295,6 +297,31 @@ export interface ProjectRequest {
   budget: number;
   status: ProjectRequestStatus;
   address?: string;
+  propertyDetails?: {
+    identifierType: 'erf' | 'stand';
+    identifierNumber: string;
+    physicalAddress: {
+      street: string;
+      suburb: string;
+      city: string;
+      province: string;
+      postalCode: string;
+    };
+  };
+  serviceDetails?: {
+    serviceType: string;
+    customDescription?: string;
+    urgency: string;
+  };
+  attachments?: {
+    id: string;
+    name: string;
+    url?: string;
+    file?: File; // For newly uploaded files
+    preview?: string;
+    type: string;
+    size: number;
+  }[];
   createdAt: Date;
   updatedAt: Date;
   approvedBy?: string;

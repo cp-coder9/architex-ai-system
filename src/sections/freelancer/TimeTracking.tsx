@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore, useProjectStore } from '@/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,10 +15,6 @@ import {
   Plus,
   Calendar,
   Briefcase,
-  FileText,
-  Trash2,
-  Edit2,
-  CheckCircle2,
 } from 'lucide-react';
 
 // Timer Component
@@ -26,7 +22,18 @@ function Timer({ onStop }: { onStop: (hours: number) => void }) {
   const [isRunning, setIsRunning] = useState(false);
   const [seconds, setSeconds] = useState(0);
 
-  // Timer logic would go here with useEffect
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isRunning) {
+      interval = setInterval(() => {
+        setSeconds((prev) => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning]);
+
   const formatTime = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -321,7 +328,7 @@ export function TimeTracking() {
                       <div className="text-right">
                         <p className="font-bold">{entry.hours} hrs</p>
                         <p className="text-xs text-muted-foreground">
-                          R${(entry.hours * 75).toLocaleString()}
+                          R{(entry.hours * 75).toLocaleString()}
                         </p>
                       </div>
                       <Badge variant={entry.invoiced ? 'default' : 'secondary'}>

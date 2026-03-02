@@ -2,7 +2,7 @@ import { useState, useRef, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore, useProjectStore } from '@/store';
 import { DrawingType } from '@/types/agent';
-import { ProofOfWork, ProofAttachment } from '@/types';
+import { ProofOfWork, ProofAttachment, AgentCheck, AgentIssue } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,6 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import {
-  FileUp,
   Upload,
   X,
   FileText,
@@ -88,8 +87,8 @@ function UploadZone({ onUpload }: { onUpload: (files: FileList) => void }) {
       onDrop={handleDrop}
       onClick={() => fileInputRef.current?.click()}
       className={`relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${isDragging
-          ? 'border-primary bg-primary/5'
-          : 'border-muted-foreground/25 hover:border-primary/50'
+        ? 'border-primary bg-primary/5'
+        : 'border-muted-foreground/25 hover:border-primary/50'
         }`}
     >
       <input
@@ -116,8 +115,8 @@ function UploadZone({ onUpload }: { onUpload: (files: FileList) => void }) {
 }
 
 // Agent Check Status Component
-function AgentCheckStatus({ check }: { check: any }) {
-  const [isScanning, setIsScanning] = useState(false);
+function AgentCheckStatus({ check }: { check: AgentCheck }) {
+
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -167,7 +166,7 @@ function AgentCheckStatus({ check }: { check: any }) {
           <p className="text-sm text-muted-foreground">{check.issues.length} issues found:</p>
           <ScrollArea className="h-[150px]">
             <div className="space-y-2">
-              {check.issues.map((issue: any) => (
+              {check.issues.map((issue: AgentIssue) => (
                 <div key={issue.id} className="flex items-start gap-2 p-2 rounded-lg bg-muted">
                   <div className={`w-2 h-2 rounded-full mt-1.5 ${getSeverityColor(issue.severity)}`} />
                   <div className="flex-1">
@@ -192,6 +191,41 @@ function AgentCheckStatus({ check }: { check: any }) {
   );
 }
 
+// Helper functions for ProofCard
+function getVerificationBadge(status: string) {
+  switch (status) {
+    case 'approved':
+      return <Badge className="bg-green-500">Approved</Badge>;
+    case 'pending':
+      return <Badge className="bg-yellow-500">Pending</Badge>;
+    case 'rejected':
+      return <Badge className="bg-red-500">Rejected</Badge>;
+    default:
+      return <Badge variant="secondary">{status}</Badge>;
+  }
+}
+
+function getFileIcon(fileType: string) {
+  switch (fileType) {
+    case 'image':
+      return <ImageIcon className="w-4 h-4" />;
+    case 'drawing':
+      return <FileCheck className="w-4 h-4" />;
+    default:
+      return <File className="w-4 h-4" />;
+  }
+}
+
+function getStatusIcon(status: string) {
+  switch (status) {
+    case 'approved': return <CheckCircle2 className="w-5 h-5 text-green-500" />;
+    case 'pending': return <Clock className="w-5 h-5 text-gray-500" />;
+    case 'in_review': return <RefreshCw className="w-5 h-5 text-blue-500 animate-spin" />;
+    case 'revision_needed': return <AlertCircle className="w-5 h-5 text-orange-500" />;
+    default: return <FileText className="w-5 h-5" />;
+  }
+}
+
 export function DrawingSubmission() {
   const { currentUser } = useAuthStore();
   const { projects, drawings, addDrawing, runAgentCheck, submitProofOfWork, getProofsByFreelancerId } = useProjectStore();
@@ -199,7 +233,7 @@ export function DrawingSubmission() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  
+
   // Proof of Work state
   const [isProofDialogOpen, setIsProofDialogOpen] = useState(false);
   const [proofProjectId, setProofProjectId] = useState<string>('');
@@ -306,53 +340,19 @@ export function DrawingSubmission() {
 
       const newProof = await submitProofOfWork(proofData);
       setMyProofs(prev => [newProof, ...prev]);
-      
+
       toast.success('Proof of work submitted successfully!');
-      
+
       // Reset form
       setProofProjectId('');
       setProofTaskId('');
       setProofDescription('');
       setProofAttachments([]);
       setIsProofDialogOpen(false);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to submit proof of work');
     } finally {
       setIsSubmittingProof(false);
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'approved': return <CheckCircle2 className="w-5 h-5 text-green-500" />;
-      case 'pending': return <Clock className="w-5 h-5 text-gray-500" />;
-      case 'in_review': return <RefreshCw className="w-5 h-5 text-blue-500 animate-spin" />;
-      case 'revision_needed': return <AlertCircle className="w-5 h-5 text-orange-500" />;
-      default: return <FileText className="w-5 h-5" />;
-    }
-  };
-
-  const getVerificationBadge = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <Badge className="bg-green-500">Approved</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-500">Pending</Badge>;
-      case 'rejected':
-        return <Badge className="bg-red-500">Rejected</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
-  const getFileIcon = (fileType: string) => {
-    switch (fileType) {
-      case 'image':
-        return <ImageIcon className="w-4 h-4" />;
-      case 'drawing':
-        return <FileCheck className="w-4 h-4" />;
-      default:
-        return <File className="w-4 h-4" />;
     }
   };
 

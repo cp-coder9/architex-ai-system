@@ -104,15 +104,15 @@ function InvoiceDetailDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg border">
               <p className="text-sm text-muted-foreground">Subtotal</p>
-              <p className="text-xl font-semibold">R${invoice.subtotal.toLocaleString()}</p>
+              <p className="text-xl font-semibold">R{invoice.subtotal.toLocaleString()}</p>
             </div>
             <div className="p-4 rounded-lg border">
               <p className="text-sm text-muted-foreground">Tax ({(invoice.taxRate * 100).toFixed(0)}%)</p>
-              <p className="text-xl font-semibold">R${invoice.taxAmount.toLocaleString()}</p>
+              <p className="text-xl font-semibold">R{invoice.taxAmount.toLocaleString()}</p>
             </div>
             <div className="p-4 rounded-lg border col-span-2 bg-primary/5">
               <p className="text-sm text-muted-foreground">Total Amount</p>
-              <p className="text-3xl font-bold text-primary">R${invoice.total.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-primary">R{invoice.total.toLocaleString()}</p>
             </div>
           </div>
 
@@ -132,7 +132,7 @@ function InvoiceDetailDialog({
                     <div className="text-right">
                       <p className="font-medium">{entry.hours} hours</p>
                       <p className="text-xs text-muted-foreground">
-                        R${(entry.hours * invoice.hourlyRate).toLocaleString()}
+                        R{(entry.hours * invoice.hourlyRate).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -359,7 +359,7 @@ export function InvoiceManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Months</SelectItem>
-                  {monthOptions.map(month => (
+                  {monthOptions.map((month: string) => (
                     <SelectItem key={month} value={month}>{month}</SelectItem>
                   ))}
                 </SelectContent>
@@ -418,7 +418,7 @@ export function InvoiceManagement() {
                       </TableCell>
                       <TableCell>{invoice.hoursTotal} hrs</TableCell>
                       <TableCell className="font-medium">
-                        R${invoice.total.toLocaleString()}
+                        R{invoice.total.toLocaleString()}
                       </TableCell>
                       <TableCell>
                         {new Date(invoice.dueDate).toLocaleDateString()}

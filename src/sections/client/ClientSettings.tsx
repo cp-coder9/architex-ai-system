@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 import {
   User,
   Mail,
-  Bell,
   Shield,
   Moon,
   Globe,
@@ -29,9 +28,9 @@ import {
 export function ClientSettings() {
   const { currentUser, updateUser } = useAuthStore();
   const { getSettings, updateSettings } = useSettingsStore();
-  
+
   const settings = getSettings(currentUser?.id || '');
-  
+
   const [profileData, setProfileData] = useState({
     name: currentUser?.name || '',
     email: currentUser?.email || '',
@@ -189,7 +188,7 @@ export function ClientSettings() {
                   </div>
                   <Switch
                     checked={value}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setNotificationSettings({ ...notificationSettings, [key]: checked })
                     }
                   />
@@ -214,12 +213,12 @@ export function ClientSettings() {
                 </div>
                 <Switch
                   checked={pushSettings.enabled}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setPushSettings({ ...pushSettings, enabled: checked })
                   }
                 />
               </div>
-              
+
               {pushSettings.enabled && (
                 <>
                   <Separator />
@@ -235,7 +234,7 @@ export function ClientSettings() {
                         </div>
                         <Switch
                           checked={value}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             setPushSettings({ ...pushSettings, [key]: checked })
                           }
                         />
@@ -314,8 +313,8 @@ export function ClientSettings() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
-                <select 
-                  id="language" 
+                <select
+                  id="language"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   defaultValue="en"
                 >
@@ -327,8 +326,8 @@ export function ClientSettings() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="timezone">Timezone</Label>
-                <select 
-                  id="timezone" 
+                <select
+                  id="timezone"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   defaultValue="America/New_York"
                 >
@@ -340,8 +339,8 @@ export function ClientSettings() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="date-format">Date Format</Label>
-                <select 
-                  id="date-format" 
+                <select
+                  id="date-format"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   defaultValue="MM/DD/YYYY"
                 >
@@ -364,8 +363,8 @@ export function ClientSettings() {
             <CardContent>
               <div className="space-y-2">
                 <Label htmlFor="theme">Theme</Label>
-                <select 
-                  id="theme" 
+                <select
+                  id="theme"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   defaultValue="system"
                 >

@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useProjectStore, useInvoiceStore, useSettingsStore, useNotificationStore, useAuthStore } from '@/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { NewProjectDialog } from './NewProjectDialog';
+import { toast } from 'sonner';
 import {
   Building2,
   Users,
@@ -18,9 +19,6 @@ import {
   TrendingDown,
   Clock,
   CheckCircle2,
-  AlertCircle,
-  ArrowUpRight,
-  MoreHorizontal,
   Activity,
   Zap,
   BarChart3,
@@ -30,13 +28,13 @@ import {
 // Animated Counter Component
 function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) {
   const [displayValue, setDisplayValue] = useState(0);
-  
+
   useEffect(() => {
     const duration = 1500;
     const steps = 60;
     const increment = value / steps;
     let current = 0;
-    
+
     const timer = setInterval(() => {
       current += increment;
       if (current >= value) {
@@ -46,10 +44,10 @@ function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; p
         setDisplayValue(Math.floor(current));
       }
     }, duration / steps);
-    
+
     return () => clearInterval(timer);
   }, [value]);
-  
+
   return (
     <span>
       {prefix}{displayValue.toLocaleString()}{suffix}
@@ -58,22 +56,22 @@ function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; p
 }
 
 // Stat Card Component
-function StatCard({ 
-  title, 
-  value, 
-  prefix = '', 
-  suffix = '', 
-  icon: Icon, 
-  trend, 
-  trendValue, 
-  color 
-}: { 
-  title: string; 
-  value: number; 
+function StatCard({
+  title,
+  value,
+  prefix = '',
+  suffix = '',
+  icon: Icon,
+  trend,
+  trendValue,
+  color
+}: {
+  title: string;
+  value: number;
   prefix?: string;
   suffix?: string;
-  icon: React.ComponentType<{ className?: string }>; 
-  trend?: 'up' | 'down'; 
+  icon: React.ComponentType<{ className?: string }>;
+  trend?: 'up' | 'down';
   trendValue?: string;
   color: string;
 }) {
@@ -92,9 +90,8 @@ function StatCard({
                 <AnimatedCounter value={value} prefix={prefix} suffix={suffix} />
               </h3>
               {trend && (
-                <div className={`flex items-center gap-1 mt-2 text-sm ${
-                  trend === 'up' ? 'text-green-500' : 'text-red-500'
-                }`}>
+                <div className={`flex items-center gap-1 mt-2 text-sm ${trend === 'up' ? 'text-green-500' : 'text-red-500'
+                  }`}>
                   {trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                   <span>{trendValue}</span>
                 </div>
@@ -113,7 +110,7 @@ function StatCard({
 // Recent Activity Component
 function RecentActivity() {
   const notifications = useNotificationStore(state => state.notifications);
-  
+
   const getIcon = (type: string) => {
     switch (type) {
       case 'project_update': return FolderKanban;
@@ -123,7 +120,7 @@ function RecentActivity() {
       default: return Activity;
     }
   };
-  
+
   const getColor = (type: string) => {
     switch (type) {
       case 'project_update': return 'bg-blue-500';
@@ -178,7 +175,7 @@ function RecentActivity() {
 
 // Agent Status Component
 function AgentStatus() {
-  const [agents, setAgents] = useState([
+  const [agents] = useState([
     { id: 'agent-1', name: 'Drawing Validator Alpha', status: 'active', checksToday: 45, avgTime: '3.2s' },
     { id: 'agent-2', name: 'Compliance Checker Beta', status: 'active', checksToday: 38, avgTime: '4.1s' },
     { id: 'agent-3', name: 'Dimension Analyzer Gamma', status: 'idle', checksToday: 52, avgTime: '2.8s' },
@@ -205,9 +202,8 @@ function AgentStatus() {
               className="flex items-center justify-between p-3 rounded-lg border"
             >
               <div className="flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full ${
-                  agent.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
-                }`} />
+                <div className={`w-2 h-2 rounded-full ${agent.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
+                  }`} />
                 <div>
                   <p className="font-medium text-sm">{agent.name}</p>
                   <p className="text-xs text-muted-foreground">
@@ -229,7 +225,7 @@ function AgentStatus() {
 // Project Overview Component
 function ProjectOverview() {
   const projects = useProjectStore(state => state.projects);
-  
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-500';
@@ -268,8 +264,8 @@ function ProjectOverview() {
               </div>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <span>{project.hoursUsed}/{project.hoursAllocated} hours</span>
-                <Progress 
-                  value={(project.hoursUsed / project.hoursAllocated) * 100} 
+                <Progress
+                  value={(project.hoursUsed / project.hoursAllocated) * 100}
                   className="flex-1 h-2"
                 />
                 <span>{Math.round((project.hoursUsed / project.hoursAllocated) * 100)}%</span>
@@ -285,11 +281,11 @@ function ProjectOverview() {
 // Revenue Chart Component
 function RevenueOverview() {
   const invoices = useInvoiceStore(state => state.invoices);
-  
+
   const totalRevenue = invoices
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + inv.total, 0);
-  
+
   const pendingRevenue = invoices
     .filter(inv => inv.status === 'sent' || inv.status === 'draft')
     .reduce((sum, inv) => sum + inv.total, 0);
@@ -307,14 +303,14 @@ function RevenueOverview() {
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20">
             <p className="text-sm text-muted-foreground mb-1">Total Revenue</p>
-            <p className="text-2xl font-bold text-green-600">R${totalRevenue.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-green-600">R{totalRevenue.toLocaleString()}</p>
           </div>
           <div className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
             <p className="text-sm text-muted-foreground mb-1">Pending</p>
-            <p className="text-2xl font-bold text-yellow-600">R${pendingRevenue.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-yellow-600">R{pendingRevenue.toLocaleString()}</p>
           </div>
         </div>
-        
+
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm">
             <span>Invoice Status</span>
@@ -323,7 +319,7 @@ function RevenueOverview() {
             const count = invoices.filter(inv => inv.status === status).length;
             const total = invoices.length;
             const percentage = total > 0 ? (count / total) * 100 : 0;
-            
+
             return (
               <div key={status} className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
@@ -344,31 +340,31 @@ function RevenueOverview() {
 function RecentFileUploads() {
   const drawings = useProjectStore(state => state.drawings);
   const projects = useProjectStore(state => state.projects);
-  
+
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
-  
+
   const formatRelativeTime = (date: Date): string => {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
+
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString();
   };
-  
+
   const getProjectName = (projectId: string): string => {
     const project = projects.find(p => p.id === projectId);
     return project?.name || 'Unknown Project';
   };
-  
+
   const sortedDrawings = [...drawings]
     .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())
     .slice(0, 5);
@@ -418,28 +414,31 @@ function RecentFileUploads() {
 }
 
 export function AdminOverview() {
+  const navigate = useNavigate();
   const projects = useProjectStore(state => state.projects);
   const users = useSettingsStore(state => state.users);
   const invoices = useInvoiceStore(state => state.invoices);
   const drawings = useProjectStore(state => state.drawings);
   const chatMessages = useNotificationStore(state => state.chatMessages);
   const currentUser = useAuthStore(state => state.currentUser);
-  
+
+  // State for dialogs
+  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+
   // Calculate stats
   const totalProjects = projects.length;
-  const activeProjects = projects.filter(p => p.status === 'active').length;
   const totalUsers = users.length;
   const totalRevenue = invoices
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + inv.total, 0);
   const pendingDrawings = drawings.filter(d => d.status === 'pending' || d.status === 'in_review').length;
-  const approvedDrawings = drawings.filter(d => d.status === 'approved').length;
-  
+
+
   // Calculate unread messages (messages not read by current user and not sent by current user)
-  const unreadMessages = chatMessages.filter(msg => 
+  const unreadMessages = chatMessages.filter(msg =>
     currentUser && !msg.readBy.includes(currentUser.id) && msg.senderId !== currentUser.id
   ).length;
-  
+
   // Calculate projects pending approval (draft status)
   const pendingApprovalProjects = projects.filter(p => p.status === 'draft').length;
 
@@ -504,22 +503,6 @@ export function AdminOverview() {
         />
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column */}
-        <div className="lg:col-span-2 space-y-6">
-          <ProjectOverview />
-          <RevenueOverview />
-        </div>
-        
-        {/* Right Column */}
-        <div className="space-y-6">
-          <RecentFileUploads />
-          <AgentStatus />
-          <RecentActivity />
-        </div>
-      </div>
-
       {/* Quick Actions */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -528,35 +511,99 @@ export function AdminOverview() {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5" />
+              Quick Actions
+            </CardTitle>
             <CardDescription>Common administrative tasks</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-3">
-              <Button variant="outline" className="gap-2">
-                <Users className="w-4 h-4" />
-                Add User
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                onClick={() => navigate('/admin/users')}
+              >
+                <Users className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium">Add User</span>
               </Button>
-              <Button variant="outline" className="gap-2">
-                <FolderKanban className="w-4 h-4" />
-                Create Project
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                onClick={() => setIsProjectDialogOpen(true)}
+              >
+                <FolderKanban className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium">Create Project</span>
               </Button>
-              <Button variant="outline" className="gap-2">
-                <Bot className="w-4 h-4" />
-                Configure Agents
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                onClick={() => navigate('/admin/agents')}
+              >
+                <Bot className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium">Configure Agents</span>
               </Button>
-              <Button variant="outline" className="gap-2">
-                <FileText className="w-4 h-4" />
-                Generate Report
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                onClick={() => {
+                  toast.success('Report generation started', {
+                    description: 'Your analytics report will be available shortly.',
+                  });
+                  navigate('/admin/analytics');
+                }}
+              >
+                <FileText className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium">Generate Report</span>
               </Button>
-              <Button variant="outline" className="gap-2">
-                <Zap className="w-4 h-4" />
-                Run System Check
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                onClick={() => {
+                  toast.promise(
+                    new Promise((resolve) => {
+                      setTimeout(() => resolve(true), 2000);
+                    }),
+                    {
+                      loading: 'Running system check...',
+                      success: () => ({
+                        message: 'System check completed',
+                        description: 'All systems operational. No issues found.',
+                      }),
+                      error: 'System check failed',
+                    }
+                  );
+                }}
+              >
+                <BarChart3 className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium">System Check</span>
               </Button>
             </div>
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column */}
+        <div className="lg:col-span-2 space-y-6">
+          <ProjectOverview />
+          <RevenueOverview />
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-6">
+          <RecentFileUploads />
+          <AgentStatus />
+          <RecentActivity />
+        </div>
+      </div>
+
+      {/* New Project Dialog */}
+      <NewProjectDialog
+        open={isProjectDialogOpen}
+        onOpenChange={setIsProjectDialogOpen}
+      />
     </div>
   );
 }

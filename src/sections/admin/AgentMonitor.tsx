@@ -354,6 +354,206 @@ function OrchestratorPanel() {
   );
 }
 
+// Agent Detail Dialog
+function AgentDetailDialog({
+  agent,
+  isOpen,
+  onClose,
+  onToggle,
+}: {
+  agent: Agent | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onToggle: () => void;
+}) {
+  if (!agent) return null;
+
+  const getStatusColor = (status: Agent['status']) => {
+    switch (status) {
+      case 'active': return 'bg-green-500';
+      case 'idle': return 'bg-yellow-500';
+      case 'paused': return 'bg-orange-500';
+      case 'error': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getStatusIcon = (status: Agent['status']) => {
+    switch (status) {
+      case 'active': return <Activity className="w-5 h-5 text-green-500" />;
+      case 'idle': return <Clock className="w-5 h-5 text-yellow-500" />;
+      case 'paused': return <Pause className="w-5 h-5 text-orange-500" />;
+      case 'error': return <AlertCircle className="w-5 h-5 text-red-500" />;
+      default: return <Bot className="w-5 h-5 text-gray-500" />;
+    }
+  };
+
+  // Mock recent activity data
+  const recentActivity = [
+    { action: 'Completed compliance check', target: 'FloorPlan_Drawing_v2.dwg', time: '2 minutes ago' },
+    { action: 'Validated dimensions', target: 'Site_Plan_Final.dwg', time: '15 minutes ago' },
+    { action: 'Detected 3 issues', target: 'Elevation_North.dwg', time: '1 hour ago' },
+    { action: 'System health check', target: 'Self-diagnostics', time: '2 hours ago' },
+  ];
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${getStatusColor(agent.status)}`}>
+              <Bot className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <span>{agent.name}</span>
+              <p className="text-sm font-normal text-muted-foreground capitalize">{agent.type} Agent</p>
+            </div>
+          </DialogTitle>
+          <DialogDescription>
+            View detailed information and performance metrics for this agent
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Status Banner */}
+          <div className={`p-4 rounded-lg border ${
+            agent.status === 'active' ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' :
+            agent.status === 'idle' ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800' :
+            agent.status === 'paused' ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800' :
+            'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {getStatusIcon(agent.status)}
+                <span className="font-medium capitalize">{agent.status}</span>
+              </div>
+              <Badge variant={agent.status === 'active' ? 'default' : 'secondary'} className="capitalize">
+                {agent.status}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Performance Metrics */}
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              Performance Metrics
+            </h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-lg bg-muted">
+                <p className="text-sm text-muted-foreground">Checks Today</p>
+                <p className="text-2xl font-bold">{agent.checksToday}</p>
+              </div>
+              <div className="p-4 rounded-lg bg-muted">
+                <p className="text-sm text-muted-foreground">Total Checks</p>
+                <p className="text-2xl font-bold">{agent.checksTotal.toLocaleString()}</p>
+              </div>
+              <div className="p-4 rounded-lg bg-muted">
+                <p className="text-sm text-muted-foreground">Avg Processing Time</p>
+                <p className="text-2xl font-bold">{agent.avgProcessingTime}</p>
+              </div>
+              <div className="p-4 rounded-lg bg-muted">
+                <p className="text-sm text-muted-foreground">Accuracy</p>
+                <div className={`flex items-center gap-2 ${agent.accuracy >= 98 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className="text-2xl font-bold">{agent.accuracy}%</p>
+                  {agent.accuracy >= 98 ? (
+                    <CheckCircle2 className="w-5 h-5" />
+                  ) : (
+                    <AlertOctagon className="w-5 h-5" />
+                  )}
+                </div>
+                {agent.accuracy < 98 && (
+                  <p className="text-xs text-red-500 mt-1">Below 98% threshold</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Capabilities */}
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Capabilities
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {agent.capabilities.map((cap, i) => (
+                <Badge key={i} variant="outline" className="text-sm py-1 px-3">
+                  {cap}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Recent Activity
+            </h4>
+            <div className="space-y-2">
+              {recentActivity.map((activity, i) => (
+                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted">
+                  <div className="w-2 h-2 rounded-full bg-primary mt-2" />
+                  <div className="flex-1">
+                    <p className="font-medium">{activity.action}</p>
+                    <p className="text-sm text-muted-foreground">{activity.target}</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{activity.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Configuration */}
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Configuration
+            </h4>
+            <div className="space-y-2 p-4 rounded-lg bg-muted">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Agent ID</span>
+                <span className="text-sm font-mono">{agent.id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Last Active</span>
+                <span className="text-sm">{agent.lastActive.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Auto-restart</span>
+                <Badge variant="outline" className="text-xs">Enabled</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Log Level</span>
+                <Badge variant="outline" className="text-xs">Info</Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4 border-t">
+            <Button
+              variant={agent.status === 'active' ? 'secondary' : 'default'}
+              className="flex-1"
+              onClick={onToggle}
+            >
+              {agent.status === 'active' ? (
+                <><Pause className="w-4 h-4 mr-2" /> Pause Agent</>
+              ) : (
+                <><Play className="w-4 h-4 mr-2" /> Start Agent</>
+              )}
+            </Button>
+            <Button variant="outline" className="flex-1" onClick={onClose}>
+              <X className="w-4 h-4 mr-2" />
+              Close
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Issue Detail Dialog
 function IssueDetailDialog({ 
   issue, 
@@ -458,6 +658,7 @@ function IssueDetailDialog({
 export function AgentMonitor() {
   const [agents, setAgents] = useState<Agent[]>(getAllAgents());
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [isAgentDialogOpen, setIsAgentDialogOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<AgentIssue | null>(null);
   const [isIssueDialogOpen, setIsIssueDialogOpen] = useState(false);
   const drawings = useProjectStore(state => state.drawings);
@@ -633,7 +834,10 @@ export function AgentMonitor() {
               >
                 <AgentCard
                   agent={agent}
-                  onView={() => setSelectedAgent(agent)}
+                  onView={() => {
+                    setSelectedAgent(agent);
+                    setIsAgentDialogOpen(true);
+                  }}
                   onToggle={() => handleToggleAgent(agent.id)}
                 />
               </motion.div>
@@ -761,6 +965,22 @@ export function AgentMonitor() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Agent Detail Dialog */}
+      <AgentDetailDialog
+        agent={selectedAgent}
+        isOpen={isAgentDialogOpen}
+        onClose={() => {
+          setIsAgentDialogOpen(false);
+          setSelectedAgent(null);
+        }}
+        onToggle={() => {
+          if (selectedAgent) {
+            handleToggleAgent(selectedAgent.id);
+            setSelectedAgent(prev => prev ? { ...prev, status: prev.status === 'active' ? 'paused' : 'active' } : null);
+          }
+        }}
+      />
 
       {/* Issue Detail Dialog */}
       <IssueDetailDialog

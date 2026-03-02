@@ -14,7 +14,6 @@ import { toast } from 'sonner';
 import {
   User,
   Mail,
-  Bell,
   Shield,
   Moon,
   Globe,
@@ -22,20 +21,17 @@ import {
   Save,
   Lock,
   Smartphone,
-  HardHat,
   Star,
   DollarSign,
-  Briefcase,
-  MapPin,
   Phone,
 } from 'lucide-react';
 
 export function FreelancerSettings() {
   const { currentUser, updateUser } = useAuthStore();
   const { getSettings, updateSettings } = useSettingsStore();
-  
+
   const settings = getSettings(currentUser?.id || '');
-  
+
   const [profileData, setProfileData] = useState({
     name: currentUser?.name || '',
     email: currentUser?.email || '',
@@ -237,7 +233,7 @@ export function FreelancerSettings() {
                   </div>
                   <Switch
                     checked={value}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setNotificationSettings({ ...notificationSettings, [key]: checked })
                     }
                   />
@@ -262,12 +258,12 @@ export function FreelancerSettings() {
                 </div>
                 <Switch
                   checked={pushSettings.enabled}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setPushSettings({ ...pushSettings, enabled: checked })
                   }
                 />
               </div>
-              
+
               {pushSettings.enabled && (
                 <>
                   <Separator />
@@ -283,7 +279,7 @@ export function FreelancerSettings() {
                         </div>
                         <Switch
                           checked={value}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             setPushSettings({ ...pushSettings, [key]: checked })
                           }
                         />
@@ -362,8 +358,8 @@ export function FreelancerSettings() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
-                <select 
-                  id="language" 
+                <select
+                  id="language"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   defaultValue="en"
                 >
@@ -375,8 +371,8 @@ export function FreelancerSettings() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="timezone">Timezone</Label>
-                <select 
-                  id="timezone" 
+                <select
+                  id="timezone"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   defaultValue="America/New_York"
                 >
@@ -400,8 +396,8 @@ export function FreelancerSettings() {
             <CardContent>
               <div className="space-y-2">
                 <Label htmlFor="theme">Theme</Label>
-                <select 
-                  id="theme" 
+                <select
+                  id="theme"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   defaultValue="system"
                 >

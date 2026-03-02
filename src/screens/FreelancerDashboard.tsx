@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useAuthStore, useNotificationStore } from '@/store';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,6 +19,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarInset,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -34,6 +35,7 @@ import { DrawingSubmission } from '@/sections/freelancer/DrawingSubmission';
 import { FreelancerEarnings } from '@/sections/freelancer/FreelancerEarnings';
 import { FreelancerMessages } from '@/sections/freelancer/FreelancerMessages';
 import { FreelancerSettings } from '@/sections/freelancer/FreelancerSettings';
+import { FreelancerFiles } from '@/sections/freelancer/FreelancerFiles';
 
 import {
   LayoutDashboard,
@@ -47,14 +49,15 @@ import {
   Bell,
   HardHat,
   ChevronDown,
-  Menu,
+  Folder,
 } from 'lucide-react';
 
 const sidebarItems = [
-  { path: '', label: 'Overview', icon: LayoutDashboard },
+  { path: 'overview', label: 'Overview', icon: LayoutDashboard },
   { path: 'work', label: 'My Work', icon: Briefcase },
   { path: 'time', label: 'Time Tracking', icon: Clock },
   { path: 'drawings', label: 'Submit Drawings', icon: FileUp },
+  { path: 'files', label: 'My Files', icon: Folder },
   { path: 'earnings', label: 'Earnings', icon: DollarSign },
   { path: 'messages', label: 'Messages', icon: MessageSquare },
   { path: 'settings', label: 'Settings', icon: Settings },
@@ -100,7 +103,7 @@ function FreelancerSidebar() {
                 <SidebarMenuButton asChild tooltip={item.label}>
                   <NavLink
                     to={`/freelancer/${item.path}`}
-                    end={item.path === ''}
+                    end={item.path === 'overview'}
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0 group-data-[collapsible=icon]:size-10 ${isActive
                         ? 'bg-primary text-primary-foreground'
@@ -181,15 +184,22 @@ function FreelancerSidebar() {
     </Sidebar>
   );
 }
-
 export function FreelancerDashboard() {
   return (
     <SidebarProvider>
       <FreelancerSidebar />
-      <main className="flex-1 flex flex-col min-h-screen overflow-auto">
+      <SidebarInset>
+        {/* Desktop Header with Toggle */}
+        <header className="hidden md:flex items-center justify-between p-4 border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <h1 className="text-lg font-semibold">Freelancer Dashboard</h1>
+          </div>
+        </header>
+
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between p-4 border-b sticky top-0 bg-background z-20">
-          <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <HardHat className="w-5 h-5 text-white" />
             </div>
@@ -200,17 +210,21 @@ export function FreelancerDashboard() {
 
         {/* Page Content */}
         <div className="flex-1 p-4 md:p-6 lg:p-8">
-          <Routes>
-            <Route path="/" element={<FreelancerOverview />} />
-            <Route path="/work" element={<MyWork />} />
-            <Route path="/time" element={<TimeTracking />} />
-            <Route path="/drawings" element={<DrawingSubmission />} />
-            <Route path="/earnings" element={<FreelancerEarnings />} />
-            <Route path="/messages" element={<FreelancerMessages />} />
-            <Route path="/settings" element={<FreelancerSettings />} />
-          </Routes>
+          <ErrorBoundary componentName="Freelancer Dashboard">
+            <Routes>
+              <Route path="/" element={<FreelancerOverview />} />
+              <Route path="/overview" element={<FreelancerOverview />} />
+              <Route path="/work" element={<MyWork />} />
+              <Route path="/time" element={<TimeTracking />} />
+              <Route path="/drawings" element={<DrawingSubmission />} />
+              <Route path="/files" element={<FreelancerFiles />} />
+              <Route path="/earnings" element={<FreelancerEarnings />} />
+              <Route path="/messages" element={<FreelancerMessages />} />
+              <Route path="/settings" element={<FreelancerSettings />} />
+            </Routes>
+          </ErrorBoundary>
         </div>
-      </main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }
