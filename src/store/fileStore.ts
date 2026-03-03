@@ -536,9 +536,9 @@ export const useFileStore = create<FileState>()(
       );
 
       if (searchQuery) {
-        const query = searchQuery.toLowerCase();
+        const query = (searchQuery || '').toLowerCase();
         filteredFiles = filteredFiles.filter((f) =>
-          f.name.toLowerCase().includes(query)
+          (f.name || '').toLowerCase().includes(query)
         );
       }
 

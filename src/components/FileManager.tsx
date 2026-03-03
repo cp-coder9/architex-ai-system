@@ -6,7 +6,7 @@
  * search, and file type-specific icons.
  */
 
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
   Folder,
   File,
@@ -80,6 +80,7 @@ import {
 } from '@/components/ui/empty';
 import { cn } from '@/lib/utils';
 import { useFileStore, FileItem, Folder as FolderType } from '@/store/fileStore';
+import { useAuthStore } from '@/store/authStore';
 
 // ============================================================================
 // Props Interface
@@ -770,7 +771,18 @@ export const FileManager: React.FC<FileManagerProps> = ({
     setViewMode,
     setSearchQuery,
     getFilesByFolder,
+    initializeListeners,
   } = useFileStore();
+
+  const { currentUser } = useAuthStore();
+
+  // Initialize file listeners when user is available
+  useEffect(() => {
+    if (currentUser?.id) {
+      const cleanup = initializeListeners(currentUser.id);
+      return cleanup;
+    }
+  }, [currentUser?.id, initializeListeners]);
 
   // Local state
   const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false);
