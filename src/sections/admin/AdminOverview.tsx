@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useProjectStore, useInvoiceStore, useSettingsStore, useNotificationStore, useAuthStore } from '@/store';
@@ -28,25 +28,61 @@ import {
 // Animated Counter Component
 function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) {
   const [displayValue, setDisplayValue] = useState(0);
+  const animationRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const startValueRef = useRef(0);
+  const targetValueRef = useRef(value);
+  const isAnimatingRef = useRef(false);
+
+  const animate = useCallback((timestamp: number) => {
+    if (!startTimeRef.current) {
+      startTimeRef.current = timestamp;
+    }
+
+    const duration = 1500;
+    const elapsed = timestamp - startTimeRef.current;
+    const progress = Math.min(elapsed / duration, 1);
+
+    // Easing function for smooth animation (ease-out)
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+
+    const currentValue = Math.floor(startValueRef.current + (targetValueRef.current - startValueRef.current) * easeOut);
+    setDisplayValue(currentValue);
+
+    if (progress < 1) {
+      animationRef.current = requestAnimationFrame(animate);
+    } else {
+      setDisplayValue(targetValueRef.current);
+      isAnimatingRef.current = false;
+      animationRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
-    const duration = 1500;
-    const steps = 60;
-    const increment = value / steps;
-    let current = 0;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= value) {
-        setDisplayValue(value);
-        clearInterval(timer);
-      } else {
-        setDisplayValue(Math.floor(current));
+    // Only start animation if value has actually changed
+    if (value !== targetValueRef.current) {
+      // Cancel any existing animation
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
       }
-    }, duration / steps);
 
-    return () => clearInterval(timer);
-  }, [value]);
+      // Update target and start values
+      targetValueRef.current = value;
+      startValueRef.current = displayValue;
+      startTimeRef.current = null;
+      isAnimatingRef.current = true;
+
+      // Start new animation
+      animationRef.current = requestAnimationFrame(animate);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [value, animate, displayValue]);
 
   return (
     <span>
