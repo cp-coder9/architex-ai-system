@@ -668,11 +668,12 @@ export function FreelancerMarketplace() {
 
   // Filter tasks
   const filteredTasks = useMemo(() => {
+    const query = (searchQuery || '').toLowerCase();
     return tasks.filter(task => {
       const matchesSearch = 
-        (task.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (task.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (task.category || '').toLowerCase().includes(searchQuery.toLowerCase());
+        (task.title || '').toLowerCase().includes(query) ||
+        (task.description || '').toLowerCase().includes(query) ||
+        (task.category || '').toLowerCase().includes(query);
       
       const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
       

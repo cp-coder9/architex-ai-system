@@ -320,10 +320,11 @@ export function UserManagement() {
 
   // Filter users
   const filteredUsers = users.filter(user => {
+    const query = (searchQuery || '').toLowerCase();
     const matchesSearch = 
-      (user.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (user.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (user.company || '').toLowerCase().includes(searchQuery.toLowerCase());
+      (user.name || '').toLowerCase().includes(query) ||
+      (user.email || '').toLowerCase().includes(query) ||
+      (user.company || '').toLowerCase().includes(query);
     
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     const matchesStatus = statusFilter === 'all' || 

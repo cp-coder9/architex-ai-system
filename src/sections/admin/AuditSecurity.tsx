@@ -308,11 +308,12 @@ export function AuditSecurity() {
 
    // Filter audit logs
    const filteredLogs = useMemo(() => {
+     const query = (searchQuery || '').toLowerCase();
      return auditLogs.filter(log => {
        const matchesSearch = 
-         (log.actorName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-         (log.action || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-         (log.details || '').toLowerCase().includes(searchQuery.toLowerCase());
+         (log.actorName || '').toLowerCase().includes(query) ||
+         (log.action || '').toLowerCase().includes(query) ||
+         (log.details || '').toLowerCase().includes(query);
        
        const matchesCategory = categoryFilter === 'all' || log.category === categoryFilter;
        const matchesSeverity = severityFilter === 'all' || log.severity === severityFilter;
@@ -342,10 +343,11 @@ export function AuditSecurity() {
 
    // Filter security events
    const filteredEvents = useMemo(() => {
+     const query = (searchQuery || '').toLowerCase();
      return securityEvents.filter(event => {
        const matchesSearch = 
-         (event.userName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-         (event.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+         (event.userName || '').toLowerCase().includes(query) ||
+         (event.description || '').toLowerCase().includes(query);
        
        const matchesSeverity = severityFilter === 'all' || event.severity === severityFilter;
        

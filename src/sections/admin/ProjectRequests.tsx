@@ -280,10 +280,11 @@ export function ProjectRequests() {
   // Filter requests
   const filteredRequests = useMemo(() => {
     return projectRequests.filter(request => {
+      const query = (searchQuery || '').toLowerCase();
       const matchesSearch =
-        (request.projectName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (request.clientName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (request.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+        (request.projectName || '').toLowerCase().includes(query) ||
+        (request.clientName || '').toLowerCase().includes(query) ||
+        (request.description || '').toLowerCase().includes(query);
 
       const matchesTab = activeTab === 'all' || request.status === activeTab;
 
