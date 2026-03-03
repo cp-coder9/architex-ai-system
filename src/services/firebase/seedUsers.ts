@@ -55,6 +55,9 @@ const SEED_USERS: SeedUser[] = [
  * Create a user profile in Firestore
  */
 const createUserProfile = async (uid: string, userData: SeedUser): Promise<void> => {
+  if (!db) {
+    throw new Error('Firebase Firestore not initialized');
+  }
   const userRef = doc(db, 'users', uid);
   
   // Check if user already exists
@@ -82,13 +85,7 @@ const createUserProfile = async (uid: string, userData: SeedUser): Promise<void>
     bio: userData.role === 'freelancer' 
       ? 'Experienced architectural drafter with expertise in SANS 10400 compliance.'
       : undefined,
-    address: {
-      street: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      country: 'South Africa',
-    },
+    address: '',
     preferences: {
       notifications: {
         email: true,
