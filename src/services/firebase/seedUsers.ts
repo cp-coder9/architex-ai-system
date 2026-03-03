@@ -11,43 +11,39 @@
  */
 
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { db, auth } from '@/config/firebase';
 import type { User, UserRole } from '@/types';
 
 interface SeedUser {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   role: UserRole;
-  companyName?: string;
+  company?: string;
 }
 
 const SEED_USERS: SeedUser[] = [
   {
     email: 'admin@architex.co.za',
     password: 'Admin123!',
-    firstName: 'System',
-    lastName: 'Administrator',
+    name: 'System Administrator',
     role: 'admin',
-    companyName: 'Architex Axis',
+    company: 'Architex Axis',
   },
   {
     email: 'freelancer@architex.co.za',
     password: 'Freelancer123!',
-    firstName: 'John',
-    lastName: 'Freelancer',
+    name: 'John Freelancer',
     role: 'freelancer',
-    companyName: 'Independent Contractor',
+    company: 'Independent Contractor',
   },
   {
     email: 'client@architex.co.za',
     password: 'Client123!',
-    firstName: 'Jane',
-    lastName: 'Client',
+    name: 'Jane Client',
     role: 'client',
-    companyName: 'Client Company Pty Ltd',
+    company: 'Client Company Pty Ltd',
   },
 ];
 
@@ -69,51 +65,21 @@ const createUserProfile = async (uid: string, userData: SeedUser): Promise<void>
 
   const profile: Omit<User, 'id'> = {
     email: userData.email,
-    firstName: userData.firstName,
-    lastName: userData.lastName,
-    fullName: `${userData.firstName} ${userData.lastName}`,
+    name: userData.name,
     role: userData.role,
-    companyName: userData.companyName || '',
-    profileImage: '',
+    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userData.email)}`,
     phone: '',
+    company: userData.company || '',
+    address: '',
     createdAt: new Date(),
     updatedAt: new Date(),
-    lastLoginAt: new Date(),
     isActive: true,
-    hourlyRate: userData.role === 'freelancer' ? 250 : undefined, // ZAR 250/hr for freelancers
-    specialization: userData.role === 'freelancer' ? ['Architectural Drawings', '3D Modeling'] : undefined,
-    bio: userData.role === 'freelancer' 
-      ? 'Experienced architectural drafter with expertise in SANS 10400 compliance.'
-      : undefined,
-    address: '',
-    preferences: {
-      notifications: {
-        email: true,
-        push: true,
-        sms: false,
-      },
-      theme: 'system',
-      language: 'en',
-    },
-    // Client-specific fields
-    availableHours: userData.role === 'client' ? 0 : undefined,
-    totalSpent: userData.role === 'client' ? 0 : undefined,
-    // Freelancer-specific fields
-    rating: userData.role === 'freelancer' ? 5.0 : undefined,
-    totalProjects: userData.role === 'freelancer' ? 0 : undefined,
-    completedProjects: userData.role === 'freelancer' ? 0 : undefined,
-    earnings: userData.role === 'freelancer' ? 0 : undefined,
-    // Admin-specific fields
-    permissions: userData.role === 'admin' 
-      ? ['manage_users', 'manage_projects', 'manage_finances', 'system_settings'] 
-      : undefined,
   };
 
   await setDoc(userRef, {
     ...profile,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-    lastLoginAt: serverTimestamp(),
   });
 
   console.log(`[SeedUsers] Created ${userData.role} user: ${userData.email}`);
@@ -142,13 +108,6 @@ const createUser = async (userData: SeedUser): Promise<void> => {
   } catch (error: any) {
     if (error.code === 'auth/email-already-in-use') {
       console.log(`[SeedUsers] User ${userData.email} already exists in Auth`);
-      // Try to create Firestore profile anyway (in case Auth exists but Firestore doesn't)
-      try {
-        // We can't get the UID without signing in, so we'll skip this case
-        console.log(`[SeedUsers] Skipping Firestore profile for existing user`);
-      } catch (e) {
-        console.error(`[SeedUsers] Error creating profile:`, e);
-      }
     } else {
       console.error(`[SeedUsers] Error creating user ${userData.email}:`, error.message);
     }
