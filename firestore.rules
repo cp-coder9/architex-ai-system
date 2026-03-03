@@ -64,7 +64,7 @@ service cloud.firestore {
       allow delete: if isAdmin() || (isClient() && resource.data.clientId == request.auth.uid);
     }
 
-    // Tasks collection
+    // Tasks collection (marketplace tasks)
     match /tasks/{taskId} {
       allow read: if isAuthenticated() && (
         get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.clientId == request.auth.uid ||
@@ -74,6 +74,67 @@ service cloud.firestore {
       allow create: if isFreelancer() || isAdmin();
       allow update: if isAuthenticated() && (
         get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.assignedFreelancerId == request.auth.uid ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Task Applications collection
+    match /taskApplications/{applicationId} {
+      allow read: if isAuthenticated() && (
+        resource.data.freelancerId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isFreelancer() || isAdmin();
+      allow update: if isAuthenticated() && (
+        resource.data.freelancerId == request.auth.uid ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Drawings collection
+    match /drawings/{drawingId} {
+      allow read: if isAuthenticated() && (
+        isProjectMember(resource.data.projectId) ||
+        isAdmin()
+      );
+      allow create: if isFreelancer() || isAdmin();
+      allow update: if isAuthenticated() && (
+        resource.data.uploadedBy == request.auth.uid ||
+        isProjectMember(resource.data.projectId) ||
+        isAdmin()
+      );
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.uploadedBy == request.auth.uid);
+    }
+
+    // Time Entries collection
+    match /timeEntries/{entryId} {
+      allow read: if isAuthenticated() && (
+        resource.data.freelancerId == request.auth.uid ||
+        isProjectMember(resource.data.projectId) ||
+        isAdmin()
+      );
+      allow create: if isFreelancer() || isAdmin();
+      allow update: if isAuthenticated() && (
+        resource.data.freelancerId == request.auth.uid ||
+        isProjectMember(resource.data.projectId) ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Proofs collection
+    match /proofs/{proofId} {
+      allow read: if isAuthenticated() && (
+        resource.data.freelancerId == request.auth.uid ||
+        isProjectMember(resource.data.projectId) ||
+        isAdmin()
+      );
+      allow create: if isFreelancer() || isAdmin();
+      allow update: if isAuthenticated() && (
+        resource.data.freelancerId == request.auth.uid ||
+        isProjectMember(resource.data.projectId) ||
         isAdmin()
       );
       allow delete: if isAdmin();
@@ -135,20 +196,6 @@ service cloud.firestore {
       allow delete: if isAdmin() || (isAuthenticated() && resource.data.uploadedBy == request.auth.uid);
     }
 
-    // Time tracking collection
-    match /timeTracking/{entryId} {
-      allow read: if isAuthenticated() && (
-        resource.data.freelancerId == request.auth.uid ||
-        isAdmin()
-      );
-      allow create: if isFreelancer() || isAdmin();
-      allow update: if isAuthenticated() && (
-        resource.data.freelancerId == request.auth.uid ||
-        isAdmin()
-      );
-      allow delete: if isAdmin();
-    }
-
     // Hour packages collection
     match /hourPackages/{packageId} {
       allow read: if isAuthenticated() && (
@@ -182,16 +229,16 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Audit logs collection - admin only
-    match /auditLogs/{logId} {
+    // Audit logs collection (renamed from auditLogs to match code)
+    match /audit_logs/{logId} {
       allow read: if isAdmin();
       allow create: if isAuthenticated();
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }
 
-    // Agent activities collection
-    match /agentActivities/{activityId} {
+    // Security events collection
+    match /security_events/{eventId} {
       allow read: if isAdmin();
       allow create: if isAdmin();
       allow update: if isAdmin();

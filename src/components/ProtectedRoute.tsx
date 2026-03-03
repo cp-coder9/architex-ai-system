@@ -8,12 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRole }: ProtectedRouteProps) {
-  const { isAuthenticated, currentUser, tempOnboardingData } = useAuthStore();
-
-  // Allow access to client dashboard if user has onboarding data (post-onboarding flow)
-  if (!isAuthenticated && allowedRole === 'client' && tempOnboardingData) {
-    return <>{children}</>;
-  }
+  const { isAuthenticated, currentUser } = useAuthStore();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

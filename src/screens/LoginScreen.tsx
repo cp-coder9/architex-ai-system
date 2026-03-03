@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid, Line } from '@react-three/drei';
@@ -148,6 +148,7 @@ function BackgroundScene() {
 
 export function LoginScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, register, isLoading, error, clearError, tempOnboardingData, setTempOnboardingData } = useAuthStore();
   const { createRequest } = useProjectRequestStore();
 
@@ -235,7 +236,13 @@ export function LoginScreen() {
       }
 
       const route = selectedRole === 'admin' ? '/admin' : selectedRole === 'client' ? '/client' : '/freelancer';
-      navigate(route);
+      
+      // Pass onboarding data via router state for newly registered clients
+      if (selectedRole === 'client' && tempOnboardingData) {
+        navigate(route, { state: { onboardingData: tempOnboardingData } });
+      } else {
+        navigate(route);
+      }
     }
   };
 

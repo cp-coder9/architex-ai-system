@@ -12,6 +12,7 @@ import { DebugPage } from '@/screens/DebugPage';
 
 // Components
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { StoreInitializer } from '@/components/StoreInitializer';
 
 function App() {
   const { isAuthenticated, currentUser } = useAuthStore();
@@ -33,6 +34,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <StoreInitializer />
       <div className="min-h-screen bg-background font-sans antialiased">
         <Routes>
           {/* Public Routes */}

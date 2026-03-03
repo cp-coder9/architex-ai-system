@@ -44,10 +44,13 @@ interface MockTask {
   projectName: string;
   status: string;
   dueDate: Date;
+  projectId?: string;
+  milestoneId?: string;
+  taskId?: string;
 }
 
 // Task Card Component for assigned tasks
-function TaskCard({ task, onStatusChange }: { task: MockTask; onStatusChange: (status: string) => void }) {
+function TaskCard({ task, onStatusChange, onProjectName }: { task: MockTask; onStatusChange: (status: string) => void; onProjectName: string }) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed': return <CheckCircle2 className="w-5 h-5 text-green-500" />;
@@ -68,7 +71,7 @@ function TaskCard({ task, onStatusChange }: { task: MockTask; onStatusChange: (s
           {getStatusIcon(task.status)}
           <div>
             <h3 className="font-medium">{task.name}</h3>
-            <p className="text-sm text-muted-foreground">{task.projectName}</p>
+            <p className="text-sm text-muted-foreground">{onProjectName}</p>
           </div>
         </div>
         <Badge variant={task.status === 'completed' ? 'default' : 'secondary'}>
@@ -225,11 +228,13 @@ function ApplicationCard({ application, task }: { application: TaskApplication; 
 
 export function MyWork() {
   const { currentUser } = useAuthStore();
-  const { projects, drawings } = useProjectStore();
+  const { projects, drawings, updateMilestone } = useProjectStore();
   const {
     tasks: marketplaceTasks,
     applications,
-    submitApplication
+    submitApplication,
+    getMyTasks,
+    updateTask,
   } = useTaskStore();
 
   // Application dialog state
@@ -294,36 +299,68 @@ export function MyWork() {
     return ['all', ...Array.from(cats)];
   }, [openTasks]);
 
-  // Mock tasks for assigned tasks view
-  const [tasks, setTasks] = useState(() => [
-    {
-      id: 'task-1',
-      name: 'Create ground floor plan',
-      description: 'Design the ground floor layout with all rooms and dimensions',
-      projectName: 'Modern Villa Renovation',
-      status: 'in_progress',
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: 'task-2',
-      name: 'Revise elevation drawings',
-      description: 'Update front and side elevations per client feedback',
-      projectName: 'Modern Villa Renovation',
-      status: 'pending',
-      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: 'task-3',
-      name: 'Site analysis report',
-      description: 'Complete site survey and analysis documentation',
-      projectName: 'Commercial Office Building',
-      status: 'completed',
-      dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    },
-  ]);
+  // Derive tasks from project milestones and marketplace tasks
+  const myMilestones = useMemo(() => {
+    if (!currentUser) return [];
+    const result: MockTask[] = [];
+    
+    // Get milestones from projects assigned to this freelancer
+    projects
+      .filter(p => p.freelancerId === currentUser.id)
+      .forEach(project => {
+        project.milestones?.forEach(milestone => {
+          result.push({
+            id: milestone.id,
+            name: milestone.name,
+            description: milestone.description,
+            projectName: project.name,
+            status: milestone.status,
+            dueDate: milestone.dueDate ? new Date(milestone.dueDate) : new Date(),
+            projectId: project.id,
+            milestoneId: milestone.id,
+          });
+        });
+      });
+    
+    return result;
+  }, [projects, currentUser]);
 
-  const handleStatusChange = (taskId: string, newStatus: string) => {
-    setTasks(tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+  // Also get marketplace-assigned tasks
+  const myMarketplaceTasks = useMemo(() => {
+    if (!currentUser) return [];
+    const taskList = getMyTasks(currentUser.id);
+    return taskList.map(task => ({
+      id: task.id,
+      name: task.title,
+      description: task.description,
+      projectName: task.category || 'Marketplace Task',
+      status: task.status,
+      dueDate: task.deadline ? new Date(task.deadline) : new Date(),
+      taskId: task.id,
+    }));
+  }, [currentUser, marketplaceTasks, getMyTasks]);
+
+  // Combine milestones and marketplace tasks
+  const allMyTasks = useMemo(() => {
+    return [...myMilestones, ...myMarketplaceTasks];
+  }, [myMilestones, myMarketplaceTasks]);
+
+  const handleStatusChange = async (taskId: string, newStatus: string) => {
+    // Find the task in our combined list
+    const task = allMyTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    // Check if it's a milestone (has projectId/milestoneId) or marketplace task (has taskId)
+    const milestoneTask = task as MockTask & { milestoneId: string; projectId: string };
+    const marketplaceTask = task as MockTask & { taskId: string };
+    
+    if (milestoneTask.milestoneId && milestoneTask.projectId) {
+      // It's a project milestone
+      await updateMilestone(milestoneTask.milestoneId, { status: newStatus as any });
+    } else if (marketplaceTask.taskId) {
+      // It's a marketplace task
+      await updateTask(marketplaceTask.taskId, { status: newStatus as any });
+    }
   };
 
   const handleApply = (task: Task) => {
@@ -357,10 +394,10 @@ export function MyWork() {
   };
 
   const stats = {
-    totalTasks: tasks.length,
-    completedTasks: tasks.filter(t => t.status === 'completed').length,
-    inProgressTasks: tasks.filter(t => t.status === 'in_progress').length,
-    pendingTasks: tasks.filter(t => t.status === 'pending').length,
+    totalTasks: allMyTasks.length,
+    completedTasks: allMyTasks.filter(t => t.status === 'completed').length,
+    inProgressTasks: allMyTasks.filter(t => t.status === 'in_progress').length,
+    pendingTasks: allMyTasks.filter(t => t.status === 'pending').length,
   };
 
   return (
@@ -457,13 +494,20 @@ export function MyWork() {
 
           <ScrollArea className="h-[500px]">
             <div className="space-y-4">
-              {tasks.map((task) => (
+              {allMyTasks.map((task) => (
                 <TaskCard
                   key={task.id}
                   task={task}
+                  onProjectName={task.projectName}
                   onStatusChange={(status) => handleStatusChange(task.id, status)}
                 />
               ))}
+              {allMyTasks.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <BriefcaseIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No tasks assigned yet</p>
+                </div>
+              )}
             </div>
           </ScrollArea>
         </TabsContent>

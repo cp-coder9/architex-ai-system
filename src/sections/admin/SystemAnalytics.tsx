@@ -237,7 +237,7 @@ function KPICard({
   const displayValue = format === 'percent' 
     ? `${value}%` 
       : format === 'currency'
-      ? `R{Number(value).toLocaleString()}`
+      ? `R${Number(value).toLocaleString()}`
       : value;
 
   return (
@@ -706,7 +706,7 @@ export function SystemAnalytics() {
         />
         <MetricCard
           title="Total Revenue"
-          value={`R{totalRevenue.toLocaleString()}`}
+          value={`R${totalRevenue.toLocaleString()}`}
           change={`${revenueChange} from previous period`}
           icon={DollarSign}
           color="bg-orange-500"

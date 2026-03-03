@@ -8,12 +8,14 @@ import {
   updateDoc,
   deleteDoc,
   query,
+  where,
   orderBy,
   onSnapshot,
   Unsubscribe,
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
+import { useProjectStore } from './projectStore';
 
 interface NotificationState {
   notifications: Notification[];
@@ -23,9 +25,12 @@ interface NotificationState {
   error: string | null;
   unsubscribeNotifications: Unsubscribe | null;
   unsubscribeChatMessages: Unsubscribe | null;
+  
+  // Project-specific chat subscriptions
+  projectChatSubscriptions: Map<string, Unsubscribe>;
 
   // Initialization
-  initialize: () => void;
+  initialize: (userId?: string) => void;
   cleanup: () => void;
 
   // Actions
@@ -41,6 +46,11 @@ interface NotificationState {
   sendMessage: (message: Partial<ChatMessage>) => Promise<void>;
   markMessageAsRead: (messageId: string, userId: string) => Promise<void>;
   getProjectMessages: (projectId: string) => ChatMessage[];
+  
+  // Project-specific chat subscription (lazy subscription)
+  subscribeToProjectChat: (projectId: string, userId: string) => void;
+  unsubscribeFromProjectChat: (projectId: string) => void;
+  clearAllProjectSubscriptions: () => void;
 }
 
 // Collection names
@@ -64,8 +74,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   error: null,
   unsubscribeNotifications: null,
   unsubscribeChatMessages: null,
+  projectChatSubscriptions: new Map(),
 
-  initialize: () => {
+  // Initialization - accepts userId to filter notifications for the current user
+  // Note: Chat messages are now subscribed lazily per-project to avoid fetching all messages globally
+  initialize: (userId?: string) => {
     if (!isFirebaseConfigured() || !db) {
       console.warn('[NotificationStore] Firebase not configured, using empty arrays');
       return;
@@ -73,11 +86,20 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     set({ isLoading: true, error: null });
 
-    // Subscribe to notifications collection
-    const notificationsQuery = query(
-      collection(db, NOTIFICATIONS_COLLECTION),
-      orderBy('createdAt', 'desc')
-    );
+    // Subscribe to notifications collection filtered by userId
+    let notificationsQuery;
+    if (userId) {
+      notificationsQuery = query(
+        collection(db, NOTIFICATIONS_COLLECTION),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+    } else {
+      notificationsQuery = query(
+        collection(db, NOTIFICATIONS_COLLECTION),
+        orderBy('createdAt', 'desc')
+      );
+    }
 
     const unsubscribeNotifications = onSnapshot(
       notificationsQuery,
@@ -94,36 +116,30 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       }
     );
 
-    // Subscribe to chat messages collection
-    const chatMessagesQuery = query(
-      collection(db, CHAT_MESSAGES_COLLECTION),
-      orderBy('createdAt', 'asc')
-    );
+    // Note: Chat messages are no longer subscribed globally
+    // Instead, use subscribeToProjectChat() to subscribe to messages for specific projects
+    // This prevents loading all chat messages for all users
 
-    const unsubscribeChatMessages = onSnapshot(
-      chatMessagesQuery,
-      (snapshot) => {
-        const chatMessages = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...convertTimestamps(doc.data()),
-        })) as ChatMessage[];
-        set({ chatMessages });
-      },
-      (error) => {
-        console.error('[NotificationStore] Error fetching chat messages:', error);
-      }
-    );
-
-    set({ unsubscribeNotifications, unsubscribeChatMessages });
+    set({ unsubscribeNotifications });
   },
 
   cleanup: () => {
-    const { unsubscribeNotifications, unsubscribeChatMessages } = get();
+    const { unsubscribeNotifications, unsubscribeChatMessages, projectChatSubscriptions } = get();
+    
+    // Unsubscribe from notifications
     if (unsubscribeNotifications) unsubscribeNotifications();
+    
+    // Unsubscribe from global chat messages (if any)
     if (unsubscribeChatMessages) unsubscribeChatMessages();
+    
+    // Unsubscribe from all project-specific chat subscriptions
+    projectChatSubscriptions.forEach((unsubscribe) => unsubscribe());
+    projectChatSubscriptions.clear();
+    
     set({
       unsubscribeNotifications: null,
       unsubscribeChatMessages: null,
+      projectChatSubscriptions: new Map(),
     });
   },
 
@@ -273,5 +289,98 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         const dateB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
         return dateA - dateB;
       });
+  },
+
+  // Subscribe to chat messages for a specific project
+  // This implements lazy subscription - messages are only loaded when needed
+  subscribeToProjectChat: (projectId, userId) => {
+    if (!isFirebaseConfigured() || !db) {
+      console.warn('[NotificationStore] Firebase not configured, cannot subscribe to project chat');
+      return;
+    }
+
+    const { projectChatSubscriptions } = get();
+    
+    // Already subscribed to this project
+    if (projectChatSubscriptions.has(projectId)) {
+      console.log(`[NotificationStore] Already subscribed to project ${projectId}`);
+      return;
+    }
+
+    // Get user's project IDs from projectStore to verify membership
+    const projectStore = useProjectStore.getState();
+    const userProjectIds = projectStore.projects
+      .filter(p => 
+        p.clientId === userId || 
+        p.freelancerId === userId
+      )
+      .map(p => p.id);
+
+    // Check if user is a member of this project
+    if (!userProjectIds.includes(projectId)) {
+      console.warn(`[NotificationStore] User ${userId} is not a member of project ${projectId}`);
+      // Still subscribe but messages will be filtered client-side
+    }
+
+    console.log(`[NotificationStore] Subscribing to chat messages for project ${projectId}`);
+
+    // Subscribe to messages for this specific project only
+    const chatMessagesQuery = query(
+      collection(db, CHAT_MESSAGES_COLLECTION),
+      where('projectId', '==', projectId),
+      orderBy('createdAt', 'asc')
+    );
+
+    const unsubscribe = onSnapshot(
+      chatMessagesQuery,
+      (snapshot) => {
+        const newMessages = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...convertTimestamps(doc.data()),
+        })) as ChatMessage[];
+
+        // Update chat messages - merge with existing messages for other projects
+        const { chatMessages } = get();
+        
+        // Remove old messages for this project and add new ones
+        const otherProjectMessages = chatMessages.filter(m => m.projectId !== projectId);
+        const updatedChatMessages = [...otherProjectMessages, ...newMessages];
+        
+        set({ chatMessages: updatedChatMessages });
+      },
+      (error) => {
+        console.error(`[NotificationStore] Error fetching chat messages for project ${projectId}:`, error);
+      }
+    );
+
+    // Store the unsubscribe function
+    const newSubscriptions = new Map(projectChatSubscriptions);
+    newSubscriptions.set(projectId, unsubscribe);
+    set({ projectChatSubscriptions: newSubscriptions });
+  },
+
+  // Unsubscribe from a specific project's chat messages
+  unsubscribeFromProjectChat: (projectId) => {
+    const { projectChatSubscriptions } = get();
+    const unsubscribe = projectChatSubscriptions.get(projectId);
+    
+    if (unsubscribe) {
+      unsubscribe();
+      const newSubscriptions = new Map(projectChatSubscriptions);
+      newSubscriptions.delete(projectId);
+      set({ projectChatSubscriptions: newSubscriptions });
+      console.log(`[NotificationStore] Unsubscribed from project ${projectId}`);
+    }
+  },
+
+  // Clean up all project-specific subscriptions
+  clearAllProjectSubscriptions: () => {
+    const { projectChatSubscriptions } = get();
+    projectChatSubscriptions.forEach((unsubscribe) => unsubscribe());
+    set({ 
+      projectChatSubscriptions: new Map(),
+      chatMessages: [] // Clear all chat messages when clearing subscriptions
+    });
+    console.log('[NotificationStore] Cleared all project chat subscriptions');
   },
 }));

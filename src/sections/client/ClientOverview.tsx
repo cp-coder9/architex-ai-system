@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuthStore, useProjectStore, useInvoiceStore, useProjectRequestStore } from '@/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -399,9 +399,15 @@ function ProjectRequestCard({ onboardingData }: { onboardingData: OnboardingData
 
 export function ClientOverview() {
   const navigate = useNavigate();
+  const location = useLocation();
   const authStore = useAuthStore();
   const currentUser = authStore.currentUser;
-  const tempOnboardingData = authStore.tempOnboardingData;
+  // Read onboarding data from router state (passed during registration)
+  const routerOnboardingData = location.state?.onboardingData as OnboardingData | undefined;
+  const storeOnboardingData = authStore.tempOnboardingData;
+  // Use router state if available, otherwise fall back to store (for backwards compatibility)
+  const tempOnboardingData = routerOnboardingData || storeOnboardingData;
+  
   const allProjects = useProjectStore(state => state.projects);
   const allDrawings = useProjectStore(state => state.drawings);
   const allInvoices = useInvoiceStore(state => state.invoices);

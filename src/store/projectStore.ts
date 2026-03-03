@@ -16,6 +16,7 @@ import {
   Unsubscribe,
   serverTimestamp,
   Timestamp,
+  increment,
 } from 'firebase/firestore';
 
 interface ProjectState {
@@ -387,15 +388,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
       await addDoc(collection(db, TIME_ENTRIES_COLLECTION), newEntry);
 
-      // Update project hours used
-      const project = get().projects.find(p => p.id === entryData.projectId);
-      if (project) {
-        const projectRef = doc(db, PROJECTS_COLLECTION, project.id);
-        await updateDoc(projectRef, {
-          hoursUsed: project.hoursUsed + entryData.hours!,
-          updatedAt: serverTimestamp(),
-        });
-      }
+      // Update project hours used using atomic increment
+      const projectRef = doc(db, PROJECTS_COLLECTION, entryData.projectId!);
+      await updateDoc(projectRef, {
+        hoursUsed: increment(entryData.hours!),
+        updatedAt: serverTimestamp(),
+      });
     } catch (error) {
       console.error('[ProjectStore] Error adding time entry:', error);
       set({ error: 'Failed to add time entry' });

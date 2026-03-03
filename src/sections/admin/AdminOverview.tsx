@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useProjectStore, useInvoiceStore, useSettingsStore, useNotificationStore, useAuthStore } from '@/store';
@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { NewProjectDialog } from './NewProjectDialog';
 import { toast } from 'sonner';
+import { subDays } from 'date-fns';
 import {
   Building2,
   Users,
@@ -107,7 +108,7 @@ function StatCard({
   prefix?: string;
   suffix?: string;
   icon: React.ComponentType<{ className?: string }>;
-  trend?: 'up' | 'down';
+  trend?: 'up' | 'down' | 'neutral';
   trendValue?: string;
   color: string;
 }) {
@@ -126,9 +127,10 @@ function StatCard({
                 <AnimatedCounter value={value} prefix={prefix} suffix={suffix} />
               </h3>
               {trend && (
-                <div className={`flex items-center gap-1 mt-2 text-sm ${trend === 'up' ? 'text-green-500' : 'text-red-500'
-                  }`}>
-                  {trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                <div className={`flex items-center gap-1 mt-2 text-sm ${
+                  trend === 'up' ? 'text-green-500' : trend === 'down' ? 'text-red-500' : 'text-gray-500'
+                }`}>
+                  {trend === 'up' ? <TrendingUp className="w-4 h-4" /> : trend === 'down' ? <TrendingDown className="w-4 h-4" /> : null}
                   <span>{trendValue}</span>
                 </div>
               )}
@@ -211,11 +213,22 @@ function RecentActivity() {
 
 // Agent Status Component
 function AgentStatus() {
+  // Get real agent check data from drawings
+  const drawings = useProjectStore(state => state.drawings);
+  
+  // Calculate real agent metrics from drawings
+  const agentChecks = drawings.filter(d => d.agentCheck);
+  const totalChecks = agentChecks.length;
+  const avgScore = totalChecks > 0 
+    ? Math.round(agentChecks.reduce((sum, d) => sum + (d.agentCheck?.overallScore || 0), 0) / totalChecks)
+    : 0;
+  
+  // Mock agent data for display - in production this would come from agentService
   const [agents] = useState([
-    { id: 'agent-1', name: 'Drawing Validator Alpha', status: 'active', checksToday: 45, avgTime: '3.2s' },
-    { id: 'agent-2', name: 'Compliance Checker Beta', status: 'active', checksToday: 38, avgTime: '4.1s' },
-    { id: 'agent-3', name: 'Dimension Analyzer Gamma', status: 'idle', checksToday: 52, avgTime: '2.8s' },
-    { id: 'agent-4', name: 'Annotation Reviewer Delta', status: 'active', checksToday: 29, avgTime: '5.5s' },
+    { id: 'agent-1', name: 'Drawing Validator Alpha', status: 'active', checksToday: totalChecks || 45, avgTime: '3.2s' },
+    { id: 'agent-2', name: 'Compliance Checker Beta', status: 'active', checksToday: Math.floor(totalChecks * 0.8) || 38, avgTime: '4.1s' },
+    { id: 'agent-3', name: 'Dimension Analyzer Gamma', status: totalChecks > 0 ? 'active' : 'idle', checksToday: Math.floor(totalChecks * 1.1) || 52, avgTime: '2.8s' },
+    { id: 'agent-4', name: 'Annotation Reviewer Delta', status: 'active', checksToday: Math.floor(totalChecks * 0.6) || 29, avgTime: '5.5s' },
   ]);
 
   return (
@@ -224,6 +237,9 @@ function AgentStatus() {
         <CardTitle className="flex items-center gap-2">
           <Bot className="w-5 h-5" />
           Agent Status
+          <Badge variant="outline" className="ml-2 text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+            Demo Mode
+          </Badge>
         </CardTitle>
         <CardDescription>AI agent performance and availability</CardDescription>
       </CardHeader>
@@ -253,6 +269,14 @@ function AgentStatus() {
             </motion.div>
           ))}
         </div>
+        {totalChecks > 0 && (
+          <div className="mt-4 p-3 bg-muted rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium">{totalChecks}</span> real checks performed • 
+              Average score: <span className="font-medium">{avgScore}%</span>
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -449,6 +473,23 @@ function RecentFileUploads() {
   );
 }
 
+// Helper function to calculate change percentage (same as SystemAnalytics.tsx)
+function calculateChange(current: number, previous: number): { value: string; trend: 'up' | 'down' | 'neutral' } {
+  if (previous === 0) {
+    return current > 0 
+      ? { value: '+100% from baseline', trend: 'up' }
+      : { value: 'No change', trend: 'neutral' };
+  }
+  
+  const change = ((current - previous) / previous) * 100;
+  const sign = change >= 0 ? '+' : '';
+  
+  return {
+    value: `${sign}${change.toFixed(1)}% from last month`,
+    trend: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'
+  };
+}
+
 export function AdminOverview() {
   const navigate = useNavigate();
   const projects = useProjectStore(state => state.projects);
@@ -469,7 +510,6 @@ export function AdminOverview() {
     .reduce((sum, inv) => sum + inv.total, 0);
   const pendingDrawings = drawings.filter(d => d.status === 'pending' || d.status === 'in_review').length;
 
-
   // Calculate unread messages (messages not read by current user and not sent by current user)
   const unreadMessages = chatMessages.filter(msg =>
     currentUser && !msg.readBy.includes(currentUser.id) && msg.senderId !== currentUser.id
@@ -477,6 +517,63 @@ export function AdminOverview() {
 
   // Calculate projects pending approval (draft status)
   const pendingApprovalProjects = projects.filter(p => p.status === 'draft').length;
+
+  // Calculate trends using period-over-period comparison (same approach as SystemAnalytics.tsx)
+  // Define date ranges: last 30 days vs prior 30 days
+  const { projectTrend, userTrend, revenueTrend } = useMemo(() => {
+    const now = new Date();
+    const thirtyDaysAgo = subDays(now, 30);
+    const sixtyDaysAgo = subDays(now, 60);
+
+    // Count projects created in last 30 days
+    const currentPeriodProjects = projects.filter(p => {
+      const createdAt = new Date(p.createdAt || Date.now());
+      return createdAt >= thirtyDaysAgo;
+    }).length;
+
+    // Count projects created in prior 30 days (30-60 days ago)
+    const previousPeriodProjects = projects.filter(p => {
+      const createdAt = new Date(p.createdAt || Date.now());
+      return createdAt >= sixtyDaysAgo && createdAt < thirtyDaysAgo;
+    }).length;
+
+    // Count users created in last 30 days
+    const currentPeriodUsers = users.filter(u => {
+      const createdAt = new Date(u.createdAt || Date.now());
+      return createdAt >= thirtyDaysAgo;
+    }).length;
+
+    // Count users created in prior 30 days
+    const previousPeriodUsers = users.filter(u => {
+      const createdAt = new Date(u.createdAt || Date.now());
+      return createdAt >= sixtyDaysAgo && createdAt < thirtyDaysAgo;
+    }).length;
+
+    // Calculate revenue from last 30 days vs prior 30 days
+    const currentPeriodRevenue = invoices
+      .filter(inv => {
+        const createdAt = new Date(inv.createdAt || Date.now());
+        return inv.status === 'paid' && createdAt >= thirtyDaysAgo;
+      })
+      .reduce((sum, inv) => sum + inv.total, 0);
+
+    const previousPeriodRevenue = invoices
+      .filter(inv => {
+        const createdAt = new Date(inv.createdAt || Date.now());
+        return inv.status === 'paid' && createdAt >= sixtyDaysAgo && createdAt < thirtyDaysAgo;
+      })
+      .reduce((sum, inv) => sum + inv.total, 0);
+
+    const projectChange = calculateChange(currentPeriodProjects, previousPeriodProjects);
+    const userChange = calculateChange(currentPeriodUsers, previousPeriodUsers);
+    const revenueChange = calculateChange(currentPeriodRevenue, previousPeriodRevenue);
+
+    return {
+      projectTrend: projectChange,
+      userTrend: userChange,
+      revenueTrend: revenueChange,
+    };
+  }, [projects, users, invoices]);
 
   return (
     <div className="space-y-8">
@@ -498,16 +595,16 @@ export function AdminOverview() {
           title="Total Projects"
           value={totalProjects}
           icon={FolderKanban}
-          trend="up"
-          trendValue="+12% this month"
+          trend={projectTrend.trend}
+          trendValue={projectTrend.value}
           color="bg-blue-500"
         />
         <StatCard
           title="Active Users"
           value={totalUsers}
           icon={Users}
-          trend="up"
-          trendValue="+5 new this week"
+          trend={userTrend.trend}
+          trendValue={userTrend.value}
           color="bg-green-500"
         />
         <StatCard
@@ -515,8 +612,8 @@ export function AdminOverview() {
           value={totalRevenue}
           prefix="R"
           icon={FileText}
-          trend="up"
-          trendValue="+23% this month"
+          trend={revenueTrend.trend}
+          trendValue={revenueTrend.value}
           color="bg-purple-500"
         />
         <StatCard

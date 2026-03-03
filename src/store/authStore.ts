@@ -82,7 +82,7 @@ interface AuthState {
   tempOnboardingData: OnboardingData | null;
   termsAccepted: boolean;
   termsAcceptedAt: Date | null;
-  credentialsToNote: { email: string; password: string } | null;
+  credentialsToNote: { email: string; password?: string } | null;
 
   // Actions
   login: (email: string, password: string, role: UserRole) => Promise<boolean>;
@@ -380,7 +380,8 @@ export const useAuthStore = create<AuthState>()(
             currentUser: newUser,
             isAuthenticated: true,
             isLoading: false,
-            credentialsToNote: { email: userData.email!, password: userData.password },
+            // Only store email for display in credentials popup - never store password
+            credentialsToNote: { email: userData.email! },
           });
 
           return true;
@@ -483,8 +484,6 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         currentUser: state.currentUser,
         isAuthenticated: state.isAuthenticated,
-        tempOnboardingData: state.tempOnboardingData,
-        credentialsToNote: state.credentialsToNote,
       }),
       // Custom serialization/deserialization to handle Date objects
       onRehydrateStorage: () => (state) => {

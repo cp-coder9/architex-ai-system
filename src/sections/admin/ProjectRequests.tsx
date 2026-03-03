@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useProjectRequestStore } from '@/store';
+import { useProjectRequestStore, useAuthStore } from '@/store';
 import { ProjectRequest, ProjectRequestStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -265,6 +265,7 @@ function EmptyState({ tab }: { tab: string }) {
 }
 
 export function ProjectRequests() {
+  const { currentUser } = useAuthStore();
   const projectRequests = useProjectRequestStore(state => state.projectRequests);
   const approveRequest = useProjectRequestStore(state => state.approveRequest);
   const rejectRequest = useProjectRequestStore(state => state.rejectRequest);
@@ -323,7 +324,8 @@ export function ProjectRequests() {
 
   const confirmApprove = () => {
     if (selectedRequest) {
-      approveRequest(selectedRequest.id, 'admin-1');
+      const approverId = currentUser?.id || 'admin';
+      approveRequest(selectedRequest.id, approverId);
       toast.success(`Project request "${selectedRequest.projectName}" has been approved`);
       setIsApproveDialogOpen(false);
       setSelectedRequest(null);
@@ -332,7 +334,8 @@ export function ProjectRequests() {
 
   const confirmReject = () => {
     if (selectedRequest && rejectReason.trim()) {
-      rejectRequest(selectedRequest.id, 'admin-1', rejectReason);
+      const approverId = currentUser?.id || 'admin';
+      rejectRequest(selectedRequest.id, approverId, rejectReason);
       toast.error(`Project request "${selectedRequest.projectName}" has been rejected`);
       setIsRejectDialogOpen(false);
       setSelectedRequest(null);

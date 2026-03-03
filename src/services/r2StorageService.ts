@@ -1,36 +1,15 @@
 /**
  * Cloudflare R2 Storage Service
  * 
- * Handles file uploads, downloads, and management using Cloudflare R2 (S3-compatible).
+ * Handles file uploads, downloads, and management using Cloudflare R2.
+ * All R2 operations are now routed through the server-side API to avoid
+ * exposing R2 credentials in the browser bundle.
+ * 
  * R2 Endpoint: https://fce57ea059c228c5cec72d0b7055c268.r2.cloudflarestorage.com/architex
  */
 
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command, HeadObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-
-// R2 Configuration
-const R2_ACCOUNT_ID = 'fce57ea059c228c5cec72d0b7055c268';
-const R2_BUCKET_NAME = 'architex';
-const R2_ENDPOINT = `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
-
-// Initialize S3 client for R2
-const getS3Client = () => {
-  const accessKeyId = import.meta.env.VITE_R2_ACCESS_KEY_ID;
-  const secretAccessKey = import.meta.env.VITE_R2_SECRET_ACCESS_KEY;
-
-  if (!accessKeyId || !secretAccessKey) {
-    throw new Error('R2 credentials not configured. Please set VITE_R2_ACCESS_KEY_ID and VITE_R2_SECRET_ACCESS_KEY environment variables.');
-  }
-
-  return new S3Client({
-    region: 'auto',
-    endpoint: R2_ENDPOINT,
-    credentials: {
-      accessKeyId,
-      secretAccessKey,
-    },
-  });
-};
+// API base URL - should be configured based on environment
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export interface R2File {
   id: string;
@@ -52,7 +31,7 @@ export interface UploadProgress {
 }
 
 /**
- * Upload a file to R2 storage
+ * Upload a file to R2 storage via server-side API
  */
 export const uploadFileToR2 = async (
   file: File,
@@ -61,8 +40,6 @@ export const uploadFileToR2 = async (
   projectId?: string,
   onProgress?: (progress: UploadProgress) => void
 ): Promise<R2File> => {
-  const s3Client = getS3Client();
-  
   // Generate unique key for the file
   const timestamp = Date.now();
   const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -70,130 +47,164 @@ export const uploadFileToR2 = async (
     ? `${folder}/${timestamp}-${sanitizedFileName}`
     : `${timestamp}-${sanitizedFileName}`;
 
-  // Convert File to ArrayBuffer for upload
-  const arrayBuffer = await file.arrayBuffer();
-  const uint8Array = new Uint8Array(arrayBuffer);
-
-  // Upload to R2
-  const command = new PutObjectCommand({
-    Bucket: R2_BUCKET_NAME,
-    Key: key,
-    Body: uint8Array,
-    ContentType: file.type,
-    Metadata: {
-      ownerId,
-      originalName: file.name,
-      ...(projectId && { projectId }),
-    },
-  });
-
-  await s3Client.send(command);
-
-  // Generate public URL
-  const publicUrl = `${R2_ENDPOINT}/${R2_BUCKET_NAME}/${key}`;
-
-  // Report progress (R2 doesn't support streaming progress, so we simulate it)
+  // Report initial progress
   if (onProgress) {
     onProgress({
-      loaded: file.size,
+      loaded: 0,
       total: file.size,
-      percentage: 100,
+      percentage: 0,
     });
   }
 
-  return {
-    id: key,
-    name: file.name,
-    key,
-    url: publicUrl,
-    size: file.size,
-    type: file.type,
-    uploadedAt: new Date(),
-    ownerId,
-    folder,
-    projectId,
-  };
+  // Create form data for upload
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('key', key);
+  formData.append('ownerId', ownerId);
+  if (projectId) {
+    formData.append('projectId', projectId);
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/r2/upload?key=${encodeURIComponent(key)}`, {
+      method: 'POST',
+      body: file, // Send file directly as body
+      headers: {
+        // Content-Type will be set automatically with the boundary
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Upload failed');
+    }
+
+    const result = await response.json();
+
+    // Report completion progress
+    if (onProgress) {
+      onProgress({
+        loaded: file.size,
+        total: file.size,
+        percentage: 100,
+      });
+    }
+
+    return {
+      id: result.key,
+      name: file.name,
+      key: result.key,
+      url: result.url,
+      size: file.size,
+      type: file.type,
+      uploadedAt: new Date(),
+      ownerId,
+      folder,
+      projectId,
+    };
+  } catch (error) {
+    console.error('[R2StorageService] Upload error:', error);
+    throw error;
+  }
 };
 
 /**
- * Generate a presigned URL for temporary access to a private file
+ * Get a presigned URL for temporary access to a private file
+ * Note: Currently returns direct URL - for enhanced security, 
+ * implement proper presigned URLs on the server side
  */
 export const getPresignedUrl = async (key: string, expirationSeconds: number = 3600): Promise<string> => {
-  const s3Client = getS3Client();
-  
-  const command = new GetObjectCommand({
-    Bucket: R2_BUCKET_NAME,
-    Key: key,
-  });
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/r2/presigned-url?key=${encodeURIComponent(key)}&expiration=${expirationSeconds}`
+    );
 
-  return getSignedUrl(s3Client, command, { expiresIn: expirationSeconds });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to get presigned URL');
+    }
+
+    const result = await response.json();
+    return result.url;
+  } catch (error) {
+    console.error('[R2StorageService] Presigned URL error:', error);
+    throw error;
+  }
 };
 
 /**
- * Delete a file from R2 storage
+ * Delete a file from R2 storage via server-side API
  */
 export const deleteFileFromR2 = async (key: string): Promise<void> => {
-  const s3Client = getS3Client();
-  
-  const command = new DeleteObjectCommand({
-    Bucket: R2_BUCKET_NAME,
-    Key: key,
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/r2/delete?key=${encodeURIComponent(key)}`, {
+      method: 'DELETE',
+    });
 
-  await s3Client.send(command);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Delete failed');
+    }
+  } catch (error) {
+    console.error('[R2StorageService] Delete error:', error);
+    throw error;
+  }
 };
 
 /**
  * List files in a folder
  */
 export const listFilesInFolder = async (prefix: string = ''): Promise<R2File[]> => {
-  const s3Client = getS3Client();
-  
-  const command = new ListObjectsV2Command({
-    Bucket: R2_BUCKET_NAME,
-    Prefix: prefix,
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/r2/list?prefix=${encodeURIComponent(prefix)}`);
 
-  const response = await s3Client.send(command);
-  
-  if (!response.Contents) {
-    return [];
-  }
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'List failed');
+    }
 
-  return response.Contents.map((object) => {
-    const key = object.Key || '';
-    const fileName = key.split('/').pop() || '';
-    const timestamp = parseInt(fileName.split('-')[0]) || Date.now();
+    const result = await response.json();
     
-    return {
-      id: key,
-      name: fileName.replace(/^\d+-/, ''), // Remove timestamp prefix
-      key,
-      url: `${R2_ENDPOINT}/${R2_BUCKET_NAME}/${key}`,
-      size: object.Size || 0,
-      type: '', // Type would need to be stored in metadata
-      uploadedAt: new Date(timestamp),
-      ownerId: '', // Would need to fetch metadata
-      folder: key.includes('/') ? key.split('/')[0] : null,
-    };
-  });
+    return result.files.map((file: { key: string; size: number; uploaded: string }) => {
+      const key = file.key;
+      const fileName = key.split('/').pop() || '';
+      const timestamp = parseInt(fileName.split('-')[0]) || Date.now();
+      
+      return {
+        id: key,
+        name: fileName.replace(/^\d+-/, ''), // Remove timestamp prefix
+        key,
+        url: `https://fce57ea059c228c5cec72d0b7055c268.r2.cloudflarestorage.com/architex/${key}`,
+        size: file.size,
+        type: '',
+        uploadedAt: new Date(timestamp),
+        ownerId: '',
+        folder: key.includes('/') ? key.split('/')[0] : null,
+      };
+    });
+  } catch (error) {
+    console.error('[R2StorageService] List error:', error);
+    throw error;
+  }
 };
 
 /**
  * Check if a file exists
  */
 export const fileExists = async (key: string): Promise<boolean> => {
-  const s3Client = getS3Client();
-  
   try {
-    const command = new HeadObjectCommand({
-      Bucket: R2_BUCKET_NAME,
-      Key: key,
-    });
-    await s3Client.send(command);
-    return true;
+    const response = await fetch(`${API_BASE_URL}/api/r2/exists?key=${encodeURIComponent(key)}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Check failed');
+    }
+
+    const result = await response.json();
+    return result.exists;
   } catch (error) {
-    return false;
+    console.error('[R2StorageService] Exists check error:', error);
+    throw error;
   }
 };
 
@@ -201,17 +212,19 @@ export const fileExists = async (key: string): Promise<boolean> => {
  * Get file metadata
  */
 export const getFileMetadata = async (key: string): Promise<Record<string, string> | null> => {
-  const s3Client = getS3Client();
-  
   try {
-    const command = new HeadObjectCommand({
-      Bucket: R2_BUCKET_NAME,
-      Key: key,
-    });
-    const response = await s3Client.send(command);
-    return response.Metadata || null;
+    const response = await fetch(`${API_BASE_URL}/api/r2/metadata?key=${encodeURIComponent(key)}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Metadata fetch failed');
+    }
+
+    const result = await response.json();
+    return result.metadata;
   } catch (error) {
-    return null;
+    console.error('[R2StorageService] Metadata error:', error);
+    throw error;
   }
 };
 
