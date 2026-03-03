@@ -217,11 +217,11 @@ function UserTable({
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={user.avatar} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    <AvatarFallback>{(user.name || '?').charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                    <p className="font-medium">{user.name || '-'}</p>
+                    <p className="text-sm text-muted-foreground">{user.email || '-'}</p>
                   </div>
                 </div>
               </TableCell>
@@ -237,7 +237,7 @@ function UserTable({
                 </Badge>
               </TableCell>
               <TableCell>{user.company || '-'}</TableCell>
-              <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+              <TableCell>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}</TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
