@@ -1,10 +1,11 @@
 /**
- * FloorPlanComplianceAgent Test Script
+ * FloorPlanComplianceAgent Test Suite
  * 
- * Simulates the agent's analysis of an architectural floor plan drawing
+ * Tests the agent's analysis of an architectural floor plan drawing
  * to verify compliance with SANS 10400 regulations.
  */
 
+import { describe, it, expect, beforeAll } from 'vitest';
 import { FloorPlanComplianceAgent } from './FloorPlanComplianceAgent';
 import { DrawingData, DrawingType, ProjectInfo } from '@/types/agent';
 
@@ -46,8 +47,8 @@ const mockFloorPlanDrawing: DrawingData = {
     { id: 'dim-002', value: 3600, unit: 'mm', type: 'linear', startPoint: { x: 1000, y: 1500 }, endPoint: { x: 2200, y: 1500 }, layer: 'DIMENSIONS' },
     { id: 'dim-003', value: 4200, unit: 'mm', type: 'linear', startPoint: { x: 2300, y: 800 }, endPoint: { x: 2300, y: 1700 }, layer: 'DIMENSIONS' },
     { id: 'dim-004', value: 5400, unit: 'mm', type: 'linear', startPoint: { x: 500, y: 2000 }, endPoint: { x: 2300, y: 2000 }, layer: 'DIMENSIONS' },
-    { id: 'dim-005', value: 3600, unit: 'mm', type: 'linear', startPoint: { x: 200, y: 300 }, endPoint: { x: 800, y: 300 }, layer: 'WALLS' }, // Garage width
-    { id: 'dim-006', value: 6000, unit: 'mm', type: 'linear', startPoint: { x: 100, y: 200 }, endPoint: { x: 100, y: 800 }, layer: 'WALLS' }, // Garage depth
+    { id: 'dim-005', value: 3600, unit: 'mm', type: 'linear', startPoint: { x: 200, y: 300 }, endPoint: { x: 800, y: 300 }, layer: 'WALLS' },
+    { id: 'dim-006', value: 6000, unit: 'mm', type: 'linear', startPoint: { x: 100, y: 200 }, endPoint: { x: 100, y: 800 }, layer: 'WALLS' },
     { id: 'dim-007', value: 110, unit: 'mm', type: 'linear', startPoint: { x: 50, y: 50 }, endPoint: { x: 160, y: 50 }, layer: 'WALL_THICKNESS' },
     { id: 'dim-008', value: 90, unit: 'mm', type: 'linear', startPoint: { x: 50, y: 100 }, endPoint: { x: 140, y: 100 }, layer: 'WALL_THICKNESS' },
     { id: 'dim-009', value: 2400, unit: 'mm', type: 'linear', startPoint: { x: 3000, y: 100 }, endPoint: { x: 3000, y: 200 }, layer: 'CEILING_HEIGHT' },
@@ -121,7 +122,7 @@ const mockProjectInfo: ProjectInfo = {
   description: 'Two bedroom house with garage, kitchen, living area and 2 bathrooms',
   buildingType: 'residential',
   floors: 1,
-  totalArea: 120, // sqm
+  totalArea: 120,
   occupancy: 4,
   municipality: 'City of Johannesburg',
   address: '123 Test Street, Johannesburg',
@@ -129,202 +130,52 @@ const mockProjectInfo: ProjectInfo = {
 };
 
 // ============================================================================
-// Test Execution
+// Vitest Test Suite
 // ============================================================================
 
-async function runFloorPlanTest(): Promise<void> {
-  console.log('╔══════════════════════════════════════════════════════════════════════════╗');
-  console.log('║         FloorPlanComplianceAgent - Architectural Drawing Test           ║');
-  console.log('╚══════════════════════════════════════════════════════════════════════════╝\n');
+describe('FloorPlanComplianceAgent', () => {
+  let agent: FloorPlanComplianceAgent;
   
-  const agent = new FloorPlanComplianceAgent();
-  
-  console.log('📋 AGENT CONFIGURATION');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`Agent ID:        ${agent['config'].id}`);
-  console.log(`Agent Name:      ${agent['config'].name}`);
-  console.log(`Version:         ${agent['config'].version}`);
-  console.log(`Capabilities:    ${agent['config'].capabilities.join(', ')}`);
-  console.log(`Supported Standards: ${agent['config'].supportedStandards?.join(', ')}`);
-  console.log(`Rules Loaded:    ${agent.getRuleIds().length} rules\n`);
-  
-  console.log('📐 DRAWING INFORMATION');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`Drawing ID:      ${mockFloorPlanDrawing.id}`);
-  console.log(`Name:            ${mockFloorPlanDrawing.name}`);
-  console.log(`Type:            ${mockFloorPlanDrawing.type}`);
-  console.log(`Scale:           1:100`);
-  console.log(`Rooms Found:     ${mockFloorPlanDrawing.textElements.filter(t => 
-    /bedroom|kitchen|bathroom|living|garage|hallway|ensuite/i.test(t.content)
-  ).length}`);
-  console.log(`Dimensions:      ${mockFloorPlanDrawing.dimensions.length}`);
-  console.log(`Doors:           ${mockFloorPlanDrawing.symbols.filter(s => s.category === 'DOOR').length}`);
-  console.log(`Windows:         ${mockFloorPlanDrawing.symbols.filter(s => s.category === 'WINDOW').length}`);
-  console.log(`Sanitary:        ${mockFloorPlanDrawing.symbols.filter(s => s.category === 'SANITARY').length}`);
-  console.log(`Stairs:          ${mockFloorPlanDrawing.symbols.filter(s => s.category === 'STAIR').length}\n`);
-  
-  console.log('🏢 PROJECT INFORMATION');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`Project ID:      ${mockProjectInfo.id}`);
-  console.log(`Name:            ${mockProjectInfo.name}`);
-  console.log(`Building Type:   ${mockProjectInfo.buildingType}`);
-  console.log(`Floors:          ${mockProjectInfo.floors}`);
-  console.log(`Total Area:      ${mockProjectInfo.totalArea} m²`);
-  console.log(`Occupancy:       ${mockProjectInfo.occupancy} persons`);
-  console.log(`Municipality:    ${mockProjectInfo.municipality}\n`);
-  
-  console.log('🔍 STARTING COMPLIANCE ANALYSIS...\n');
-  
-  try {
-    const result = await agent.analyze(mockFloorPlanDrawing, mockProjectInfo);
-    
-    console.log('📊 ANALYSIS RESULTS');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`Status:          ${result.status.toUpperCase()}`);
-    console.log(`Processing Time: ${result.processingTime}ms`);
-    console.log(`Compliance Score: ${result.complianceScore.toFixed(1)}%`);
-    console.log(`Passed Rules:    ${result.passedRules.length}`);
-    console.log(`Failed Rules:    ${result.failedRules.length}`);
-    console.log(`Total Findings:  ${result.findings.length}\n`);
-    
-    console.log('✅ PASSED COMPLIANCE CHECKS');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    if (result.passedRules.length > 0) {
-      result.passedRules.forEach(ruleId => {
-        console.log(`  ✓ ${ruleId}`);
-      });
-    } else {
-      console.log('  (No passed rules)');
-    }
-    console.log();
-    
-    console.log('❌ FAILED COMPLIANCE CHECKS');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    if (result.failedRules.length > 0) {
-      result.failedRules.forEach(ruleId => {
-        console.log(`  ✗ ${ruleId}`);
-      });
-    } else {
-      console.log('  (No failed rules - Full Compliance!)');
-    }
-    console.log();
-    
-    if (result.findings.length > 0) {
-      console.log('🚨 COMPLIANCE FINDINGS');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      result.findings.forEach((finding, index) => {
-        const severityEmoji = finding.severity === 'critical' ? '🔴' : 
-                             finding.severity === 'high' ? '🟠' : 
-                             finding.severity === 'medium' ? '🟡' : '🔵';
-        console.log(`\n${severityEmoji} Finding #${index + 1}`);
-        console.log(`   Rule:        ${finding.ruleId} - ${finding.ruleName}`);
-        console.log(`   Standard:    ${finding.standard}`);
-        console.log(`   Severity:    ${finding.severity.toUpperCase()}`);
-        console.log(`   Description: ${finding.description}`);
-        if (finding.suggestion) {
-          console.log(`   Suggestion:  ${finding.suggestion}`);
-        }
-      });
-    }
-    
-    console.log('\n📈 METADATA');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`Rooms Detected:    ${result.metadata?.roomsFound}`);
-    console.log(`Doors Detected:    ${result.metadata?.doorsFound}`);
-    console.log(`Windows Detected:  ${result.metadata?.windowsFound}`);
-    console.log(`Analysis Type:     ${result.metadata?.analysisType}\n`);
-    
-    if (result.errors.length > 0) {
-      console.log('⚠️ ERRORS DURING ANALYSIS');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      result.errors.forEach(error => console.log(`  • ${error}`));
-      console.log();
-    }
-    
-    console.log('╔══════════════════════════════════════════════════════════════════════════╗');
-    console.log('║                         TEST COMPLETE                                    ║');
-    console.log('╚══════════════════════════════════════════════════════════════════════════╝\n');
-    
-    // Return summary for verification
-    return generateSummary(result, agent);
-    
-  } catch (error) {
-    console.error('❌ TEST FAILED WITH ERROR:');
-    console.error(error);
-    throw error;
-  }
-}
-
-function generateSummary(result: any, agent: FloorPlanComplianceAgent): void {
-  console.log('📋 DIAGNOSTIC SUMMARY');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-  
-  console.log('AGENT CAPABILITIES:');
-  console.log('  • Validates floor plans against SANS 10400-A, O, J, T, P regulations');
-  console.log('  • Analyzes room dimensions, labels, and proportions');
-  console.log('  • Checks doorway widths (minimum 900mm for escape routes)');
-  console.log('  • Verifies window requirements for natural lighting (10% floor area)');
-  console.log('  • Validates ventilation compliance (10% openable window area)');
-  console.log('  • Checks sanitary facilities adequacy');
-  console.log('  • Verifies fire safety and escape routes');
-  console.log('  • Analyzes stair dimensions and handrails');
-  console.log('  • Checks balcony parapet heights');
-  console.log('  • Validates garage and kitchen ventilation\n');
-  
-  console.log('COMPLIANCE CHECKS PERFORMED:');
-  const rules = [
-    { id: 'FLR-001', name: 'Room Dimensions Shown', category: 'Room Requirements' },
-    { id: 'FLR-002', name: 'Ceiling Height Minimum 2400mm', category: 'Room Requirements' },
-    { id: 'FLR-003', name: 'Room Names/Labels Present', category: 'Room Requirements' },
-    { id: 'FLR-004', name: 'Wall Thicknesses Indicated', category: 'Room Requirements' },
-    { id: 'FLR-005', name: 'Door Sizes and Swings Shown', category: 'Room Requirements' },
-    { id: 'FLR-006', name: 'Window Sizes and Positions', category: 'Room Requirements' },
-    { id: 'FLR-007', name: 'Ventilation - 10% Floor Area', category: 'Ventilation' },
-    { id: 'FLR-008', name: 'Mechanical Ventilation', category: 'Ventilation' },
-    { id: 'FLR-009', name: 'Cross Ventilation', category: 'Ventilation' },
-    { id: 'FLR-010', name: 'Window Area 10% Floor Area', category: 'Lighting' },
-    { id: 'FLR-011', name: 'Natural Light to All Rooms', category: 'Lighting' },
-    { id: 'FLR-012', name: 'Light Ratios Adequate', category: 'Lighting' },
-    { id: 'FLR-013', name: 'Fire Escape Routes Clear', category: 'Fire Safety' },
-    { id: 'FLR-014', name: 'Minimum Door Width 900mm', category: 'Fire Safety' },
-    { id: 'FLR-015', name: 'Alternative Escape Route', category: 'Fire Safety' },
-    { id: 'FLR-016', name: 'Sanitary Facilities Adequate', category: 'Sanitary' },
-    { id: 'FLR-017', name: 'Bathroom Ventilation', category: 'Sanitary' },
-    { id: 'FLR-018', name: 'WC Position and Ventilation', category: 'Sanitary' },
-    { id: 'FLR-019', name: 'Kitchen Ventilation', category: 'Additional' },
-    { id: 'FLR-020', name: 'Laundry Ventilation', category: 'Additional' },
-    { id: 'FLR-021', name: 'Stair Dimensions', category: 'Additional' },
-    { id: 'FLR-022', name: 'Balcony Parapet Heights', category: 'Additional' },
-    { id: 'FLR-023', name: 'Garage Ventilation', category: 'Additional' },
-  ];
-  
-  rules.forEach(rule => {
-    const status = result.passedRules.includes(rule.id) ? '✅ PASS' : 
-                   result.failedRules.includes(rule.id) ? '❌ FAIL' : '⚪ SKIP';
-    console.log(`  ${status}  ${rule.id} - ${rule.name}`);
+  beforeAll(() => {
+    agent = new FloorPlanComplianceAgent();
   });
   
-  console.log('\n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓');
-  console.log('┃                           VERDICT                                       ┃');
-  console.log('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n');
+  it('should be defined', () => {
+    expect(agent).toBeDefined();
+  });
   
-  const passRate = (result.passedRules.length / 23) * 100;
-  if (passRate >= 90) {
-    console.log('✅ AGENT STATUS: FULLY OPERATIONAL');
-  } else if (passRate >= 70) {
-    console.log('⚠️  AGENT STATUS: OPERATIONAL WITH MINOR ISSUES');
-  } else {
-    console.log('❌ AGENT STATUS: REQUIRES ATTENTION');
-  }
+  it('should have valid configuration', () => {
+    expect(agent['config']).toBeDefined();
+    expect(agent['config'].id).toBe('floorplan-compliance-agent');
+  });
   
-  console.log(`\nThe FloorPlanComplianceAgent successfully analyzed the architectural drawing.`);
-  console.log(`It extracted ${result.metadata?.roomsFound} rooms, ${result.metadata?.doorsFound} doors, `);
-  console.log(`and ${result.metadata?.windowsFound} windows from the drawing.`);
-  console.log(`\nOverall Compliance Score: ${result.complianceScore.toFixed(1)}%`);
-  console.log(`\nThe agent is ${passRate >= 80 ? 'CAPABLE' : 'PARTIALLY CAPABLE'} of analyzing this type of drawing.`);
-}
-
-// Run the test
-runFloorPlanTest().catch(console.error);
-
-export { runFloorPlanTest, mockFloorPlanDrawing, mockProjectInfo };
+  it('should return rule IDs', () => {
+    const ruleIds = agent.getRuleIds();
+    expect(ruleIds).toBeInstanceOf(Array);
+    expect(ruleIds.length).toBeGreaterThan(0);
+  });
+  
+  it('should analyze floor plan drawing', async () => {
+    const result = await agent.analyze(mockFloorPlanDrawing, mockProjectInfo);
+    
+    expect(result).toBeDefined();
+    expect(result.status).toBe('completed');
+    expect(result.complianceScore).toBeGreaterThan(0);
+    expect(result.passedRules).toBeInstanceOf(Array);
+    expect(result.failedRules).toBeInstanceOf(Array);
+  });
+  
+  it('should have valid compliance score', async () => {
+    const result = await agent.analyze(mockFloorPlanDrawing, mockProjectInfo);
+    
+    expect(result.complianceScore).toBeGreaterThanOrEqual(0);
+    expect(result.complianceScore).toBeLessThanOrEqual(100);
+  });
+  
+  it('should identify passed and failed rules', async () => {
+    const result = await agent.analyze(mockFloorPlanDrawing, mockProjectInfo);
+    
+    // Either passedRules or failedRules should have content
+    expect(result.passedRules.length + result.failedRules.length).toBeGreaterThan(0);
+  });
+});
