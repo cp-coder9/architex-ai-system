@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useInvoiceStore, useProjectStore } from '@/store';
 import { Invoice, TimeEntry } from '@/types';
@@ -170,8 +170,14 @@ function InvoiceDetailDialog({
 }
 
 export function InvoiceManagement() {
-  const { invoices, markInvoiceAsPaid, markInvoiceAsSent } = useInvoiceStore();
+  const { invoices, markInvoiceAsPaid, markInvoiceAsSent, initialize, cleanup } = useInvoiceStore();
   const projects = useProjectStore(state => state.projects);
+
+  // Initialize invoice store listeners on mount
+  useEffect(() => {
+    initialize();
+    return () => cleanup();
+  }, [initialize, cleanup]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<Invoice['status'] | 'all'>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
@@ -205,7 +211,7 @@ export function InvoiceManagement() {
       (invoice.invoiceNumber || '').toLowerCase().includes(query);
     const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
     const matchesMonth = selectedMonth === 'all' ||
-      invoice.createdAt.toString().slice(0, 7) === selectedMonth;
+      (invoice.createdAt?.toString().slice(0, 7) || '') === selectedMonth;
     return matchesSearch && matchesStatus && matchesMonth;
   });
 
