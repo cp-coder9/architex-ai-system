@@ -81,11 +81,16 @@ export const useSettingsStore = create<SettingsState>()(
       unsubscribeUsers: null,
 
       initialize: () => {
+        console.log('[SettingsStore] initialize() called');
+        
         if (!isFirebaseConfigured() || !db) {
           console.warn('[SettingsStore] Firebase not configured, using empty arrays');
+          console.log('[SettingsStore] isFirebaseConfigured:', isFirebaseConfigured());
+          console.log('[SettingsStore] db:', db);
           return;
         }
 
+        console.log('[SettingsStore] Firebase configured, setting up listeners...');
         set({ isLoading: true, error: null });
 
         // Subscribe to users collection
@@ -94,13 +99,19 @@ export const useSettingsStore = create<SettingsState>()(
           orderBy('createdAt', 'desc')
         );
 
+        console.log('[SettingsStore] Setting up onSnapshot listener for users collection...');
+        
         const unsubscribeUsers = onSnapshot(
           usersQuery,
           (snapshot) => {
-            const users = snapshot.docs.map((doc) => ({
+            const rawUsers = snapshot.docs.map((doc) => ({
               id: doc.id,
               ...doc.data(),
-            })) as User[];
+            }));
+            console.log(`[SettingsStore] onSnapshot received ${rawUsers.length} users`);
+            console.log('[SettingsStore] Raw users data:', rawUsers);
+            
+            const users = rawUsers as User[];
             set({ users, isLoading: false });
           },
           (error) => {
@@ -110,6 +121,7 @@ export const useSettingsStore = create<SettingsState>()(
         );
 
         set({ unsubscribeUsers });
+        console.log('[SettingsStore] Listeners set up successfully');
       },
 
       cleanup: () => {
@@ -152,6 +164,8 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       createUser: async (userData) => {
+        console.log('[SettingsStore] createUser called with:', userData);
+        
         if (!isFirebaseConfigured() || !db) {
           console.warn('[SettingsStore] Firebase not configured');
           throw new Error('Firebase not configured');
@@ -175,7 +189,9 @@ export const useSettingsStore = create<SettingsState>()(
           if (userData.company) newUser.company = userData.company;
           if (userData.address) newUser.address = userData.address;
 
+          console.log('[SettingsStore] Adding user to Firestore:', newUser);
           const docRef = await addDoc(collection(db, USERS_COLLECTION), newUser);
+          console.log('[SettingsStore] User created with ID:', docRef.id);
 
           const createdUser: User = {
             id: docRef.id,

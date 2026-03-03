@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSettingsStore } from '@/store';
 import { User, UserRole } from '@/types';
@@ -280,7 +280,7 @@ function UserTable({
 }
 
 export function UserManagement() {
-  const { users, createUser, updateUser, deleteUser, activateUser, deactivateUser, getUserStats } = useSettingsStore();
+  const { users, createUser, updateUser, deleteUser, activateUser, deactivateUser, getUserStats, initialize, cleanup } = useSettingsStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
@@ -288,6 +288,23 @@ export function UserManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [defaultRole, setDefaultRole] = useState<UserRole>('client');
+
+  // Initialize the store on component mount
+  useEffect(() => {
+    console.log('[UserManagement] Component mounted, calling initialize()...');
+    initialize();
+    
+    return () => {
+      console.log('[UserManagement] Component unmounting, calling cleanup()...');
+      cleanup();
+    };
+  }, [initialize, cleanup]);
+
+  // Log users state changes
+  useEffect(() => {
+    console.log('[UserManagement] Users state updated:', users);
+    console.log('[UserManagement] Total users:', users.length);
+  }, [users]);
 
   const stats = getUserStats();
 
