@@ -108,10 +108,10 @@ export function FreelancerMessages() {
                         : 'hover:bg-muted'
                         }`}
                     >
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={client.avatar} />
-                        <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
+                       <Avatar className="w-10 h-10">
+                         <AvatarImage src={client.avatar} />
+                         <AvatarFallback>{(client.name || '?').charAt(0)}</AvatarFallback>
+                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{client.name}</p>
                         <p className="text-xs opacity-70 truncate">{project.name}</p>
@@ -132,10 +132,10 @@ export function FreelancerMessages() {
               <CardHeader className="border-b py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={getClientInfo(selectedProject.clientId).avatar} />
-                      <AvatarFallback>{getClientInfo(selectedProject.clientId).name.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                     <Avatar className="h-10 w-10">
+                       <AvatarImage src={getClientInfo(selectedProject.clientId).avatar} />
+                       <AvatarFallback>{(getClientInfo(selectedProject.clientId).name || '?').charAt(0)}</AvatarFallback>
+                     </Avatar>
                     <div>
                       <CardTitle className="text-base">{getClientInfo(selectedProject.clientId).name}</CardTitle>
                       <CardDescription className="text-xs">
@@ -176,7 +176,7 @@ export function FreelancerMessages() {
                               {!isMe && (
                                 <Avatar className="h-8 w-8">
                                   <AvatarImage src={getClientInfo(selectedProject.clientId).avatar} />
-                                  <AvatarFallback>{getClientInfo(selectedProject.clientId).name.charAt(0)}</AvatarFallback>
+                                  <AvatarFallback>{(getClientInfo(selectedProject.clientId).name || '?').charAt(0)}</AvatarFallback>
                                 </Avatar>
                               )}
                               <div

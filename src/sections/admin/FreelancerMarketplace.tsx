@@ -670,9 +670,9 @@ export function FreelancerMarketplace() {
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
       const matchesSearch = 
-        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.category.toLowerCase().includes(searchQuery.toLowerCase());
+        (task.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (task.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (task.category || '').toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
       

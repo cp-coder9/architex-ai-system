@@ -88,12 +88,12 @@ export function AdminSettings() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Avatar */}
-              <div className="flex items-center gap-4">
-                <Avatar className="w-20 h-20">
-                  <AvatarImage src={currentUser?.avatar} />
-                  <AvatarFallback className="text-2xl">{currentUser?.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <Button variant="outline" className="gap-2">
+               <div className="flex items-center gap-4">
+                 <Avatar className="w-20 h-20">
+                   <AvatarImage src={currentUser?.avatar} />
+                   <AvatarFallback className="text-2xl">{(currentUser?.name || '?').charAt(0)}</AvatarFallback>
+                 </Avatar>
+                 <Button variant="outline" className="gap-2">
                   <Camera className="w-4 h-4" />
                   Change Avatar
                 </Button>

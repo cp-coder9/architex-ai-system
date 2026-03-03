@@ -146,22 +146,22 @@ export function AdminMessages() {
     return allProjects.filter(p => projectIdsWithMessages.has(p.id));
   }, [allProjects, chatMessages]);
 
-  // Filter projects based on search
-  const filteredProjects = useMemo(() => {
-    if (!chatSearchQuery.trim()) return projectsWithChats;
-    
-    const query = chatSearchQuery.toLowerCase();
-    return projectsWithChats.filter(p => {
-      const client = getUserInfo(p.clientId);
-      const freelancer = p.freelancerId ? getUserInfo(p.freelancerId) : null;
-      
-      return (
-        p.name.toLowerCase().includes(query) ||
-        client.name.toLowerCase().includes(query) ||
-        (freelancer && freelancer.name.toLowerCase().includes(query))
-      );
-    });
-  }, [projectsWithChats, chatSearchQuery]);
+   // Filter projects based on search
+   const filteredProjects = useMemo(() => {
+     if (!chatSearchQuery.trim()) return projectsWithChats;
+     
+     const query = chatSearchQuery.toLowerCase();
+     return projectsWithChats.filter(p => {
+       const client = getUserInfo(p.clientId);
+       const freelancer = p.freelancerId ? getUserInfo(p.freelancerId) : null;
+       
+       return (
+         (p.name || '').toLowerCase().includes(query) ||
+         (client.name || '').toLowerCase().includes(query) ||
+         (freelancer && (freelancer.name || '').toLowerCase().includes(query))
+       );
+     });
+   }, [projectsWithChats, chatSearchQuery]);
 
   // Get messages for selected project
   const projectMessages = useMemo(() => {
@@ -313,22 +313,22 @@ export function AdminMessages() {
                         const lastMessage = getLastMessagePreview(project.id);
                         const unreadCount = getProjectUnreadCount(project.id);
                         
-                        return (
-                          <button
-                            key={project.id}
-                            onClick={() => setSelectedProject(project)}
-                            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
-                              selectedProject?.id === project.id
-                                ? 'bg-primary text-primary-foreground'
-                                : 'hover:bg-muted'
-                            }`}
-                          >
-                            <div className="relative">
-                              <Avatar className="w-10 h-10">
-                                <AvatarImage src={client.avatar} />
-                                <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              {unreadCount > 0 && (
+                         return (
+                           <button
+                             key={project.id}
+                             onClick={() => setSelectedProject(project)}
+                             className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
+                               selectedProject?.id === project.id
+                                 ? 'bg-primary text-primary-foreground'
+                                 : 'hover:bg-muted'
+                             }`}
+                           >
+                             <div className="relative">
+                               <Avatar className="w-10 h-10">
+                                 <AvatarImage src={client.avatar} />
+                                 <AvatarFallback>{(client.name || '?').charAt(0)}</AvatarFallback>
+                               </Avatar>
+                               {unreadCount > 0 && (
                                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full text-xs flex items-center justify-center">
                                   {unreadCount}
                                 </span>
@@ -370,12 +370,12 @@ export function AdminMessages() {
                   <CardHeader className="border-b py-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={getUserInfo(selectedProject.clientId).avatar} />
-                          <AvatarFallback>
-                            {getUserInfo(selectedProject.clientId).name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
+                         <Avatar className="h-10 w-10">
+                           <AvatarImage src={getUserInfo(selectedProject.clientId).avatar} />
+                           <AvatarFallback>
+                             {(getUserInfo(selectedProject.clientId).name || '?').charAt(0)}
+                           </AvatarFallback>
+                         </Avatar>
                         <div>
                           <CardTitle className="text-base">
                             {getUserInfo(selectedProject.clientId).name}
@@ -394,12 +394,12 @@ export function AdminMessages() {
                         {selectedProject.freelancerId && (
                           <div className="flex items-center gap-2 mr-4">
                             <span className="text-xs text-muted-foreground">Freelancer:</span>
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={getUserInfo(selectedProject.freelancerId).avatar} />
-                              <AvatarFallback className="text-xs">
-                                {getUserInfo(selectedProject.freelancerId).name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
+                             <Avatar className="h-6 w-6">
+                               <AvatarImage src={getUserInfo(selectedProject.freelancerId).avatar} />
+                               <AvatarFallback className="text-xs">
+                                 {(getUserInfo(selectedProject.freelancerId).name || '?').charAt(0)}
+                               </AvatarFallback>
+                             </Avatar>
                           </div>
                         )}
                         <Button variant="ghost" size="icon">
@@ -436,7 +436,7 @@ export function AdminMessages() {
                                   {!isMe && (
                                     <Avatar className="h-8 w-8">
                                       <AvatarImage src={sender.avatar} />
-                                      <AvatarFallback>{sender.name.charAt(0)}</AvatarFallback>
+                                      <AvatarFallback>{(sender.name || '?').charAt(0)}</AvatarFallback>
                                     </Avatar>
                                   )}
                                   <div
@@ -536,10 +536,10 @@ export function AdminMessages() {
                           }}
                           className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors text-left"
                         >
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={client.avatar} />
-                            <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
+                           <Avatar className="w-10 h-10">
+                             <AvatarImage src={client.avatar} />
+                             <AvatarFallback>{(client.name || '?').charAt(0)}</AvatarFallback>
+                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{project.name}</p>
                             <p className="text-xs text-muted-foreground">

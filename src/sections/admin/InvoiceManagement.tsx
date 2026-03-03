@@ -201,7 +201,7 @@ export function InvoiceManagement() {
   // Filter invoices by month
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch =
-      invoice.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase());
+      (invoice.invoiceNumber || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
     const matchesMonth = selectedMonth === 'all' ||
       invoice.createdAt.toString().slice(0, 7) === selectedMonth;

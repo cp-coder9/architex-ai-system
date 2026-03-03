@@ -279,9 +279,9 @@ export function MyWork() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(task =>
-        task.title.toLowerCase().includes(query) ||
-        task.description.toLowerCase().includes(query) ||
-        task.requiredSkills.some(skill => skill.toLowerCase().includes(query))
+        (task.title || '').toLowerCase().includes(query) ||
+        (task.description || '').toLowerCase().includes(query) ||
+        (task.requiredSkills || []).some(skill => (skill || '').toLowerCase().includes(query))
       );
     }
 

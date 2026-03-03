@@ -306,71 +306,71 @@ export function AuditSecurity() {
     };
   }, []);
 
-  // Filter audit logs
-  const filteredLogs = useMemo(() => {
-    return auditLogs.filter(log => {
-      const matchesSearch = 
-        log.actorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        log.details.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesCategory = categoryFilter === 'all' || log.category === categoryFilter;
-      const matchesSeverity = severityFilter === 'all' || log.severity === severityFilter;
-      
-      let matchesDate = true;
-      if (dateRange !== 'all') {
-        const now = new Date();
-        const logDate = new Date(log.timestamp);
-        switch (dateRange) {
-          case 'today':
-            matchesDate = logDate.toDateString() === now.toDateString();
-            break;
-          case 'week':
-            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            matchesDate = logDate >= weekAgo;
-            break;
-          case 'month':
-            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            matchesDate = logDate >= monthAgo;
-            break;
-        }
-      }
-      
-      return matchesSearch && matchesCategory && matchesSeverity && matchesDate;
-    });
-  }, [auditLogs, searchQuery, categoryFilter, severityFilter, dateRange]);
+   // Filter audit logs
+   const filteredLogs = useMemo(() => {
+     return auditLogs.filter(log => {
+       const matchesSearch = 
+         (log.actorName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+         (log.action || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+         (log.details || '').toLowerCase().includes(searchQuery.toLowerCase());
+       
+       const matchesCategory = categoryFilter === 'all' || log.category === categoryFilter;
+       const matchesSeverity = severityFilter === 'all' || log.severity === severityFilter;
+       
+       let matchesDate = true;
+       if (dateRange !== 'all') {
+         const now = new Date();
+         const logDate = new Date(log.timestamp);
+         switch (dateRange) {
+           case 'today':
+             matchesDate = logDate.toDateString() === now.toDateString();
+             break;
+           case 'week':
+             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+             matchesDate = logDate >= weekAgo;
+             break;
+           case 'month':
+             const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+             matchesDate = logDate >= monthAgo;
+             break;
+         }
+       }
+       
+       return matchesSearch && matchesCategory && matchesSeverity && matchesDate;
+     });
+   }, [auditLogs, searchQuery, categoryFilter, severityFilter, dateRange]);
 
-  // Filter security events
-  const filteredEvents = useMemo(() => {
-    return securityEvents.filter(event => {
-      const matchesSearch = 
-        event.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.description.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesSeverity = severityFilter === 'all' || event.severity === severityFilter;
-      
-      let matchesDate = true;
-      if (dateRange !== 'all') {
-        const now = new Date();
-        const eventDate = new Date(event.timestamp);
-        switch (dateRange) {
-          case 'today':
-            matchesDate = eventDate.toDateString() === now.toDateString();
-            break;
-          case 'week':
-            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            matchesDate = eventDate >= weekAgo;
-            break;
-          case 'month':
-            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            matchesDate = eventDate >= monthAgo;
-            break;
-        }
-      }
-      
-      return matchesSearch && matchesSeverity && matchesDate;
-    });
-  }, [securityEvents, searchQuery, severityFilter, dateRange]);
+   // Filter security events
+   const filteredEvents = useMemo(() => {
+     return securityEvents.filter(event => {
+       const matchesSearch = 
+         (event.userName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+         (event.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+       
+       const matchesSeverity = severityFilter === 'all' || event.severity === severityFilter;
+       
+       let matchesDate = true;
+       if (dateRange !== 'all') {
+         const now = new Date();
+         const eventDate = new Date(event.timestamp);
+         switch (dateRange) {
+           case 'today':
+             matchesDate = eventDate.toDateString() === now.toDateString();
+             break;
+           case 'week':
+             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+             matchesDate = eventDate >= weekAgo;
+             break;
+           case 'month':
+             const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+             matchesDate = eventDate >= monthAgo;
+             break;
+         }
+       }
+       
+       return matchesSearch && matchesSeverity && matchesDate;
+     });
+   }, [securityEvents, searchQuery, severityFilter, dateRange]);
 
   const handleExportLogs = () => {
     toast.success('Audit logs exported successfully');

@@ -141,8 +141,8 @@ export function MyProjects() {
 
   // Filter projects
   const filteredProjects = projects.filter(project =>
-    project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchQuery.toLowerCase())
+    (project.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (project.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {

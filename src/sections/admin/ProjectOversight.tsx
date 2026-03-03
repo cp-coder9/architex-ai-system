@@ -526,8 +526,8 @@ export function ProjectOversight() {
   // Filter and sort projects
   const filteredProjects = useMemo(() => {
     const filtered = projects.filter(project => {
-      const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = (project.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (project.description || '').toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
       const matchesType = typeFilter === 'all' || project.projectType === typeFilter;
       return matchesSearch && matchesStatus && matchesType;
