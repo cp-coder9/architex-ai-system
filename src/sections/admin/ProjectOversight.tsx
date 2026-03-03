@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useProjectStore, useInvoiceStore, useSettingsStore } from '@/store';
 import { Project, ProjectStatus, HourAllocation } from '@/types';
@@ -479,9 +479,19 @@ const getAllocationStatusColor = (status: string) => {
 };
 
 export function ProjectOversight() {
-  const { projects, drawings } = useProjectStore();
-  const { hourAllocations, hourPackages } = useInvoiceStore();
+  const { projects, drawings, initialize, cleanup } = useProjectStore();
+  const { hourAllocations, hourPackages, initialize: initInvoices, cleanup: cleanupInvoices } = useInvoiceStore();
   const { getUserById } = useSettingsStore();
+
+  // Initialize project and invoice stores on mount
+  useEffect(() => {
+    initialize();
+    initInvoices();
+    return () => {
+      cleanup();
+      cleanupInvoices();
+    };
+  }, [initialize, cleanup, initInvoices, cleanupInvoices]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
