@@ -32,57 +32,57 @@ function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; p
   const startTimeRef = useRef<number | null>(null);
   const startValueRef = useRef(0);
   const targetValueRef = useRef(value);
-  const isAnimatingRef = useRef(false);
-
-  const animate = useCallback((timestamp: number) => {
-    if (!startTimeRef.current) {
-      startTimeRef.current = timestamp;
-    }
-
-    const duration = 1500;
-    const elapsed = timestamp - startTimeRef.current;
-    const progress = Math.min(elapsed / duration, 1);
-
-    // Easing function for smooth animation (ease-out)
-    const easeOut = 1 - Math.pow(1 - progress, 3);
-
-    const currentValue = Math.floor(startValueRef.current + (targetValueRef.current - startValueRef.current) * easeOut);
-    setDisplayValue(currentValue);
-
-    if (progress < 1) {
-      animationRef.current = requestAnimationFrame(animate);
-    } else {
-      setDisplayValue(targetValueRef.current);
-      isAnimatingRef.current = false;
-      animationRef.current = null;
-    }
-  }, []);
+  const displayValueRef = useRef(0);
 
   useEffect(() => {
     // Only start animation if value has actually changed
-    if (value !== targetValueRef.current) {
-      // Cancel any existing animation
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+    if (value === targetValueRef.current) return;
 
-      // Update target and start values
-      targetValueRef.current = value;
-      startValueRef.current = displayValue;
-      startTimeRef.current = null;
-      isAnimatingRef.current = true;
-
-      // Start new animation
-      animationRef.current = requestAnimationFrame(animate);
+    // Cancel any existing animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
     }
 
-    // Cleanup on unmount
+    // Update target and start values
+    targetValueRef.current = value;
+    startValueRef.current = displayValueRef.current;
+    startTimeRef.current = null;
+
+    const animate = (timestamp: number) => {
+      if (!startTimeRef.current) {
+        startTimeRef.current = timestamp;
+      }
+
+      const duration = 1500;
+      const elapsed = timestamp - startTimeRef.current;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Easing function for smooth animation (ease-out)
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+
+      const currentValue = Math.floor(startValueRef.current + (targetValueRef.current - startValueRef.current) * easeOut);
+      displayValueRef.current = currentValue;
+      setDisplayValue(currentValue);
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        displayValueRef.current = targetValueRef.current;
+        setDisplayValue(targetValueRef.current);
+        animationRef.current = null;
+      }
+    };
+
+    // Start new animation
+    animationRef.current = requestAnimationFrame(animate);
+
+    // Cleanup on unmount or when value changes
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [value, animate, displayValue]);
+  }, [value]);
 
   return (
     <span>
