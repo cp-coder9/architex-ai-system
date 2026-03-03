@@ -57,9 +57,29 @@ async function setupCors() {
   });
 
   try {
+    // First, test connectivity by listing buckets
+    console.log('🔍 Testing R2 connectivity...');
+    const { ListBucketsCommand } = await import('@aws-sdk/client-s3');
+    const buckets = await s3Client.send(new ListBucketsCommand({}));
+    console.log(`✅ Connected to R2. Available buckets:`);
+    buckets.Buckets?.forEach(bucket => {
+      console.log(`   - ${bucket.Name}`);
+    });
+    console.log('');
+
+    // Check if the target bucket exists
+    const bucketExists = buckets.Buckets?.some(b => b.Name === R2_BUCKET_NAME);
+    if (!bucketExists) {
+      console.error(`❌ Bucket "${R2_BUCKET_NAME}" not found in your R2 account.`);
+      console.error('   Please verify the bucket name in src/services/r2StorageService.ts');
+      console.error('   Available buckets are listed above.');
+      process.exit(1);
+    }
+
     console.log(`🔧 Configuring CORS for bucket: ${R2_BUCKET_NAME}`);
     console.log(`   Endpoint: ${R2_ENDPOINT}`);
     
+    const { PutBucketCorsCommand } = await import('@aws-sdk/client-s3');
     const command = new PutBucketCorsCommand({
       Bucket: R2_BUCKET_NAME,
       CORSConfiguration: corsConfig
@@ -80,6 +100,10 @@ async function setupCors() {
     console.error('❌ Failed to configure CORS:', error.message);
     if (error.name === 'NoSuchBucket') {
       console.error('\n💡 Tip: Make sure the R2 bucket "architex" exists.');
+    } else if (error.name === 'AccessDenied' || error.message.includes('Access Denied')) {
+      console.error('\n💡 Tip: Access Denied - Your API token may not have sufficient permissions.');
+      console.error('   Required permissions: Object Read, Object Write, and Bucket Read/Write (Admin)');
+      console.error('   Create a new API token with full access to all R2 buckets.');
     }
     process.exit(1);
   }
