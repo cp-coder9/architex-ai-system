@@ -1,0 +1,15 @@
+# Wrangler configuration for Cloudflare R2
+# This config is used to manage R2 bucket settings including CORS
+
+name = "architex-r2"
+main = "scripts/setup-r2-cors.js"
+compatibility_date = "2024-01-01"
+
+# R2 Configuration
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "architex"
+
+# Environment variables (will be loaded from .env)
+# Note: Wrangler uses its own authentication via `wrangler login`
+# The actual CORS setup is done via the npm script that uses the S3-compatible API

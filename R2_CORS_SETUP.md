@@ -29,32 +29,57 @@ Configure CORS on your Cloudflare R2 bucket to allow requests from your Vercel d
 
 7. Click **Save**
 
-### Option 2: Using Wrangler CLI
+### Option 2: Using Wrangler CLI (Recommended)
 
-1. Install Wrangler if not already installed:
-   ```bash
-   npm install -g wrangler
-   ```
+Wrangler is Cloudflare's official CLI tool and provides the simplest way to configure R2 buckets.
 
-2. Authenticate with Cloudflare:
-   ```bash
-   wrangler login
-   ```
+### Install Wrangler
 
-3. Apply the CORS configuration from the provided `r2-cors-config.json`:
-   ```bash
-   wrangler r2 bucket cors update architex --config=r2-cors-config.json
-   ```
+```bash
+npm install -g wrangler
+```
 
-   Or manually:
-   ```bash
-   wrangler r2 bucket cors add architex \
-     --allowed-origins "https://architex-ai-system-1.vercel.app" "https://*.vercel.app" "http://localhost:5173" \
-     --allowed-methods "GET" "PUT" "POST" "DELETE" "HEAD" \
-     --allowed-headers "*" \
-     --expose-headers "ETag" "x-amz-request-id" "x-amz-id-2" \
-     --max-age 3000
-   ```
+### Authenticate
+
+```bash
+wrangler login
+```
+
+This opens a browser window to authenticate with your Cloudflare account.
+
+### Apply CORS Configuration
+
+**Method A: Using the config file** (if you have `r2-cors-config.json`)
+
+```bash
+wrangler r2 bucket cors update architex --config=r2-cors-config.json
+```
+
+**Method B: Direct command** (copy and paste)
+
+```bash
+wrangler r2 bucket cors add architex \
+  --allowed-origins "https://architex-ai-system-1.vercel.app" "https://*.vercel.app" "http://localhost:5173" "http://localhost:3000" \
+  --allowed-methods "GET" "PUT" "POST" "DELETE" "HEAD" \
+  --allowed-headers "*" \
+  --expose-headers "ETag" "x-amz-request-id" "x-amz-id-2" \
+  --max-age 3000
+```
+
+### Verify Configuration
+
+```bash
+wrangler r2 bucket cors get architex
+```
+
+This should display the CORS rules you just added.
+
+### Notes
+
+- Wrangler uses your Cloudflare account credentials (not R2 API keys)
+- You need **admin access** to the R2 bucket to modify CORS
+- The `--config` flag expects a JSON file with the CORS rules (see `r2-cors-config.json`)
+- If you get permission errors, ensure you're logged in and have the correct access level
 
 ### Option 3: Using Cloudflare API
 
