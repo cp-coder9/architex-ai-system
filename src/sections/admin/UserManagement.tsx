@@ -59,15 +59,15 @@ import {
 } from 'lucide-react';
 
 // User Form Component
-function UserForm({ 
-  user, 
+function UserForm({
+  user,
   defaultRole,
-  onSubmit, 
-  onCancel 
-}: { 
-  user?: User; 
+  onSubmit,
+  onCancel
+}: {
+  user?: User;
   defaultRole?: UserRole;
-  onSubmit: (data: Partial<User>) => void; 
+  onSubmit: (data: Partial<User>) => void;
   onCancel: () => void;
 }) {
   const [formData, setFormData] = useState<Partial<User>>({
@@ -96,7 +96,7 @@ function UserForm({
           required
         />
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -108,7 +108,7 @@ function UserForm({
           required
         />
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="role">Role</Label>
         <Select
@@ -125,7 +125,7 @@ function UserForm({
           </SelectContent>
         </Select>
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="phone">Phone</Label>
         <Input
@@ -135,7 +135,7 @@ function UserForm({
           placeholder="Enter phone number"
         />
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="company">Company</Label>
         <Input
@@ -145,7 +145,7 @@ function UserForm({
           placeholder="Enter company name"
         />
       </div>
-      
+
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
@@ -159,13 +159,13 @@ function UserForm({
 }
 
 // User Table Component
-function UserTable({ 
-  users, 
-  onEdit, 
-  onDelete, 
-  onActivate, 
-  onDeactivate 
-}: { 
+function UserTable({
+  users,
+  onEdit,
+  onDelete,
+  onActivate,
+  onDeactivate
+}: {
   users: User[];
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
@@ -261,7 +261,7 @@ function UserTable({
                         Activate
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => onDelete(user)}
                       className="text-destructive"
                     >
@@ -280,7 +280,15 @@ function UserTable({
 }
 
 export function UserManagement() {
-  const { users, createUser, updateUser, deleteUser, activateUser, deactivateUser, getUserStats, initialize, cleanup } = useSettingsStore();
+  const users = useSettingsStore(state => state.users);
+  const createUser = useSettingsStore(state => state.createUser);
+  const updateUser = useSettingsStore(state => state.updateUser);
+  const deleteUser = useSettingsStore(state => state.deleteUser);
+  const activateUser = useSettingsStore(state => state.activateUser);
+  const deactivateUser = useSettingsStore(state => state.deactivateUser);
+  const getUserStats = useSettingsStore(state => state.getUserStats);
+  const initialize = useSettingsStore(state => state.initialize);
+  const cleanup = useSettingsStore(state => state.cleanup);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
@@ -306,7 +314,7 @@ export function UserManagement() {
   // Initialize the store on component mount
   useEffect(() => {
     handleInitialize();
-    
+
     return () => {
       handleCleanup();
     };
@@ -321,15 +329,15 @@ export function UserManagement() {
   // Filter users
   const filteredUsers = users.filter(user => {
     const query = (searchQuery || '').toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       (user.name || '').toLowerCase().includes(query) ||
       (user.email || '').toLowerCase().includes(query) ||
       (user.company || '').toLowerCase().includes(query);
-    
+
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const matchesStatus = statusFilter === 'all' || 
+    const matchesStatus = statusFilter === 'all' ||
       (statusFilter === 'active' ? user.isActive : !user.isActive);
-    
+
     return matchesSearch && matchesRole && matchesStatus;
   });
 
@@ -394,7 +402,7 @@ export function UserManagement() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -408,7 +416,7 @@ export function UserManagement() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -422,7 +430,7 @@ export function UserManagement() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -446,7 +454,7 @@ export function UserManagement() {
               <CardTitle>All Users</CardTitle>
               <CardDescription>Manage and monitor user accounts</CardDescription>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               {/* Search */}
               <div className="relative">
@@ -458,7 +466,7 @@ export function UserManagement() {
                   className="pl-10 w-[200px]"
                 />
               </div>
-              
+
               {/* Role Filter */}
               <Select value={roleFilter} onValueChange={(v: UserRole | 'all') => setRoleFilter(v)}>
                 <SelectTrigger className="w-[130px]">
@@ -472,7 +480,7 @@ export function UserManagement() {
                   <SelectItem value="admin">Admins</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               {/* Status Filter */}
               <Select value={statusFilter} onValueChange={(v: 'all' | 'active' | 'inactive') => setStatusFilter(v)}>
                 <SelectTrigger className="w-[130px]">
@@ -485,15 +493,15 @@ export function UserManagement() {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               {/* Export */}
               <Button variant="outline" size="icon">
                 <Download className="w-4 h-4" />
               </Button>
-              
+
               {/* Role-specific Add User Buttons */}
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="gap-2"
                 onClick={() => {
                   setDefaultRole('admin');
@@ -503,8 +511,8 @@ export function UserManagement() {
                 <Shield className="w-4 h-4" />
                 Add Admin
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="gap-2"
                 onClick={() => {
                   setDefaultRole('client');
@@ -514,8 +522,8 @@ export function UserManagement() {
                 <Building2 className="w-4 h-4" />
                 Add Client
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="gap-2"
                 onClick={() => {
                   setDefaultRole('freelancer');
@@ -525,7 +533,7 @@ export function UserManagement() {
                 <HardHat className="w-4 h-4" />
                 Add Freelancer
               </Button>
-              
+
               {/* Add User Dialog */}
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogContent className="sm:max-w-[500px]">
@@ -535,17 +543,17 @@ export function UserManagement() {
                       Add a new user to the platform. They will receive an email invitation.
                     </DialogDescription>
                   </DialogHeader>
-                  <UserForm 
+                  <UserForm
                     defaultRole={defaultRole}
-                    onSubmit={handleCreateUser} 
-                    onCancel={() => setIsCreateDialogOpen(false)} 
+                    onSubmit={handleCreateUser}
+                    onCancel={() => setIsCreateDialogOpen(false)}
                   />
                 </DialogContent>
               </Dialog>
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent>
           <ScrollArea className="h-[500px]">
             {filteredUsers.length === 0 ? (
@@ -559,7 +567,7 @@ export function UserManagement() {
                 <p className="text-muted-foreground mb-4">
                   Try adjusting your search or filters, or add a new user.
                 </p>
-                <Button 
+                <Button
                   onClick={() => setIsCreateDialogOpen(true)}
                   className="gap-2"
                 >

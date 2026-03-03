@@ -75,8 +75,9 @@ const formatFileSize = (bytes: number): string => {
 };
 
 export function AdminFiles() {
-  const { currentUser } = useAuthStore();
-  const { files, folders } = useFileStore();
+  const currentUser = useAuthStore(state => state.currentUser);
+  const files = useFileStore(state => state.files);
+  const folders = useFileStore(state => state.folders);
   const [selectedOwner, setSelectedOwner] = useState<string>('all');
 
   if (!currentUser) {

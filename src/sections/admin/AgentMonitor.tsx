@@ -123,8 +123,8 @@ function AgentCard({ agent, onView, onToggle }: { agent: Agent; onView: () => vo
               <AlertOctagon className="w-4 h-4" />
             )}
           </div>
-          <Progress 
-            value={agent.accuracy} 
+          <Progress
+            value={agent.accuracy}
             className={`h-1 mt-1 ${accuracyBg}`}
           />
           {agent.accuracy < 98 && (
@@ -149,9 +149,9 @@ function AgentCard({ agent, onView, onToggle }: { agent: Agent; onView: () => vo
           <Eye className="w-4 h-4 mr-2" />
           View
         </Button>
-        <Button 
-          variant={agent.status === 'active' ? 'secondary' : 'default'} 
-          size="sm" 
+        <Button
+          variant={agent.status === 'active' ? 'secondary' : 'default'}
+          size="sm"
           className="flex-1"
           onClick={onToggle}
         >
@@ -313,13 +313,12 @@ function OrchestratorPanel() {
           ) : (
             <div className="space-y-2">
               {conflicts.map((conflict) => (
-                <div 
-                  key={conflict.conflictId} 
-                  className={`p-3 rounded-lg border ${
-                    conflict.status === 'resolved' 
-                      ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' 
-                      : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
-                  }`}
+                <div
+                  key={conflict.conflictId}
+                  className={`p-3 rounded-lg border ${conflict.status === 'resolved'
+                    ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
+                    : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
+                    }`}
                 >
                   <div className="flex items-start justify-between">
                     <div>
@@ -416,12 +415,11 @@ function AgentDetailDialog({
 
         <div className="space-y-6">
           {/* Status Banner */}
-          <div className={`p-4 rounded-lg border ${
-            agent.status === 'active' ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' :
+          <div className={`p-4 rounded-lg border ${agent.status === 'active' ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' :
             agent.status === 'idle' ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800' :
-            agent.status === 'paused' ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800' :
-            'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
-          }`}>
+              agent.status === 'paused' ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800' :
+                'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
+            }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {getStatusIcon(agent.status)}
@@ -555,14 +553,14 @@ function AgentDetailDialog({
 }
 
 // Issue Detail Dialog
-function IssueDetailDialog({ 
-  issue, 
-  isOpen, 
-  onClose, 
-  onOverride 
-}: { 
-  issue: AgentIssue | null; 
-  isOpen: boolean; 
+function IssueDetailDialog({
+  issue,
+  isOpen,
+  onClose,
+  onOverride
+}: {
+  issue: AgentIssue | null;
+  isOpen: boolean;
   onClose: () => void;
   onOverride: (reason: string) => void;
 }) {
@@ -636,8 +634,8 @@ function IssueDetailDialog({
 
           <div className="flex gap-2">
             {!issue.isResolved && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-1"
                 onClick={() => onOverride(overrideReason)}
               >
@@ -656,7 +654,7 @@ function IssueDetailDialog({
 }
 
 export function AgentMonitor() {
-  const [agents, setAgents] = useState<Agent[]>(getAllAgents());
+  const [agents, setAgents] = useState<Agent[]>(() => getAllAgents());
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [isAgentDialogOpen, setIsAgentDialogOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<AgentIssue | null>(null);
@@ -668,7 +666,7 @@ export function AgentMonitor() {
     .filter(d => d.agentCheck)
     .map(d => d.agentCheck!) as AgentCheck[];
 
-  const allIssues = allChecks.flatMap(check => 
+  const allIssues = allChecks.flatMap(check =>
     check.issues.map(issue => ({ ...issue, checkId: check.id }))
   );
 
@@ -730,7 +728,7 @@ export function AgentMonitor() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -744,7 +742,7 @@ export function AgentMonitor() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -865,14 +863,12 @@ export function AgentMonitor() {
                         className="flex items-center justify-between p-4 rounded-lg border"
                       >
                         <div className="flex items-center gap-4">
-                          <div className={`p-2 rounded-lg ${
-                            check.status === 'completed' ? 'bg-green-100' : 
+                          <div className={`p-2 rounded-lg ${check.status === 'completed' ? 'bg-green-100' :
                             check.status === 'overridden' ? 'bg-orange-100' : 'bg-blue-100'
-                          }`}>
-                            <Bot className={`w-5 h-5 ${
-                              check.status === 'completed' ? 'text-green-600' : 
+                            }`}>
+                            <Bot className={`w-5 h-5 ${check.status === 'completed' ? 'text-green-600' :
                               check.status === 'overridden' ? 'text-orange-600' : 'text-blue-600'
-                            }`} />
+                              }`} />
                           </div>
                           <div>
                             <p className="font-medium">{drawing?.name || 'Unknown Drawing'}</p>
@@ -920,24 +916,21 @@ export function AgentMonitor() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`flex items-center justify-between p-4 rounded-lg border ${
-                        issue.isResolved ? 'bg-green-50 dark:bg-green-900/20' : ''
-                      }`}
+                      className={`flex items-center justify-between p-4 rounded-lg border ${issue.isResolved ? 'bg-green-50 dark:bg-green-900/20' : ''
+                        }`}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-lg ${
-                          issue.severity === 'critical' ? 'bg-red-100' :
+                        <div className={`p-2 rounded-lg ${issue.severity === 'critical' ? 'bg-red-100' :
                           issue.severity === 'high' ? 'bg-orange-100' :
-                          issue.severity === 'medium' ? 'bg-yellow-100' : 'bg-blue-100'
-                        }`}>
+                            issue.severity === 'medium' ? 'bg-yellow-100' : 'bg-blue-100'
+                          }`}>
                           {issue.isResolved ? (
                             <CheckCircle className="w-5 h-5 text-green-600" />
                           ) : (
-                            <AlertCircle className={`w-5 h-5 ${
-                              issue.severity === 'critical' ? 'text-red-600' :
+                            <AlertCircle className={`w-5 h-5 ${issue.severity === 'critical' ? 'text-red-600' :
                               issue.severity === 'high' ? 'text-orange-600' :
-                              issue.severity === 'medium' ? 'text-yellow-600' : 'text-blue-600'
-                            }`} />
+                                issue.severity === 'medium' ? 'text-yellow-600' : 'text-blue-600'
+                              }`} />
                           )}
                         </div>
                         <div>

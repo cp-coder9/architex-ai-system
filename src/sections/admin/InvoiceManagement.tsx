@@ -170,7 +170,12 @@ function InvoiceDetailDialog({
 }
 
 export function InvoiceManagement() {
-  const { invoices, markInvoiceAsPaid, markInvoiceAsSent, initialize, cleanup } = useInvoiceStore();
+  const invoices = useInvoiceStore(state => state.invoices);
+  const markInvoiceAsPaid = useInvoiceStore(state => state.markInvoiceAsPaid);
+  const markInvoiceAsSent = useInvoiceStore(state => state.markInvoiceAsSent);
+  const initialize = useInvoiceStore(state => state.initialize);
+  const cleanup = useInvoiceStore(state => state.cleanup);
+
   const projects = useProjectStore(state => state.projects);
 
   // Initialize invoice store listeners on mount

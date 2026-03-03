@@ -26,11 +26,13 @@ import {
 } from 'lucide-react';
 
 export function AdminSettings() {
-  const { currentUser, updateUser } = useAuthStore();
-  const { getSettings, updateSettings } = useSettingsStore();
-  
+  const currentUser = useAuthStore(state => state.currentUser);
+  const updateUser = useAuthStore(state => state.updateUser);
+  const getSettings = useSettingsStore(state => state.getSettings);
+  const updateSettings = useSettingsStore(state => state.updateSettings);
+
   const settings = getSettings(currentUser?.id || '');
-  
+
   const [profileData, setProfileData] = useState({
     name: currentUser?.name || '',
     email: currentUser?.email || '',
@@ -88,12 +90,12 @@ export function AdminSettings() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Avatar */}
-               <div className="flex items-center gap-4">
-                 <Avatar className="w-20 h-20">
-                   <AvatarImage src={currentUser?.avatar} />
-                   <AvatarFallback className="text-2xl">{(currentUser?.name || '?').charAt(0)}</AvatarFallback>
-                 </Avatar>
-                 <Button variant="outline" className="gap-2">
+              <div className="flex items-center gap-4">
+                <Avatar className="w-20 h-20">
+                  <AvatarImage src={currentUser?.avatar} />
+                  <AvatarFallback className="text-2xl">{(currentUser?.name || '?').charAt(0)}</AvatarFallback>
+                </Avatar>
+                <Button variant="outline" className="gap-2">
                   <Camera className="w-4 h-4" />
                   Change Avatar
                 </Button>
@@ -167,7 +169,7 @@ export function AdminSettings() {
                   </div>
                   <Switch
                     checked={value}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setNotificationSettings({ ...notificationSettings, [key]: checked })
                     }
                   />
@@ -192,12 +194,12 @@ export function AdminSettings() {
                 </div>
                 <Switch
                   checked={pushSettings.enabled}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setPushSettings({ ...pushSettings, enabled: checked })
                   }
                 />
               </div>
-              
+
               {pushSettings.enabled && (
                 <>
                   <Separator />
@@ -213,7 +215,7 @@ export function AdminSettings() {
                         </div>
                         <Switch
                           checked={value}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             setPushSettings({ ...pushSettings, [key]: checked })
                           }
                         />
@@ -292,8 +294,8 @@ export function AdminSettings() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
-                <select 
-                  id="language" 
+                <select
+                  id="language"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   defaultValue="en"
                 >
@@ -305,8 +307,8 @@ export function AdminSettings() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="timezone">Timezone</Label>
-                <select 
-                  id="timezone" 
+                <select
+                  id="timezone"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   defaultValue="America/New_York"
                 >
@@ -320,8 +322,8 @@ export function AdminSettings() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="date-format">Date Format</Label>
-                <select 
-                  id="date-format" 
+                <select
+                  id="date-format"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   defaultValue="MM/DD/YYYY"
                 >
@@ -344,8 +346,8 @@ export function AdminSettings() {
             <CardContent>
               <div className="space-y-2">
                 <Label htmlFor="theme">Theme</Label>
-                <select 
-                  id="theme" 
+                <select
+                  id="theme"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   defaultValue="system"
                 >

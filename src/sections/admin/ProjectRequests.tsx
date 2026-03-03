@@ -265,7 +265,10 @@ function EmptyState({ tab }: { tab: string }) {
 }
 
 export function ProjectRequests() {
-  const { projectRequests, approveRequest, rejectRequest, convertToProject } = useProjectRequestStore();
+  const projectRequests = useProjectRequestStore(state => state.projectRequests);
+  const approveRequest = useProjectRequestStore(state => state.approveRequest);
+  const rejectRequest = useProjectRequestStore(state => state.rejectRequest);
+  const convertToProject = useProjectRequestStore(state => state.convertToProject);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<ProjectRequestStatus | 'all'>('all');

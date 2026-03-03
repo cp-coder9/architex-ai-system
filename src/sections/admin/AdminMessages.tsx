@@ -96,18 +96,16 @@ const getNotificationBadgeVariant = (type: string): 'default' | 'secondary' | 'd
 
 export function AdminMessages() {
   const { currentUser } = useAuthStore();
-  const { 
-    notifications, 
-    chatMessages, 
-    sendMessage, 
-    markAsRead, 
-    markAllAsRead, 
-    deleteNotification,
-    getUserNotifications 
-  } = useNotificationStore();
+  const notifications = useNotificationStore(state => state.notifications);
+  const chatMessages = useNotificationStore(state => state.chatMessages);
+  const sendMessage = useNotificationStore(state => state.sendMessage);
+  const markAsRead = useNotificationStore(state => state.markAsRead);
+  const markAllAsRead = useNotificationStore(state => state.markAllAsRead);
+  const deleteNotification = useNotificationStore(state => state.deleteNotification);
+  const getUserNotifications = useNotificationStore(state => state.getUserNotifications);
   const allProjects = useProjectStore(state => state.projects);
   const users = useSettingsStore(state => state.users);
-  
+
   const userId = currentUser?.id || '';
 
   // Chats state
@@ -141,27 +139,27 @@ export function AdminMessages() {
   const projectsWithChats = useMemo(() => {
     // Get unique project IDs from chat messages
     const projectIdsWithMessages = new Set(chatMessages.map(m => m.projectId));
-    
+
     // Filter projects that have messages
     return allProjects.filter(p => projectIdsWithMessages.has(p.id));
   }, [allProjects, chatMessages]);
 
-   // Filter projects based on search
-   const filteredProjects = useMemo(() => {
-     if (!chatSearchQuery.trim()) return projectsWithChats;
-     
-     const query = chatSearchQuery.toLowerCase();
-     return projectsWithChats.filter(p => {
-       const client = getUserInfo(p.clientId);
-       const freelancer = p.freelancerId ? getUserInfo(p.freelancerId) : null;
-       
-       return (
-         (p.name || '').toLowerCase().includes(query) ||
-         (client.name || '').toLowerCase().includes(query) ||
-         (freelancer && (freelancer.name || '').toLowerCase().includes(query))
-       );
-     });
-   }, [projectsWithChats, chatSearchQuery]);
+  // Filter projects based on search
+  const filteredProjects = useMemo(() => {
+    if (!chatSearchQuery.trim()) return projectsWithChats;
+
+    const query = chatSearchQuery.toLowerCase();
+    return projectsWithChats.filter(p => {
+      const client = getUserInfo(p.clientId);
+      const freelancer = p.freelancerId ? getUserInfo(p.freelancerId) : null;
+
+      return (
+        (p.name || '').toLowerCase().includes(query) ||
+        (client.name || '').toLowerCase().includes(query) ||
+        (freelancer && (freelancer.name || '').toLowerCase().includes(query))
+      );
+    });
+  }, [projectsWithChats, chatSearchQuery]);
 
   // Get messages for selected project
   const projectMessages = useMemo(() => {
@@ -222,7 +220,7 @@ export function AdminMessages() {
     const messages = chatMessages
       .filter(m => m.projectId === projectId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
+
     if (messages.length === 0) return null;
     return messages[0];
   };
@@ -277,8 +275,8 @@ export function AdminMessages() {
                     <MessageSquare className="w-5 h-5" />
                     Conversations
                   </CardTitle>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => setShowNewMessageDialog(true)}
                   >
@@ -312,23 +310,22 @@ export function AdminMessages() {
                         const freelancer = project.freelancerId ? getUserInfo(project.freelancerId) : null;
                         const lastMessage = getLastMessagePreview(project.id);
                         const unreadCount = getProjectUnreadCount(project.id);
-                        
-                         return (
-                           <button
-                             key={project.id}
-                             onClick={() => setSelectedProject(project)}
-                             className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
-                               selectedProject?.id === project.id
-                                 ? 'bg-primary text-primary-foreground'
-                                 : 'hover:bg-muted'
-                             }`}
-                           >
-                             <div className="relative">
-                               <Avatar className="w-10 h-10">
-                                 <AvatarImage src={client.avatar} />
-                                 <AvatarFallback>{(client.name || '?').charAt(0)}</AvatarFallback>
-                               </Avatar>
-                               {unreadCount > 0 && (
+
+                        return (
+                          <button
+                            key={project.id}
+                            onClick={() => setSelectedProject(project)}
+                            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${selectedProject?.id === project.id
+                                ? 'bg-primary text-primary-foreground'
+                                : 'hover:bg-muted'
+                              }`}
+                          >
+                            <div className="relative">
+                              <Avatar className="w-10 h-10">
+                                <AvatarImage src={client.avatar} />
+                                <AvatarFallback>{(client.name || '?').charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              {unreadCount > 0 && (
                                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full text-xs flex items-center justify-center">
                                   {unreadCount}
                                 </span>
@@ -370,12 +367,12 @@ export function AdminMessages() {
                   <CardHeader className="border-b py-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                         <Avatar className="h-10 w-10">
-                           <AvatarImage src={getUserInfo(selectedProject.clientId).avatar} />
-                           <AvatarFallback>
-                             {(getUserInfo(selectedProject.clientId).name || '?').charAt(0)}
-                           </AvatarFallback>
-                         </Avatar>
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={getUserInfo(selectedProject.clientId).avatar} />
+                          <AvatarFallback>
+                            {(getUserInfo(selectedProject.clientId).name || '?').charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
                         <div>
                           <CardTitle className="text-base">
                             {getUserInfo(selectedProject.clientId).name}
@@ -394,12 +391,12 @@ export function AdminMessages() {
                         {selectedProject.freelancerId && (
                           <div className="flex items-center gap-2 mr-4">
                             <span className="text-xs text-muted-foreground">Freelancer:</span>
-                             <Avatar className="h-6 w-6">
-                               <AvatarImage src={getUserInfo(selectedProject.freelancerId).avatar} />
-                               <AvatarFallback className="text-xs">
-                                 {(getUserInfo(selectedProject.freelancerId).name || '?').charAt(0)}
-                               </AvatarFallback>
-                             </Avatar>
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={getUserInfo(selectedProject.freelancerId).avatar} />
+                              <AvatarFallback className="text-xs">
+                                {(getUserInfo(selectedProject.freelancerId).name || '?').charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
                           </div>
                         )}
                         <Button variant="ghost" size="icon">
@@ -423,7 +420,7 @@ export function AdminMessages() {
                           {projectMessages.map((message) => {
                             const isMe = message.senderId === currentUser?.id;
                             const sender = getUserInfo(message.senderId);
-                            
+
                             return (
                               <motion.div
                                 key={message.id}
@@ -440,11 +437,10 @@ export function AdminMessages() {
                                     </Avatar>
                                   )}
                                   <div
-                                    className={`px-4 py-2 rounded-2xl ${
-                                      isMe
+                                    className={`px-4 py-2 rounded-2xl ${isMe
                                         ? 'bg-primary text-primary-foreground rounded-br-none'
                                         : 'bg-muted rounded-bl-none'
-                                    }`}
+                                      }`}
                                   >
                                     {!isMe && (
                                       <p className={`text-xs font-medium mb-1 ${isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
@@ -536,10 +532,10 @@ export function AdminMessages() {
                           }}
                           className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors text-left"
                         >
-                           <Avatar className="w-10 h-10">
-                             <AvatarImage src={client.avatar} />
-                             <AvatarFallback>{(client.name || '?').charAt(0)}</AvatarFallback>
-                           </Avatar>
+                          <Avatar className="w-10 h-10">
+                            <AvatarImage src={client.avatar} />
+                            <AvatarFallback>{(client.name || '?').charAt(0)}</AvatarFallback>
+                          </Avatar>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{project.name}</p>
                             <p className="text-xs text-muted-foreground">
@@ -568,7 +564,7 @@ export function AdminMessages() {
                     Notification Center
                   </CardTitle>
                   <CardDescription>
-                    {unreadCount > 0 
+                    {unreadCount > 0
                       ? `You have ${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}`
                       : 'All caught up! No unread notifications'}
                   </CardDescription>
@@ -620,11 +616,11 @@ export function AdminMessages() {
                     </EmptyMedia>
                     <EmptyTitle>No notifications</EmptyTitle>
                     <EmptyDescription>
-                      {showUnreadOnly 
+                      {showUnreadOnly
                         ? "You don't have any unread notifications"
                         : notificationFilter !== 'all'
-                        ? `No ${notificationTypes.find(t => t.value === notificationFilter)?.label.toLowerCase()} notifications`
-                        : "You don't have any notifications yet"}
+                          ? `No ${notificationTypes.find(t => t.value === notificationFilter)?.label.toLowerCase()} notifications`
+                          : "You don't have any notifications yet"}
                     </EmptyDescription>
                   </EmptyHeader>
                 </Empty>
@@ -635,7 +631,7 @@ export function AdminMessages() {
                       {filteredNotifications.map((notification, index) => {
                         const Icon = getNotificationIcon(notification.type);
                         const colorClass = getNotificationColor(notification.type);
-                        
+
                         return (
                           <motion.div
                             key={notification.id}
@@ -643,11 +639,10 @@ export function AdminMessages() {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
                             transition={{ delay: index * 0.05 }}
-                            className={`group flex items-start gap-3 p-4 rounded-lg border transition-colors ${
-                              notification.read 
-                                ? 'bg-background hover:bg-muted/50' 
+                            className={`group flex items-start gap-3 p-4 rounded-lg border transition-colors ${notification.read
+                                ? 'bg-background hover:bg-muted/50'
                                 : 'bg-primary/5 border-primary/20 hover:bg-primary/10'
-                            }`}
+                              }`}
                           >
                             <div className={`p-2 rounded-lg shrink-0 ${colorClass}`}>
                               <Icon className="w-4 h-4 text-white" />

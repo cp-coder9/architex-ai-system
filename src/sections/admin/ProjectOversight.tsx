@@ -479,9 +479,17 @@ const getAllocationStatusColor = (status: string) => {
 };
 
 export function ProjectOversight() {
-  const { projects, drawings, initialize, cleanup } = useProjectStore();
-  const { hourAllocations, hourPackages, initialize: initInvoices, cleanup: cleanupInvoices } = useInvoiceStore();
-  const { getUserById } = useSettingsStore();
+  const projects = useProjectStore(state => state.projects);
+  const drawings = useProjectStore(state => state.drawings);
+  const initialize = useProjectStore(state => state.initialize);
+  const cleanup = useProjectStore(state => state.cleanup);
+
+  const hourAllocations = useInvoiceStore(state => state.hourAllocations);
+  const hourPackages = useInvoiceStore(state => state.hourPackages);
+  const initInvoices = useInvoiceStore(state => state.initialize);
+  const cleanupInvoices = useInvoiceStore(state => state.cleanup);
+
+  const getUserById = useSettingsStore(state => state.getUserById);
 
   // Initialize project and invoice stores on mount
   useEffect(() => {
