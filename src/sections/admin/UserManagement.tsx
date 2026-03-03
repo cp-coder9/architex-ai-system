@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useSettingsStore } from '@/store';
 import { User, UserRole } from '@/types';
@@ -289,24 +289,34 @@ export function UserManagement() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [defaultRole, setDefaultRole] = useState<UserRole>('client');
 
-  // Initialize the store on component mount
-  useEffect(() => {
+  // Memoize stats to prevent infinite re-renders
+  const stats = useMemo(() => getUserStats(), [users]);
+
+  // Wrap initialize and cleanup with useCallback to prevent dependency changes
+  const handleInitialize = useCallback(() => {
     console.log('[UserManagement] Component mounted, calling initialize()...');
     initialize();
+  }, [initialize]);
+
+  const handleCleanup = useCallback(() => {
+    console.log('[UserManagement] Component unmounting, calling cleanup()...');
+    cleanup();
+  }, [cleanup]);
+
+  // Initialize the store on component mount
+  useEffect(() => {
+    handleInitialize();
     
     return () => {
-      console.log('[UserManagement] Component unmounting, calling cleanup()...');
-      cleanup();
+      handleCleanup();
     };
-  }, [initialize, cleanup]);
+  }, [handleInitialize, handleCleanup]);
 
   // Log users state changes
   useEffect(() => {
     console.log('[UserManagement] Users state updated:', users);
     console.log('[UserManagement] Total users:', users.length);
   }, [users]);
-
-  const stats = getUserStats();
 
   // Filter users
   const filteredUsers = users.filter(user => {
