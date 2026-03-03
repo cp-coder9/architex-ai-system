@@ -281,9 +281,9 @@ export function ProjectRequests() {
   const filteredRequests = useMemo(() => {
     return projectRequests.filter(request => {
       const matchesSearch =
-        request.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        request.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        request.description.toLowerCase().includes(searchQuery.toLowerCase());
+        (request.projectName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (request.clientName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (request.description || '').toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesTab = activeTab === 'all' || request.status === activeTab;
 
