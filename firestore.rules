@@ -11,19 +11,24 @@ service cloud.firestore {
     }
 
     function getUserRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      let userDoc = /databases/$(database)/documents/users/$(request.auth.uid);
+      return get(userDoc).data.role;
+    }
+
+    function isValidUser() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
     function isAdmin() {
-      return isAuthenticated() && getUserRole() == 'admin';
+      return isAuthenticated() && isValidUser() && getUserRole() == 'admin';
     }
 
     function isClient() {
-      return isAuthenticated() && getUserRole() == 'client';
+      return isAuthenticated() && isValidUser() && getUserRole() == 'client';
     }
 
     function isFreelancer() {
-      return isAuthenticated() && getUserRole() == 'freelancer';
+      return isAuthenticated() && isValidUser() && getUserRole() == 'freelancer';
     }
 
     function isProjectMember(projectId) {
