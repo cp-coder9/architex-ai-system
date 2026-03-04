@@ -62,17 +62,15 @@ function InvoiceDetailDialog({
   onMarkAsPaid,
   onMarkAsSent,
 }: {
-  invoice: Invoice | null;
+  invoice: Invoice;
   isOpen: boolean;
   onClose: () => void;
   onMarkAsPaid: () => void;
   onMarkAsSent: () => void;
 }) {
   const timeEntries = useProjectStore(state =>
-    state.timeEntries.filter(te => invoice?.timeEntries.includes(te.id))
+    state.timeEntries.filter(te => invoice.timeEntries.includes(te.id))
   );
-
-  if (!invoice) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -791,16 +789,18 @@ export function InvoiceManagement() {
       </Card>
 
       {/* Invoice Detail Dialog */}
-      <InvoiceDetailDialog
-        invoice={selectedInvoice}
-        isOpen={isDetailOpen}
-        onClose={() => {
-          setIsDetailOpen(false);
-          setSelectedInvoice(null);
-        }}
-        onMarkAsPaid={handleMarkAsPaid}
-        onMarkAsSent={handleMarkAsSent}
-      />
+      {selectedInvoice && (
+        <InvoiceDetailDialog
+          invoice={selectedInvoice}
+          isOpen={isDetailOpen}
+          onClose={() => {
+            setIsDetailOpen(false);
+            setSelectedInvoice(null);
+          }}
+          onMarkAsPaid={handleMarkAsPaid}
+          onMarkAsSent={handleMarkAsSent}
+        />
+      )}
 
       <GenerateInvoiceDialog
         isOpen={isGenerateOpen}
