@@ -38,7 +38,6 @@ import {
     CheckCircle2,
     FilePlus,
     Upload,
-    X,
     FileText,
     Image,
     File,

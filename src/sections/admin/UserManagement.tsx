@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useSettingsStore } from '@/store';
 import { User, UserRole } from '@/types';
@@ -24,7 +24,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -50,7 +49,6 @@ import {
   Trash2,
   UserCheck,
   UserX,
-  Mail,
   Building2,
   HardHat,
   Shield,

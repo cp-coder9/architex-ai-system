@@ -422,6 +422,8 @@ export const useAuthStore = create<AuthState>()(
             currentUser: null,
             isAuthenticated: false,
             firebaseUser: null,
+            tempOnboardingData: null,
+            credentialsToNote: null,
             error: null,
             isLoading: false,
           });
@@ -484,6 +486,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         currentUser: state.currentUser,
         isAuthenticated: state.isAuthenticated,
+        tempOnboardingData: state.tempOnboardingData,
       }),
       // Custom serialization/deserialization to handle Date objects
       onRehydrateStorage: () => (state) => {

@@ -25,6 +25,7 @@ import {
   Loader2,
   CheckCircle2
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 // 3D Architectural Wireframe Component
 function ArchitecturalWireframe() {
@@ -149,7 +150,7 @@ function BackgroundScene() {
 export function LoginScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, register, isLoading, error, clearError, tempOnboardingData, setTempOnboardingData } = useAuthStore();
+  const { login, register, isLoading, error, clearError, currentUser, tempOnboardingData, setTempOnboardingData } = useAuthStore();
   const { createRequest } = useProjectRequestStore();
 
   const [activeTab, setActiveTab] = useState('login');
@@ -194,13 +195,24 @@ export function LoginScreen() {
     if (success) {
       // If we have onboarding data, create a project request for the new client
       if (selectedRole === 'client' && tempOnboardingData) {
+        console.log('[LoginScreen] Onboarding data found, creating project request...');
         try {
           const serviceLabel = tempOnboardingData.serviceType === 'other'
             ? tempOnboardingData.customServiceDescription
             : tempOnboardingData.serviceType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
+          // Get the newly created user from the store state to ensure we have the ID
+          const newUser = useAuthStore.getState().currentUser;
+
+          if (!newUser) {
+            console.error('[LoginScreen] Cannot create project request: newUser is null');
+            return;
+          }
+
+          console.log('[LoginScreen] Creating request for clientId:', newUser.id);
+
           await createRequest({
-            clientId: registerEmail,
+            clientId: newUser.id,
             clientName: `${tempOnboardingData.personalDetails.firstName} ${tempOnboardingData.personalDetails.surname}`,
             clientEmail: registerEmail,
             projectName: `${serviceLabel} - ${tempOnboardingData.propertyDetails.physicalAddress.city}`,
@@ -228,15 +240,18 @@ export function LoginScreen() {
               size: file.size
             }))
           });
+
+          console.log('[LoginScreen] Project request created successfully');
           // Clear onboarding data
           setTempOnboardingData(null);
         } catch (err) {
           console.error('[Login] Project request creation failed:', err);
+          toast.error('Failed to create project request, but your account was created successfully.');
         }
       }
 
       const route = selectedRole === 'admin' ? '/admin' : selectedRole === 'client' ? '/client' : '/freelancer';
-      
+
       // Pass onboarding data via router state for newly registered clients
       if (selectedRole === 'client' && tempOnboardingData) {
         navigate(route, { state: { onboardingData: tempOnboardingData } });

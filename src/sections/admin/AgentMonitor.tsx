@@ -33,12 +33,9 @@ import {
   Workflow,
   GitBranch,
   Target,
-  TrendingUp,
-  TrendingDown,
   AlertOctagon,
 } from 'lucide-react';
 import {
-  getAllAgents,
   getOrchestratorStatus,
   getTaskDelegationFlow,
   getConflictResolution,
@@ -885,35 +882,35 @@ export function AgentMonitor() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {isLoading && agents.length === 0 ? (
-                <div className="col-span-full flex flex-col items-center justify-center p-12 border rounded-xl bg-muted/50">
-                  <RefreshCw className="w-8 h-8 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground font-medium">Loading agents metrics...</p>
-                </div>
-              ) : agents.length === 0 ? (
-                <div className="col-span-full flex flex-col items-center justify-center p-12 border rounded-xl bg-muted/50">
-                  <Bot className="w-8 h-8 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground font-medium">No agents active in the system yet.</p>
-                </div>
-              ) : (
-                agents.map((agent, index) => (
-                  <motion.div
-                    key={agent.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <AgentCard
-                      agent={agent}
-                      onView={() => {
-                        setSelectedAgent(agent);
-                        setIsAgentDialogOpen(true);
-                      }}
-                      onToggle={() => handleToggleAgent(agent.id)}
-                    />
-                  </motion.div>
-                ))
-              )}
-            </div>
+              <div className="col-span-full flex flex-col items-center justify-center p-12 border rounded-xl bg-muted/50">
+                <RefreshCw className="w-8 h-8 animate-spin text-primary mb-4" />
+                <p className="text-muted-foreground font-medium">Loading agents metrics...</p>
+              </div>
+            ) : agents.length === 0 ? (
+              <div className="col-span-full flex flex-col items-center justify-center p-12 border rounded-xl bg-muted/50">
+                <Bot className="w-8 h-8 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground font-medium">No agents active in the system yet.</p>
+              </div>
+            ) : (
+              agents.map((agent, index) => (
+                <motion.div
+                  key={agent.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <AgentCard
+                    agent={agent}
+                    onView={() => {
+                      setSelectedAgent(agent);
+                      setIsAgentDialogOpen(true);
+                    }}
+                    onToggle={() => handleToggleAgent(agent.id)}
+                  />
+                </motion.div>
+              ))
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="checks">

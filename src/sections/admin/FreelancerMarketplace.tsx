@@ -46,11 +46,7 @@ import {
   CheckCircle2,
   XCircle,
   Eye,
-  MoreHorizontal,
-  Wrench,
-  Filter,
   FileText,
-  ArrowRightCircle,
 } from 'lucide-react';
 
 // Task status colors
@@ -506,7 +502,7 @@ function ApplicationDetailDialog({
           <p className="text-sm text-muted-foreground">Applied on {new Date(application.appliedAt).toLocaleDateString()}</p>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <p className="text-sm text-muted-foreground">Task</p>
@@ -537,14 +533,14 @@ function ApplicationDetailDialog({
           </div>
         )}
       </div>
-      
+
       <div>
         <p className="text-sm text-muted-foreground mb-2">Cover Letter</p>
         <div className="p-4 bg-muted rounded-lg">
           <p className="text-sm">{application.coverLetter}</p>
         </div>
       </div>
-      
+
       {application.adminNotes && (
         <div>
           <p className="text-sm text-muted-foreground mb-2">Admin Notes</p>
@@ -553,7 +549,7 @@ function ApplicationDetailDialog({
           </div>
         </div>
       )}
-      
+
       <DialogFooter>
         <Button variant="outline" onClick={onClose}>
           Close
@@ -571,7 +567,7 @@ function TaskDetailDialog({ task }: { task: Task }) {
         <h3 className="text-lg font-semibold">{task.title}</h3>
         <p className="text-muted-foreground mt-1">{task.description}</p>
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <p className="text-sm text-muted-foreground">Category</p>
@@ -610,7 +606,7 @@ function TaskDetailDialog({ task }: { task: Task }) {
           </Badge>
         </div>
       </div>
-      
+
       <div>
         <p className="text-sm text-muted-foreground mb-2">Required Skills</p>
         <div className="flex flex-wrap gap-2">
@@ -627,7 +623,7 @@ function TaskDetailDialog({ task }: { task: Task }) {
 
 // Empty State Component
 function EmptyState({ type }: { type: 'tasks' | 'applications' }) {
-  const message = type === 'tasks' 
+  const message = type === 'tasks'
     ? { title: 'No tasks found', description: 'Post a new task to get started with freelancer hiring.' }
     : { title: 'No applications', description: 'There are no applications for this task yet.' };
 
@@ -649,18 +645,18 @@ function EmptyState({ type }: { type: 'tasks' | 'applications' }) {
 export function FreelancerMarketplace() {
   const { tasks, applications, addTask, assignFreelancer, updateApplicationStatus, getApplicationsByTaskId } = useTaskStore();
   const { currentUser } = useAuthStore();
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<Task['status'] | 'all'>('all');
   const [activeTab, setActiveTab] = useState<'tasks' | 'applications'>('tasks');
-  
+
   // Dialog states
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
   const [isApplicationsOpen, setIsApplicationsOpen] = useState(false);
   const [isApplicationDetailOpen, setIsApplicationDetailOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
-  
+
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<TaskApplication | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -670,13 +666,13 @@ export function FreelancerMarketplace() {
   const filteredTasks = useMemo(() => {
     const query = (searchQuery || '').toLowerCase();
     return tasks.filter(task => {
-      const matchesSearch = 
+      const matchesSearch =
         (task.title || '').toLowerCase().includes(query) ||
         (task.description || '').toLowerCase().includes(query) ||
         (task.category || '').toLowerCase().includes(query);
-      
+
       const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
-      
+
       return matchesSearch && matchesStatus;
     });
   }, [tasks, searchQuery, statusFilter]);
@@ -767,7 +763,7 @@ export function FreelancerMarketplace() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -781,7 +777,7 @@ export function FreelancerMarketplace() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -795,7 +791,7 @@ export function FreelancerMarketplace() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -823,7 +819,7 @@ export function FreelancerMarketplace() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -847,7 +843,7 @@ export function FreelancerMarketplace() {
               <CardTitle>Marketplace Tasks</CardTitle>
               <CardDescription>Manage your posted tasks and review freelancer applications</CardDescription>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               {/* Search */}
               <div className="relative">
@@ -859,7 +855,7 @@ export function FreelancerMarketplace() {
                   className="pl-10 w-[200px]"
                 />
               </div>
-              
+
               {/* Status Filter */}
               <Select value={statusFilter} onValueChange={(v: Task['status'] | 'all') => setStatusFilter(v)}>
                 <SelectTrigger className="w-[150px]">
@@ -874,7 +870,7 @@ export function FreelancerMarketplace() {
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               {/* Post Task Button */}
               <Button className="gap-2" onClick={() => setIsNewTaskOpen(true)}>
                 <Plus className="w-4 h-4" />
@@ -883,7 +879,7 @@ export function FreelancerMarketplace() {
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent>
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'tasks' | 'applications')} className="w-full">
             <TabsList className="mb-4">
@@ -898,7 +894,7 @@ export function FreelancerMarketplace() {
                 <Badge variant="secondary" className="ml-1">{stats.pendingApplications}</Badge>
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="tasks">
               <ScrollArea className="h-[500px]">
                 {filteredTasks.length === 0 ? (
@@ -911,7 +907,7 @@ export function FreelancerMarketplace() {
                 )}
               </ScrollArea>
             </TabsContent>
-            
+
             <TabsContent value="applications">
               <ScrollArea className="h-[500px]">
                 {applications.length === 0 ? (

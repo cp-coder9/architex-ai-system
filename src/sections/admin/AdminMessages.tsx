@@ -22,26 +22,15 @@ import {
   MessageSquare,
   Send,
   Paperclip,
-  MoreVertical,
-  Phone,
-  Video,
   Search,
   Clock,
-  CheckCheck,
   Check,
-  Building2,
-  Users,
   Bell,
-  Filter,
   CheckCircle2,
-  AlertCircle,
   Info,
-  X,
-  Plus,
   FolderKanban,
   Bot,
   FileText,
-  Trash2,
 } from 'lucide-react';
 
 // Notification type options for filtering
@@ -330,8 +319,8 @@ export function AdminMessages() {
                             key={project.id}
                             onClick={() => setSelectedProject(project)}
                             className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${selectedProject?.id === project.id
-                                ? 'bg-primary text-primary-foreground'
-                                : 'hover:bg-muted'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'hover:bg-muted'
                               }`}
                           >
                             <div className="relative">
@@ -452,8 +441,8 @@ export function AdminMessages() {
                                   )}
                                   <div
                                     className={`px-4 py-2 rounded-2xl ${isMe
-                                        ? 'bg-primary text-primary-foreground rounded-br-none'
-                                        : 'bg-muted rounded-bl-none'
+                                      ? 'bg-primary text-primary-foreground rounded-br-none'
+                                      : 'bg-muted rounded-bl-none'
                                       }`}
                                   >
                                     {!isMe && (
@@ -654,8 +643,8 @@ export function AdminMessages() {
                             exit={{ opacity: 0, x: 20 }}
                             transition={{ delay: index * 0.05 }}
                             className={`group flex items-start gap-3 p-4 rounded-lg border transition-colors ${notification.read
-                                ? 'bg-background hover:bg-muted/50'
-                                : 'bg-primary/5 border-primary/20 hover:bg-primary/10'
+                              ? 'bg-background hover:bg-muted/50'
+                              : 'bg-primary/5 border-primary/20 hover:bg-primary/10'
                               }`}
                           >
                             <div className={`p-2 rounded-lg shrink-0 ${colorClass}`}>

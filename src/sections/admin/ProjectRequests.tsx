@@ -45,9 +45,7 @@ import {
   ArrowRightCircle,
   DollarSign,
   Calendar,
-  User,
   Building2,
-  MapPin,
   FileText,
   Loader2,
 } from 'lucide-react';
@@ -160,9 +158,9 @@ function ProjectRequestTable({
             </TableCell>
             <TableCell>
               <div className="flex flex-col">
-                <span>{new Date(request.createdAt).toLocaleDateString()}</span>
+                <span>{request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'Pending...'}</span>
                 <span className="text-xs text-muted-foreground">
-                  {new Date(request.createdAt).toLocaleTimeString()}
+                  {request.createdAt ? new Date(request.createdAt).toLocaleTimeString() : ''}
                 </span>
               </div>
             </TableCell>
@@ -268,6 +266,8 @@ function EmptyState({ tab }: { tab: string }) {
 export function ProjectRequests() {
   const { currentUser } = useAuthStore();
   const projectRequests = useProjectRequestStore(state => state.projectRequests);
+  const isLoading = useProjectRequestStore(state => state.isLoading);
+  const error = useProjectRequestStore(state => state.error);
   const approveRequest = useProjectRequestStore(state => state.approveRequest);
   const rejectRequest = useProjectRequestStore(state => state.rejectRequest);
   const convertToProject = useProjectRequestStore(state => state.convertToProject);
@@ -360,7 +360,7 @@ export function ProjectRequests() {
           hoursAllocated: selectedRequest.hoursRequested,
           budget: selectedRequest.budget,
         });
-        
+
         await convertToProject(selectedRequest.id, createdProject.id);
         toast.success(`Converted to project ${createdProject.id}`);
         setIsConvertDialogOpen(false);
@@ -514,7 +514,25 @@ export function ProjectRequests() {
 
             <TabsContent value={activeTab}>
               <ScrollArea className="h-[500px]">
-                {filteredRequests.length === 0 ? (
+                {isLoading ? (
+                  <div className="flex flex-col items-center justify-center h-[400px] gap-4">
+                    <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                    <p className="text-muted-foreground animate-pulse">Fetching project requests...</p>
+                  </div>
+                ) : error ? (
+                  <div className="flex flex-col items-center justify-center h-[400px] gap-4 text-center px-6">
+                    <div className="p-4 bg-red-100 rounded-full">
+                      <XCircle className="w-12 h-12 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-red-900 mb-1">Error Loading Requests</h3>
+                      <p className="text-muted-foreground max-w-sm">{error}</p>
+                    </div>
+                    <Button variant="outline" onClick={() => useProjectRequestStore.getState().initialize()}>
+                      Try Again
+                    </Button>
+                  </div>
+                ) : filteredRequests.length === 0 ? (
                   <EmptyState tab={activeTab} />
                 ) : (
                   <ProjectRequestTable

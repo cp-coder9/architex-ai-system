@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom';
-import { useAuthStore } from '@/store';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import {

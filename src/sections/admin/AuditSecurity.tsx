@@ -35,7 +35,6 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  RefreshCw,
 } from 'lucide-react';
 import { AuditLog, SecurityEvent } from '@/types';
 import { db } from '@/config/firebase';
@@ -306,73 +305,73 @@ export function AuditSecurity() {
     };
   }, []);
 
-   // Filter audit logs
-   const filteredLogs = useMemo(() => {
-     const query = (searchQuery || '').toLowerCase();
-     return auditLogs.filter(log => {
-       const matchesSearch = 
-         (log.actorName || '').toLowerCase().includes(query) ||
-         (log.action || '').toLowerCase().includes(query) ||
-         (log.details || '').toLowerCase().includes(query);
-       
-       const matchesCategory = categoryFilter === 'all' || log.category === categoryFilter;
-       const matchesSeverity = severityFilter === 'all' || log.severity === severityFilter;
-       
-       let matchesDate = true;
-       if (dateRange !== 'all') {
-         const now = new Date();
-         const logDate = new Date(log.timestamp);
-         switch (dateRange) {
-           case 'today':
-             matchesDate = logDate.toDateString() === now.toDateString();
-             break;
-           case 'week':
-             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-             matchesDate = logDate >= weekAgo;
-             break;
-           case 'month':
-             const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-             matchesDate = logDate >= monthAgo;
-             break;
-         }
-       }
-       
-       return matchesSearch && matchesCategory && matchesSeverity && matchesDate;
-     });
-   }, [auditLogs, searchQuery, categoryFilter, severityFilter, dateRange]);
+  // Filter audit logs
+  const filteredLogs = useMemo(() => {
+    const query = (searchQuery || '').toLowerCase();
+    return auditLogs.filter(log => {
+      const matchesSearch =
+        (log.actorName || '').toLowerCase().includes(query) ||
+        (log.action || '').toLowerCase().includes(query) ||
+        (log.details || '').toLowerCase().includes(query);
 
-   // Filter security events
-   const filteredEvents = useMemo(() => {
-     const query = (searchQuery || '').toLowerCase();
-     return securityEvents.filter(event => {
-       const matchesSearch = 
-         (event.userName || '').toLowerCase().includes(query) ||
-         (event.description || '').toLowerCase().includes(query);
-       
-       const matchesSeverity = severityFilter === 'all' || event.severity === severityFilter;
-       
-       let matchesDate = true;
-       if (dateRange !== 'all') {
-         const now = new Date();
-         const eventDate = new Date(event.timestamp);
-         switch (dateRange) {
-           case 'today':
-             matchesDate = eventDate.toDateString() === now.toDateString();
-             break;
-           case 'week':
-             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-             matchesDate = eventDate >= weekAgo;
-             break;
-           case 'month':
-             const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-             matchesDate = eventDate >= monthAgo;
-             break;
-         }
-       }
-       
-       return matchesSearch && matchesSeverity && matchesDate;
-     });
-   }, [securityEvents, searchQuery, severityFilter, dateRange]);
+      const matchesCategory = categoryFilter === 'all' || log.category === categoryFilter;
+      const matchesSeverity = severityFilter === 'all' || log.severity === severityFilter;
+
+      let matchesDate = true;
+      if (dateRange !== 'all') {
+        const now = new Date();
+        const logDate = new Date(log.timestamp);
+        switch (dateRange) {
+          case 'today':
+            matchesDate = logDate.toDateString() === now.toDateString();
+            break;
+          case 'week':
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            matchesDate = logDate >= weekAgo;
+            break;
+          case 'month':
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            matchesDate = logDate >= monthAgo;
+            break;
+        }
+      }
+
+      return matchesSearch && matchesCategory && matchesSeverity && matchesDate;
+    });
+  }, [auditLogs, searchQuery, categoryFilter, severityFilter, dateRange]);
+
+  // Filter security events
+  const filteredEvents = useMemo(() => {
+    const query = (searchQuery || '').toLowerCase();
+    return securityEvents.filter(event => {
+      const matchesSearch =
+        (event.userName || '').toLowerCase().includes(query) ||
+        (event.description || '').toLowerCase().includes(query);
+
+      const matchesSeverity = severityFilter === 'all' || event.severity === severityFilter;
+
+      let matchesDate = true;
+      if (dateRange !== 'all') {
+        const now = new Date();
+        const eventDate = new Date(event.timestamp);
+        switch (dateRange) {
+          case 'today':
+            matchesDate = eventDate.toDateString() === now.toDateString();
+            break;
+          case 'week':
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            matchesDate = eventDate >= weekAgo;
+            break;
+          case 'month':
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            matchesDate = eventDate >= monthAgo;
+            break;
+        }
+      }
+
+      return matchesSearch && matchesSeverity && matchesDate;
+    });
+  }, [securityEvents, searchQuery, severityFilter, dateRange]);
 
   const handleExportLogs = () => {
     toast.success('Audit logs exported successfully');
@@ -414,7 +413,7 @@ export function AuditSecurity() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -428,7 +427,7 @@ export function AuditSecurity() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -442,7 +441,7 @@ export function AuditSecurity() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -466,7 +465,7 @@ export function AuditSecurity() {
               <CardTitle>Activity Monitor</CardTitle>
               <CardDescription>View and filter system audit logs and security events</CardDescription>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               {/* Search */}
               <div className="relative">
@@ -478,7 +477,7 @@ export function AuditSecurity() {
                   className="pl-10 w-[200px]"
                 />
               </div>
-              
+
               {/* Category Filter */}
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-[130px]">
@@ -495,7 +494,7 @@ export function AuditSecurity() {
                   <SelectItem value="system">System</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               {/* Severity Filter */}
               <Select value={severityFilter} onValueChange={setSeverityFilter}>
                 <SelectTrigger className="w-[130px]">
@@ -511,7 +510,7 @@ export function AuditSecurity() {
                   <SelectItem value="warning">Warning</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               {/* Date Range */}
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="w-[130px]">
@@ -525,7 +524,7 @@ export function AuditSecurity() {
                   <SelectItem value="month">Last 30 Days</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               {/* Export Buttons */}
               <Button variant="outline" onClick={handleExportLogs}>
                 <Download className="w-4 h-4 mr-2" />
@@ -538,7 +537,7 @@ export function AuditSecurity() {
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent>
           <Tabs defaultValue="audit-logs" className="w-full">
             <TabsList className="mb-4">
@@ -555,7 +554,7 @@ export function AuditSecurity() {
                 Reports
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="audit-logs">
               <ScrollArea className="h-[500px]">
                 {filteredLogs.length === 0 ? (
@@ -571,7 +570,7 @@ export function AuditSecurity() {
                 )}
               </ScrollArea>
             </TabsContent>
-            
+
             <TabsContent value="security-events">
               <ScrollArea className="h-[500px]">
                 {filteredEvents.length === 0 ? (
@@ -587,13 +586,13 @@ export function AuditSecurity() {
                 )}
               </ScrollArea>
             </TabsContent>
-            
+
             <TabsContent value="reports">
               <div className="flex flex-col items-center justify-center h-[400px] text-center">
                 <FileText className="w-16 h-16 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold mb-2">Generate Reports</h3>
                 <p className="text-muted-foreground mb-4 max-w-md">
-                  Generate comprehensive security reports including audit logs, 
+                  Generate comprehensive security reports including audit logs,
                   security events, and compliance summaries.
                 </p>
                 <div className="flex gap-3">

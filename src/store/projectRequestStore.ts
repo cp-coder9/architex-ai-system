@@ -44,7 +44,7 @@ const PROJECT_REQUESTS_COLLECTION = 'projectRequests';
 function convertTimestamps(data: Record<string, unknown>): Record<string, unknown> {
   const result = { ...data };
   const dateFields = ['createdAt', 'updatedAt', 'approvedAt', 'rejectedAt', 'convertedAt'];
-  
+
   for (const field of dateFields) {
     if (result[field] instanceof Timestamp) {
       result[field] = result[field].toDate();
@@ -80,6 +80,7 @@ export const useProjectRequestStore = create<ProjectRequestState>((set, get) => 
           id: doc.id,
           ...convertTimestamps(doc.data()),
         })) as ProjectRequest[];
+        console.log('[ProjectRequestStore] Received project requests update:', projectRequests.length, 'requests');
         set({ projectRequests, isLoading: false });
       },
       (error) => {
@@ -129,7 +130,9 @@ export const useProjectRequestStore = create<ProjectRequestState>((set, get) => 
         updatedAt: serverTimestamp(),
       };
 
+      console.log('[ProjectRequestStore] Creating request document in Firestore...');
       const docRef = await addDoc(collection(db, PROJECT_REQUESTS_COLLECTION), newRequest);
+      console.log('[ProjectRequestStore] Request document created with ID:', docRef.id);
 
       const createdRequest: ProjectRequest = {
         id: docRef.id,

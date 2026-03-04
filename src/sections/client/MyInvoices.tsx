@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  Download,
   Printer,
 } from 'lucide-react';
 import {

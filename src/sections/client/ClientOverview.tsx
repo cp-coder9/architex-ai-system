@@ -16,10 +16,10 @@ import {
   CheckCircle2,
   ArrowRight,
   Plus,
-  Eye,
-  Building2,
   BarChart3,
   Zap,
+  Eye,
+  Building2,
   FileCheck2,
   FilePlus,
   PenTool,
@@ -407,7 +407,7 @@ export function ClientOverview() {
   const storeOnboardingData = authStore.tempOnboardingData;
   // Use router state if available, otherwise fall back to store (for backwards compatibility)
   const tempOnboardingData = routerOnboardingData || storeOnboardingData;
-  
+
   const allProjects = useProjectStore(state => state.projects);
   const allDrawings = useProjectStore(state => state.drawings);
   const allInvoices = useInvoiceStore(state => state.invoices);
