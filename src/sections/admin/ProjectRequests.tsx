@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useProjectRequestStore, useAuthStore } from '@/store';
+import { useProjectRequestStore, useAuthStore, useProjectStore } from '@/store';
 import { ProjectRequest, ProjectRequestStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,6 +49,7 @@ import {
   Building2,
   MapPin,
   FileText,
+  Loader2,
 } from 'lucide-react';
 
 // Project Request Table Component
@@ -270,6 +271,7 @@ export function ProjectRequests() {
   const approveRequest = useProjectRequestStore(state => state.approveRequest);
   const rejectRequest = useProjectRequestStore(state => state.rejectRequest);
   const convertToProject = useProjectRequestStore(state => state.convertToProject);
+  const createProject = useProjectStore(state => state.createProject);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<ProjectRequestStatus | 'all'>('all');
@@ -280,6 +282,7 @@ export function ProjectRequests() {
   const [isConvertDialogOpen, setIsConvertDialogOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<ProjectRequest | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [isConverting, setIsConverting] = useState(false);
 
   // Filter requests
   const filteredRequests = useMemo(() => {
@@ -345,13 +348,29 @@ export function ProjectRequests() {
     }
   };
 
-  const confirmConvert = () => {
+  const confirmConvert = async () => {
     if (selectedRequest) {
-      const newProjectId = `proj-${Date.now()}`;
-      convertToProject(selectedRequest.id, newProjectId);
-      toast.success(`Project request converted to project ${newProjectId}`);
-      setIsConvertDialogOpen(false);
-      setSelectedRequest(null);
+      setIsConverting(true);
+      try {
+        const createdProject = await createProject({
+          name: selectedRequest.projectName,
+          clientId: selectedRequest.clientId,
+          description: selectedRequest.description,
+          projectType: selectedRequest.projectType,
+          hoursAllocated: selectedRequest.hoursRequested,
+          budget: selectedRequest.budget,
+        });
+        
+        await convertToProject(selectedRequest.id, createdProject.id);
+        toast.success(`Converted to project ${createdProject.id}`);
+        setIsConvertDialogOpen(false);
+        setSelectedRequest(null);
+      } catch (error) {
+        console.error('Error converting project request:', error);
+        toast.error('Failed to convert project request');
+      } finally {
+        setIsConverting(false);
+      }
     }
   };
 
@@ -620,12 +639,21 @@ export function ProjectRequests() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsConvertDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsConvertDialogOpen(false)} disabled={isConverting}>
               Cancel
             </Button>
-            <Button onClick={confirmConvert}>
-              <ArrowRightCircle className="w-4 h-4 mr-2" />
-              Convert to Project
+            <Button onClick={confirmConvert} disabled={isConverting}>
+              {isConverting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Converting...
+                </>
+              ) : (
+                <>
+                  <ArrowRightCircle className="w-4 h-4 mr-2" />
+                  Convert to Project
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
