@@ -8,6 +8,7 @@ import {
   updateDoc,
   deleteDoc,
   query,
+  where,
   orderBy,
   onSnapshot,
   Unsubscribe,
@@ -22,7 +23,7 @@ interface ProjectRequestState {
   unsubscribeRequests: Unsubscribe | null;
 
   // Initialization
-  initialize: () => void;
+  initialize: (userId: string, role: string) => void;
   cleanup: () => void;
 
   // Actions
@@ -59,7 +60,7 @@ export const useProjectRequestStore = create<ProjectRequestState>((set, get) => 
   error: null,
   unsubscribeRequests: null,
 
-  initialize: () => {
+  initialize: (userId: string, role: string) => {
     if (!isFirebaseConfigured() || !db) {
       console.warn('[ProjectRequestStore] Firebase not configured, using empty arrays');
       return;
@@ -67,14 +68,24 @@ export const useProjectRequestStore = create<ProjectRequestState>((set, get) => 
 
     set({ isLoading: true, error: null });
 
-    // Subscribe to project requests collection
-    const requestsQuery = query(
-      collection(db, PROJECT_REQUESTS_COLLECTION),
-      orderBy('createdAt', 'desc')
-    );
+    // Build query based on role
+    let baseQuery;
+    if (role === 'admin') {
+      baseQuery = query(
+        collection(db, PROJECT_REQUESTS_COLLECTION),
+        orderBy('createdAt', 'desc')
+      );
+    } else {
+      // Clients only see their own requests
+      baseQuery = query(
+        collection(db, PROJECT_REQUESTS_COLLECTION),
+        where('clientId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+    }
 
     const unsubscribeRequests = onSnapshot(
-      requestsQuery,
+      baseQuery,
       (snapshot) => {
         const projectRequests = snapshot.docs.map((doc) => ({
           id: doc.id,
@@ -110,25 +121,27 @@ export const useProjectRequestStore = create<ProjectRequestState>((set, get) => 
     set({ isLoading: true });
 
     try {
-      const newRequest = {
+      // Remove undefined fields to prevent Firestore errors
+      const newRequest: any = {
         clientId: requestData.clientId!,
         clientName: requestData.clientName!,
         clientEmail: requestData.clientEmail!,
-        freelancerId: requestData.freelancerId,
-        freelancerName: requestData.freelancerName,
         projectName: requestData.projectName!,
         description: requestData.description || '',
         projectType: requestData.projectType || 'residential',
         hoursRequested: requestData.hoursRequested || 0,
         budget: requestData.budget || 0,
         status: 'pending' as ProjectRequestStatus,
-        address: requestData.address,
-        propertyDetails: requestData.propertyDetails,
-        serviceDetails: requestData.serviceDetails,
-        attachments: requestData.attachments,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
+
+      if (requestData.freelancerId) newRequest.freelancerId = requestData.freelancerId;
+      if (requestData.freelancerName) newRequest.freelancerName = requestData.freelancerName;
+      if (requestData.address) newRequest.address = requestData.address;
+      if (requestData.propertyDetails) newRequest.propertyDetails = requestData.propertyDetails;
+      if (requestData.serviceDetails) newRequest.serviceDetails = requestData.serviceDetails;
+      if (requestData.attachments) newRequest.attachments = requestData.attachments;
 
       console.log('[ProjectRequestStore] Creating request document in Firestore...');
       const docRef = await addDoc(collection(db, PROJECT_REQUESTS_COLLECTION), newRequest);

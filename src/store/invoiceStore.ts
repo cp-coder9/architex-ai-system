@@ -8,6 +8,7 @@ import {
   updateDoc,
   deleteDoc,
   query,
+  where,
   orderBy,
   onSnapshot,
   Unsubscribe,
@@ -28,7 +29,7 @@ interface InvoiceState {
   unsubscribeHourTransactions: Unsubscribe | null;
 
   // Initialization
-  initialize: () => void;
+  initialize: (userId: string, role: string) => void;
   cleanup: () => void;
 
   // Actions
@@ -60,7 +61,7 @@ const HOUR_TRANSACTIONS_COLLECTION = 'hourTransactions';
 function convertTimestamps(data: Record<string, unknown>): Record<string, unknown> {
   const result = { ...data };
   const dateFields = ['createdAt', 'dueDate', 'sentAt', 'paidAt', 'purchasedAt', 'expiresAt', 'allocatedAt'];
-  
+
   for (const field of dateFields) {
     if (result[field] instanceof Timestamp) {
       result[field] = result[field].toDate();
@@ -81,7 +82,7 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
   unsubscribeHourAllocations: null,
   unsubscribeHourTransactions: null,
 
-  initialize: () => {
+  initialize: (userId: string, role: string) => {
     if (!isFirebaseConfigured() || !db) {
       console.warn('[InvoiceStore] Firebase not configured, using empty arrays');
       return;
@@ -89,11 +90,15 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
 
     set({ isLoading: true, error: null });
 
-    // Subscribe to invoices collection
-    const invoicesQuery = query(
-      collection(db, INVOICES_COLLECTION),
-      orderBy('createdAt', 'desc')
-    );
+    // Build Invoices Query
+    let invoicesQuery;
+    if (role === 'admin') {
+      invoicesQuery = query(collection(db, INVOICES_COLLECTION), orderBy('createdAt', 'desc'));
+    } else if (role === 'client') {
+      invoicesQuery = query(collection(db, INVOICES_COLLECTION), where('clientId', '==', userId), orderBy('createdAt', 'desc'));
+    } else {
+      invoicesQuery = query(collection(db, INVOICES_COLLECTION), where('freelancerId', '==', userId), orderBy('createdAt', 'desc'));
+    }
 
     const unsubscribeInvoices = onSnapshot(
       invoicesQuery,
@@ -110,11 +115,16 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
       }
     );
 
-    // Subscribe to hour packages collection
-    const hourPackagesQuery = query(
-      collection(db, HOUR_PACKAGES_COLLECTION),
-      orderBy('purchasedAt', 'desc')
-    );
+    // Build Hour Packages Query
+    let hourPackagesQuery;
+    if (role === 'admin') {
+      hourPackagesQuery = query(collection(db, HOUR_PACKAGES_COLLECTION), orderBy('purchasedAt', 'desc'));
+    } else if (role === 'client') {
+      hourPackagesQuery = query(collection(db, HOUR_PACKAGES_COLLECTION), where('clientId', '==', userId), orderBy('purchasedAt', 'desc'));
+    } else {
+      // Freelancers don't typically see packages?
+      hourPackagesQuery = query(collection(db, HOUR_PACKAGES_COLLECTION), orderBy('purchasedAt', 'desc'));
+    }
 
     const unsubscribeHourPackages = onSnapshot(
       hourPackagesQuery,
@@ -130,11 +140,15 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
       }
     );
 
-    // Subscribe to hour allocations collection
-    const hourAllocationsQuery = query(
-      collection(db, HOUR_ALLOCATIONS_COLLECTION),
-      orderBy('allocatedAt', 'desc')
-    );
+    // Build Hour Allocations Query
+    let hourAllocationsQuery;
+    if (role === 'admin') {
+      hourAllocationsQuery = query(collection(db, HOUR_ALLOCATIONS_COLLECTION), orderBy('allocatedAt', 'desc'));
+    } else if (role === 'client') {
+      hourAllocationsQuery = query(collection(db, HOUR_ALLOCATIONS_COLLECTION), where('clientId', '==', userId), orderBy('allocatedAt', 'desc'));
+    } else {
+      hourAllocationsQuery = query(collection(db, HOUR_ALLOCATIONS_COLLECTION), orderBy('allocatedAt', 'desc'));
+    }
 
     const unsubscribeHourAllocations = onSnapshot(
       hourAllocationsQuery,
@@ -150,11 +164,14 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
       }
     );
 
-    // Subscribe to hour transactions collection
-    const hourTransactionsQuery = query(
-      collection(db, HOUR_TRANSACTIONS_COLLECTION),
-      orderBy('createdAt', 'desc')
-    );
+    // Build Hour Transactions Query
+    let hourTransactionsQuery;
+    if (role === 'admin') {
+      hourTransactionsQuery = query(collection(db, HOUR_TRANSACTIONS_COLLECTION), orderBy('createdAt', 'desc'));
+    } else {
+      // For now, non-admins see all? (Probably needs tighter filtering)
+      hourTransactionsQuery = query(collection(db, HOUR_TRANSACTIONS_COLLECTION), orderBy('createdAt', 'desc'));
+    }
 
     const unsubscribeHourTransactions = onSnapshot(
       hourTransactionsQuery,

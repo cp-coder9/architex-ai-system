@@ -27,12 +27,12 @@ export function StoreInitializer() {
 
     // Initialize all feature stores
     // These set up Firestore onSnapshot listeners for real-time data
-    useProjectStore.getState().initialize();
-    useSettingsStore.getState().initialize();
-    useProjectRequestStore.getState().initialize();
-    useInvoiceStore.getState().initialize();
-    useTaskStore.getState().initialize();
-    
+    useProjectStore.getState().initialize(userId, userRole);
+    useSettingsStore.getState().initialize(userId, userRole);
+    useProjectRequestStore.getState().initialize(userId, userRole);
+    useInvoiceStore.getState().initialize(userId, userRole);
+    useTaskStore.getState().initialize(userId, userRole);
+
     // Initialize notification store with userId filter for security
     // This ensures users only receive their own notifications
     useNotificationStore.getState().initialize(userId);
@@ -40,7 +40,7 @@ export function StoreInitializer() {
     // Cleanup function - called on unmount
     return () => {
       console.log('[StoreInitializer] Cleaning up stores');
-      
+
       useProjectStore.getState().cleanup();
       useSettingsStore.getState().cleanup();
       useProjectRequestStore.getState().cleanup();

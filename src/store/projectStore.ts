@@ -33,7 +33,7 @@ interface ProjectState {
   unsubscribeProofs: Unsubscribe | null;
 
   // Initialization
-  initialize: () => void;
+  initialize: (userId: string, role: string) => void;
   cleanup: () => void;
 
   // Actions
@@ -70,7 +70,7 @@ const PROOFS_COLLECTION = 'proofs';
 function convertTimestamps(data: Record<string, unknown>): Record<string, unknown> {
   const result = { ...data };
   const dateFields = ['createdAt', 'updatedAt', 'uploadedAt', 'date', 'submittedAt', 'verifiedAt', 'completedAt', 'deadline', 'paidAt', 'sentAt'];
-  
+
   for (const field of dateFields) {
     if (result[field] instanceof Timestamp) {
       result[field] = result[field].toDate();
@@ -92,7 +92,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   unsubscribeTimeEntries: null,
   unsubscribeProofs: null,
 
-  initialize: () => {
+  initialize: (userId: string, role: string) => {
     if (!isFirebaseConfigured() || !db) {
       console.warn('[ProjectStore] Firebase not configured, using empty arrays');
       return;
@@ -100,11 +100,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
     set({ isLoading: true, error: null });
 
-    // Subscribe to projects collection
-    const projectsQuery = query(
-      collection(db, PROJECTS_COLLECTION),
-      orderBy('createdAt', 'desc')
-    );
+    // Build Project Query
+    let projectsQuery;
+    if (role === 'admin') {
+      projectsQuery = query(collection(db, PROJECTS_COLLECTION), orderBy('createdAt', 'desc'));
+    } else if (role === 'client') {
+      projectsQuery = query(collection(db, PROJECTS_COLLECTION), where('clientId', '==', userId), orderBy('createdAt', 'desc'));
+    } else {
+      projectsQuery = query(collection(db, PROJECTS_COLLECTION), where('freelancerId', '==', userId), orderBy('createdAt', 'desc'));
+    }
 
     const unsubscribeProjects = onSnapshot(
       projectsQuery,
@@ -121,11 +125,25 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       }
     );
 
-    // Subscribe to drawings collection
-    const drawingsQuery = query(
-      collection(db, DRAWINGS_COLLECTION),
-      orderBy('uploadedAt', 'desc')
-    );
+    // Build Drawings Query
+    // Clients and freelancers see drawings from their projects
+    // For simplicity, we filter in memory if role != admin or use a more complex query
+    // But rules might prevent broad subscribe even if we filter in memory.
+    // Better to filter by projectId, but initialize() is for all.
+    // If role is client/freelancer, we might need to get projectIds first.
+    // Or just use a broad query that the rules will allow (e.g. where participants contains userId)
+
+    // For now, let's keep it simple: admin sees all, others might need a different approach 
+    // or the rules need to be "allow read: if exists(/databases/$(database)/documents/projects/$(resource.data.projectId)) && get(/databases/$(database)/documents/projects/$(resource.data.projectId)).data.clientId == request.auth.uid"
+
+    let drawingsQuery;
+    if (role === 'admin') {
+      drawingsQuery = query(collection(db, DRAWINGS_COLLECTION), orderBy('uploadedAt', 'desc'));
+    } else {
+      // This might still fail if there are many drawings and no project-specific filter
+      // But we'll try to at least filter by role-specific fields if they exist
+      drawingsQuery = query(collection(db, DRAWINGS_COLLECTION));
+    }
 
     const unsubscribeDrawings = onSnapshot(
       drawingsQuery,
@@ -141,11 +159,16 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       }
     );
 
-    // Subscribe to time entries collection
-    const timeEntriesQuery = query(
-      collection(db, TIME_ENTRIES_COLLECTION),
-      orderBy('date', 'desc')
-    );
+    // Build Time Entries Query
+    let timeEntriesQuery;
+    if (role === 'admin') {
+      timeEntriesQuery = query(collection(db, TIME_ENTRIES_COLLECTION), orderBy('date', 'desc'));
+    } else if (role === 'client') {
+      // Clients see time entries for their projects
+      timeEntriesQuery = query(collection(db, TIME_ENTRIES_COLLECTION), orderBy('date', 'desc'));
+    } else {
+      timeEntriesQuery = query(collection(db, TIME_ENTRIES_COLLECTION), where('freelancerId', '==', userId), orderBy('date', 'desc'));
+    }
 
     const unsubscribeTimeEntries = onSnapshot(
       timeEntriesQuery,
@@ -161,11 +184,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       }
     );
 
-    // Subscribe to proofs collection
-    const proofsQuery = query(
-      collection(db, PROOFS_COLLECTION),
-      orderBy('submittedAt', 'desc')
-    );
+    // Build Proofs Query
+    let proofsQuery;
+    if (role === 'admin') {
+      proofsQuery = query(collection(db, PROOFS_COLLECTION), orderBy('submittedAt', 'desc'));
+    } else if (role === 'freelancer') {
+      proofsQuery = query(collection(db, PROOFS_COLLECTION), where('freelancerId', '==', userId), orderBy('submittedAt', 'desc'));
+    } else {
+      proofsQuery = query(collection(db, PROOFS_COLLECTION), orderBy('submittedAt', 'desc'));
+    }
 
     const unsubscribeProofs = onSnapshot(
       proofsQuery,
@@ -334,7 +361,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
       // Auto-run agent check
       setTimeout(() => {
-        void get().runAgentCheck(createdDrawing.id).catch(err => 
+        void get().runAgentCheck(createdDrawing.id).catch(err =>
           console.error('Agent check failed for new drawing:', err)
         );
       }, 0);

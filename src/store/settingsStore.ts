@@ -40,7 +40,7 @@ interface SettingsState {
   unsubscribeUsers: Unsubscribe | null;
 
   // Initialization
-  initialize: () => void;
+  initialize: (userId: string, role: string) => void;
   cleanup: () => void;
 
   // Settings actions
@@ -153,18 +153,23 @@ export const useSettingsStore = create<SettingsState>()(
       error: null,
       unsubscribeUsers: null,
 
-      initialize: () => {
+      initialize: (userId: string, role: string) => {
         console.log('[SettingsStore] initialize() called');
 
         if (!isFirebaseConfigured() || !db) {
           console.warn('[SettingsStore] Firebase not configured, using empty arrays');
-          console.log('[SettingsStore] isFirebaseConfigured:', isFirebaseConfigured());
-          console.log('[SettingsStore] db:', db);
           return;
         }
 
         console.log('[SettingsStore] Firebase configured, setting up listeners...');
         set({ isLoading: true, error: null });
+
+        // Only admins can see the full users list
+        if (role !== 'admin') {
+          console.log('[SettingsStore] Skipping users listener for non-admin role:', role);
+          set({ isLoading: false });
+          return;
+        }
 
         // Subscribe to users collection
         const usersQuery = query(
@@ -182,7 +187,6 @@ export const useSettingsStore = create<SettingsState>()(
               ...doc.data(),
             }));
             console.log(`[SettingsStore] onSnapshot received ${rawUsers.length} users`);
-            console.log('[SettingsStore] Raw users data:', rawUsers);
 
             const users = rawUsers as User[];
             set({ users, isLoading: false });

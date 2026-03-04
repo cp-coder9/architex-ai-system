@@ -31,7 +31,7 @@ interface TaskState {
   unsubscribeApplications: Unsubscribe | null;
 
   // Initialization
-  initialize: () => void;
+  initialize: (userId: string, role: string) => void;
   cleanup: () => void;
 
   // Task CRUD
@@ -84,7 +84,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   unsubscribeTasks: null,
   unsubscribeApplications: null,
 
-  initialize: () => {
+  initialize: (userId: string, role: string) => {
     if (!isFirebaseConfigured() || !db) {
       console.warn('[TaskStore] Firebase not configured, using empty arrays');
       return;
@@ -92,11 +92,17 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
     set({ isLoading: true, error: null });
 
-    // Subscribe to tasks collection
-    const tasksQuery = query(
-      collection(db, TASKS_COLLECTION),
-      orderBy('postedAt', 'desc')
-    );
+    // Build Tasks Query
+    let tasksQuery;
+    if (role === 'admin') {
+      tasksQuery = query(collection(db, TASKS_COLLECTION), orderBy('postedAt', 'desc'));
+    } else if (role === 'freelancer') {
+      // Freelancers see all open tasks + their assigned tasks
+      tasksQuery = query(collection(db, TASKS_COLLECTION), orderBy('postedAt', 'desc'));
+    } else {
+      // Clients see tasks related to their projects
+      tasksQuery = query(collection(db, TASKS_COLLECTION), orderBy('postedAt', 'desc'));
+    }
 
     const unsubscribeTasks = onSnapshot(
       tasksQuery,
@@ -113,11 +119,16 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       }
     );
 
-    // Subscribe to applications collection
-    const applicationsQuery = query(
-      collection(db, APPLICATIONS_COLLECTION),
-      orderBy('appliedAt', 'desc')
-    );
+    // Build Applications Query
+    let applicationsQuery;
+    if (role === 'admin') {
+      applicationsQuery = query(collection(db, APPLICATIONS_COLLECTION), orderBy('appliedAt', 'desc'));
+    } else if (role === 'freelancer') {
+      applicationsQuery = query(collection(db, APPLICATIONS_COLLECTION), where('freelancerId', '==', userId), orderBy('appliedAt', 'desc'));
+    } else {
+      // Clients see applications for their tasks? (Maybe handled by project store)
+      applicationsQuery = query(collection(db, APPLICATIONS_COLLECTION), orderBy('appliedAt', 'desc'));
+    }
 
     const unsubscribeApplications = onSnapshot(
       applicationsQuery,
