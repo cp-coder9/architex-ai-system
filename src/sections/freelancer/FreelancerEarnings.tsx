@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import { subMonths, startOfMonth, endOfMonth, isWithinInterval, format } from 'date-fns';
+import { Freelancer } from '@/types';
 import { motion } from 'framer-motion';
 import { useAuthStore, useInvoiceStore, useProjectStore } from '@/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,17 +50,36 @@ export function FreelancerEarnings() {
     .reduce((sum, inv) => sum + inv.total, 0);
 
   const totalHours = timeEntries.reduce((sum, te) => sum + te.hours, 0);
-  const avgHourlyRate = 75; // Mock average rate
+  const avgHourlyRate = (currentUser as Freelancer)?.hourlyRate ?? 75;
 
   // Monthly data for chart
-  const monthlyData = [
-    { month: 'Jan', earnings: 4500, hours: 60 },
-    { month: 'Feb', earnings: 5200, hours: 70 },
-    { month: 'Mar', earnings: 4800, hours: 65 },
-    { month: 'Apr', earnings: 6100, hours: 82 },
-    { month: 'May', earnings: 5500, hours: 74 },
-    { month: 'Jun', earnings: thisMonthEarnings, hours: totalHours },
-  ];
+  const monthlyData = useMemo(() => {
+    return Array.from({ length: 6 }, (_, i) => {
+      const referenceDate = subMonths(new Date(), 5 - i);
+      const start = startOfMonth(referenceDate);
+      const end = endOfMonth(referenceDate);
+
+      const earnings = invoices.reduce((sum, inv) => {
+        if (inv.status === 'paid' && inv.paidAt && isWithinInterval(new Date(inv.paidAt), { start, end })) {
+          return sum + inv.total;
+        }
+        return sum;
+      }, 0);
+
+      const hours = invoices.reduce((sum, inv) => {
+        if (isWithinInterval(new Date(inv.createdAt), { start, end })) {
+          return sum + inv.hoursTotal;
+        }
+        return sum;
+      }, 0);
+
+      return {
+        month: format(referenceDate, 'MMM'),
+        earnings,
+        hours,
+      };
+    });
+  }, [invoices]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -179,7 +200,7 @@ export function FreelancerEarnings() {
                   </div>
                 </div>
                 <Progress
-                  value={(data.earnings / Math.max(...monthlyData.map(d => d.earnings))) * 100}
+                  value={(data.earnings / (Math.max(...monthlyData.map(d => d.earnings)) || 1)) * 100}
                   className="h-2"
                 />
               </motion.div>

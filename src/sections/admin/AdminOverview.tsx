@@ -24,7 +24,9 @@ import {
   Zap,
   BarChart3,
   MessageSquare,
+  RefreshCw,
 } from 'lucide-react';
+import { getAgentAccuracyMetrics, AgentAccuracyMetrics, AgentAccuracy, getAllAgents } from '@/lib/agentApi';
 
 // Animated Counter Component
 function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) {
@@ -127,9 +129,8 @@ function StatCard({
                 <AnimatedCounter value={value} prefix={prefix} suffix={suffix} />
               </h3>
               {trend && (
-                <div className={`flex items-center gap-1 mt-2 text-sm ${
-                  trend === 'up' ? 'text-green-500' : trend === 'down' ? 'text-red-500' : 'text-gray-500'
-                }`}>
+                <div className={`flex items-center gap-1 mt-2 text-sm ${trend === 'up' ? 'text-green-500' : trend === 'down' ? 'text-red-500' : 'text-gray-500'
+                  }`}>
                   {trend === 'up' ? <TrendingUp className="w-4 h-4" /> : trend === 'down' ? <TrendingDown className="w-4 h-4" /> : null}
                   <span>{trendValue}</span>
                 </div>
@@ -213,23 +214,26 @@ function RecentActivity() {
 
 // Agent Status Component
 function AgentStatus() {
-  // Get real agent check data from drawings
-  const drawings = useProjectStore(state => state.drawings);
-  
-  // Calculate real agent metrics from drawings
-  const agentChecks = drawings.filter(d => d.agentCheck);
-  const totalChecks = agentChecks.length;
-  const avgScore = totalChecks > 0 
-    ? Math.round(agentChecks.reduce((sum, d) => sum + (d.agentCheck?.overallScore || 0), 0) / totalChecks)
-    : 0;
-  
-  // Mock agent data for display - in production this would come from agentService
-  const [agents] = useState([
-    { id: 'agent-1', name: 'Drawing Validator Alpha', status: 'active', checksToday: totalChecks || 45, avgTime: '3.2s' },
-    { id: 'agent-2', name: 'Compliance Checker Beta', status: 'active', checksToday: Math.floor(totalChecks * 0.8) || 38, avgTime: '4.1s' },
-    { id: 'agent-3', name: 'Dimension Analyzer Gamma', status: totalChecks > 0 ? 'active' : 'idle', checksToday: Math.floor(totalChecks * 1.1) || 52, avgTime: '2.8s' },
-    { id: 'agent-4', name: 'Annotation Reviewer Delta', status: 'active', checksToday: Math.floor(totalChecks * 0.6) || 29, avgTime: '5.5s' },
-  ]);
+  const [metrics, setMetrics] = useState<AgentAccuracyMetrics | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const staticAgents = useMemo(() => getAllAgents(), []);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const data = await getAgentAccuracyMetrics();
+        setMetrics(data);
+      } catch (error) {
+        console.error('Failed to fetch agent metrics:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMetrics();
+  }, []);
+
+  const totalChecks = metrics?.agents.reduce((s, a) => s + a.totalChecks, 0) || 0;
+  const avgScore = Math.round(metrics?.overallAccuracy || 0);
 
   return (
     <Card className="h-full">
@@ -237,42 +241,54 @@ function AgentStatus() {
         <CardTitle className="flex items-center gap-2">
           <Bot className="w-5 h-5" />
           Agent Status
-          <Badge variant="outline" className="ml-2 text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
-            Demo Mode
-          </Badge>
         </CardTitle>
         <CardDescription>AI agent performance and availability</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {agents.map((agent, index) => (
-            <motion.div
-              key={agent.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="flex items-center justify-between p-3 rounded-lg border"
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full ${agent.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
-                  }`} />
-                <div>
-                  <p className="font-medium text-sm">{agent.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {agent.checksToday} checks today • Avg {agent.avgTime}
-                  </p>
-                </div>
-              </div>
-              <Badge variant={agent.status === 'active' ? 'default' : 'secondary'}>
-                {agent.status}
-              </Badge>
-            </motion.div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <RefreshCw className="w-6 h-6 animate-spin text-primary mr-2" />
+            <span className="text-sm text-muted-foreground">Loading metrics...</span>
+          </div>
+        ) : metrics?.agents && metrics.agents.length > 0 ? (
+          <div className="space-y-4">
+            {metrics.agents.map((acc, index) => {
+              const staticAgent = staticAgents.find(a => a.id === acc.agentId);
+              return (
+                <motion.div
+                  key={acc.agentId}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex items-center justify-between p-3 rounded-lg border"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${acc.accuracy >= 98 ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
+                      }`} />
+                    <div>
+                      <p className="font-medium text-sm">{acc.agentName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {acc.totalChecks} checks • Avg {staticAgent?.avgProcessingTime || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={acc.accuracy >= 98 ? 'default' : 'destructive'}>
+                    {acc.accuracy}%
+                  </Badge>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-8 text-center">
+            <p className="text-sm text-muted-foreground italic">No agent activity yet.</p>
+          </div>
+        )}
+
         {totalChecks > 0 && (
           <div className="mt-4 p-3 bg-muted rounded-lg">
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium">{totalChecks}</span> real checks performed • 
+              <span className="font-medium">{totalChecks}</span> real checks performed •
               Average score: <span className="font-medium">{avgScore}%</span>
             </p>
           </div>
@@ -476,14 +492,14 @@ function RecentFileUploads() {
 // Helper function to calculate change percentage (same as SystemAnalytics.tsx)
 function calculateChange(current: number, previous: number): { value: string; trend: 'up' | 'down' | 'neutral' } {
   if (previous === 0) {
-    return current > 0 
+    return current > 0
       ? { value: '+100% from baseline', trend: 'up' }
       : { value: 'No change', trend: 'neutral' };
   }
-  
+
   const change = ((current - previous) / previous) * 100;
   const sign = change >= 0 ? '+' : '';
-  
+
   return {
     value: `${sign}${change.toFixed(1)}% from last month`,
     trend: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'

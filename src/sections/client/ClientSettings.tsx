@@ -10,6 +10,9 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { auth } from '@/services/firebase';
+import { Settings as SettingsType } from '@/types';
 import {
   User,
   Mail,
@@ -26,7 +29,7 @@ import {
 } from 'lucide-react';
 
 export function ClientSettings() {
-  const { currentUser, updateUser } = useAuthStore();
+  const { currentUser, updateUser, firebaseUser } = useAuthStore();
   const { getSettings, updateSettings } = useSettingsStore();
 
   const settings = getSettings(currentUser?.id || '');
@@ -42,6 +45,20 @@ export function ClientSettings() {
   const [notificationSettings, setNotificationSettings] = useState(settings.emailNotifications);
   const [pushSettings, setPushSettings] = useState(settings.pushNotifications);
 
+  const [passwordData, setPasswordData] = useState({ current: '', newPass: '', confirm: '' });
+
+  const [preferenceData, setPreferenceData] = useState<{
+    theme: 'light' | 'dark' | 'system';
+    language: string;
+    timezone: string;
+    dateFormat: string;
+  }>({
+    theme: settings.theme,
+    language: settings.language,
+    timezone: settings.timezone,
+    dateFormat: settings.dateFormat,
+  });
+
   const handleSaveProfile = () => {
     updateUser(profileData);
     toast.success('Profile updated successfully');
@@ -53,6 +70,47 @@ export function ClientSettings() {
       pushNotifications: pushSettings,
     });
     toast.success('Notification settings saved');
+  };
+
+  const handleUpdatePassword = async () => {
+    if (passwordData.newPass !== passwordData.confirm) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (passwordData.newPass.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    if (!firebaseUser) {
+      toast.error('User not authenticated');
+      return;
+    }
+    try {
+      const credential = EmailAuthProvider.credential(firebaseUser.email!, passwordData.current);
+      await reauthenticateWithCredential(firebaseUser, credential);
+      await updatePassword(firebaseUser, passwordData.newPass);
+      toast.success('Password updated successfully');
+      setPasswordData({ current: '', newPass: '', confirm: '' });
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      if (err.code === 'auth/wrong-password') {
+        toast.error('Current password is incorrect');
+      } else if (err.code === 'auth/too-many-requests') {
+        toast.error('Too many requests. Please try again later.');
+      } else {
+        toast.error('Failed to update password');
+      }
+    }
+  };
+
+  const handleSavePreferences = () => {
+    updateSettings(currentUser?.id || '', {
+      theme: preferenceData.theme as 'light' | 'dark' | 'system',
+      language: preferenceData.language,
+      timezone: preferenceData.timezone,
+      dateFormat: preferenceData.dateFormat,
+    });
+    toast.success('Preferences saved');
   };
 
   return (
@@ -264,17 +322,32 @@ export function ClientSettings() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="current-password">Current Password</Label>
-                <Input id="current-password" type="password" />
+                <Input 
+                  id="current-password" 
+                  type="password" 
+                  value={passwordData.current}
+                  onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="new-password">New Password</Label>
-                <Input id="new-password" type="password" />
+                <Input 
+                  id="new-password" 
+                  type="password" 
+                  value={passwordData.newPass}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPass: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <Input id="confirm-password" type="password" />
+                <Input 
+                  id="confirm-password" 
+                  type="password" 
+                  value={passwordData.confirm}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
+                />
               </div>
-              <Button>Update Password</Button>
+              <Button onClick={handleUpdatePassword}>Update Password</Button>
             </CardContent>
           </Card>
 
@@ -316,7 +389,8 @@ export function ClientSettings() {
                 <select
                   id="language"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                  defaultValue="en"
+                  value={preferenceData.language}
+                  onChange={(e) => setPreferenceData({ ...preferenceData, language: e.target.value })}
                 >
                   <option value="en">English</option>
                   <option value="es">Spanish</option>
@@ -329,7 +403,8 @@ export function ClientSettings() {
                 <select
                   id="timezone"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                  defaultValue="America/New_York"
+                  value={preferenceData.timezone}
+                  onChange={(e) => setPreferenceData({ ...preferenceData, timezone: e.target.value })}
                 >
                   <option value="America/New_York">Eastern Time (ET)</option>
                   <option value="America/Chicago">Central Time (CT)</option>
@@ -342,7 +417,8 @@ export function ClientSettings() {
                 <select
                   id="date-format"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                  defaultValue="MM/DD/YYYY"
+                  value={preferenceData.dateFormat}
+                  onChange={(e) => setPreferenceData({ ...preferenceData, dateFormat: e.target.value })}
                 >
                   <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                   <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -366,7 +442,8 @@ export function ClientSettings() {
                 <select
                   id="theme"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                  defaultValue="system"
+                  value={preferenceData.theme}
+                  onChange={(e) => setPreferenceData({ ...preferenceData, theme: e.target.value as 'light' | 'dark' | 'system' })}
                 >
                   <option value="light">Light</option>
                   <option value="dark">Dark</option>
@@ -375,6 +452,11 @@ export function ClientSettings() {
               </div>
             </CardContent>
           </Card>
+
+          <Button onClick={handleSavePreferences} className="gap-2">
+            <Save className="w-4 h-4" />
+            Save Preferences
+          </Button>
         </TabsContent>
       </Tabs>
     </div>
