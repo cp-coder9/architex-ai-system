@@ -1,7 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Settings, User, UserRole, Client, Freelancer, Admin } from '@/types';
-import { db, isFirebaseConfigured } from '@/config/firebase';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut,
+} from 'firebase/auth';
+import { db, isFirebaseConfigured, firebaseConfig } from '@/config/firebase';
 import {
   collection,
   doc,
@@ -17,14 +24,13 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from 'firebase/auth';
-import {
   createClientUser,
   createFreelancerUser,
   createAdminUser,
 } from '@/services/firebase/userService';
+
+// Module-level variable for secondary Firebase app
+let secondaryApp: FirebaseApp | null = null;
 
 interface SettingsState {
   settings: Record<string, Settings>;
@@ -149,7 +155,7 @@ export const useSettingsStore = create<SettingsState>()(
 
       initialize: () => {
         console.log('[SettingsStore] initialize() called');
-        
+
         if (!isFirebaseConfigured() || !db) {
           console.warn('[SettingsStore] Firebase not configured, using empty arrays');
           console.log('[SettingsStore] isFirebaseConfigured:', isFirebaseConfigured());
@@ -167,7 +173,7 @@ export const useSettingsStore = create<SettingsState>()(
         );
 
         console.log('[SettingsStore] Setting up onSnapshot listener for users collection...');
-        
+
         const unsubscribeUsers = onSnapshot(
           usersQuery,
           (snapshot) => {
@@ -177,7 +183,7 @@ export const useSettingsStore = create<SettingsState>()(
             }));
             console.log(`[SettingsStore] onSnapshot received ${rawUsers.length} users`);
             console.log('[SettingsStore] Raw users data:', rawUsers);
-            
+
             const users = rawUsers as User[];
             set({ users, isLoading: false });
           },
@@ -232,92 +238,71 @@ export const useSettingsStore = create<SettingsState>()(
 
       createUser: async (userData) => {
         console.log('[SettingsStore] createUser called with:', userData);
-        
-        const { auth, isFirebaseConfigured: isAuthConfigured } = await import('@/config/firebase');
-        
+
         if (!isFirebaseConfigured() || !db) {
           console.warn('[SettingsStore] Firebase not configured');
-          throw new Error('Firebase not configured');
+          throw new Error('Firebase Auth is not configured — cannot create user without Auth');
+        }
+
+        if (!userData.password) {
+          throw new Error('Password is required for new users');
         }
 
         set({ isLoading: true });
 
         try {
-          // If password is provided, create user in Firebase Auth first
-          if (userData.password && isAuthConfigured() && auth) {
-            console.log('[SettingsStore] Creating user in Firebase Auth...');
-            
-            const userCredential = await createUserWithEmailAndPassword(
-              auth,
-              userData.email!,
-              userData.password
-            );
-            
-            const firebaseUid = userCredential.user.uid;
-            console.log('[SettingsStore] Firebase Auth user created with UID:', firebaseUid);
-
-            // Update display name
-            if (userData.name) {
-              await updateProfile(userCredential.user, {
-                displayName: userData.name,
-              });
-              console.log('[SettingsStore] Updated Firebase Auth profile');
-            }
-
-            // Create role-specific user data in Firestore
-            const userProfileData = createRoleSpecificUserData(userData, firebaseUid);
-            
-            let newUser: User;
-            switch (userData.role) {
-              case 'client':
-                newUser = await createClientUser(firebaseUid, userProfileData as unknown as Omit<Client, 'id' | 'createdAt' | 'updatedAt' | 'role'>);
-                break;
-              case 'freelancer':
-                newUser = await createFreelancerUser(firebaseUid, userProfileData as unknown as Omit<Freelancer, 'id' | 'createdAt' | 'updatedAt' | 'role'>);
-                break;
-              case 'admin':
-                newUser = await createAdminUser(firebaseUid, userProfileData as unknown as Omit<Admin, 'id' | 'createdAt' | 'updatedAt' | 'role' | 'permissions'>);
-                break;
-              default:
-                throw new Error('Invalid user role');
-            }
-
-            console.log('[SettingsStore] User created successfully:', newUser.id);
-            set({ isLoading: false });
-            return newUser;
+          // Use secondary Firebase app to avoid signing out the current admin
+          if (!secondaryApp) {
+            const apps = getApps();
+            const existing = apps.find(app => app.name === 'admin-user-creation');
+            secondaryApp = existing || initializeApp(firebaseConfig, 'admin-user-creation');
           }
-          
-          // Fallback: Create only Firestore document (legacy behavior without Auth)
-          console.log('[SettingsStore] No password provided, creating Firestore document only (legacy mode)');
-          
-          const newUser: Record<string, unknown> = {
-            email: userData.email!,
-            name: userData.name!,
-            role: userData.role!,
-            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            isActive: true,
-          };
 
-          // Only add optional fields if they have values
-          if (userData.phone) newUser.phone = userData.phone;
-          if (userData.company) newUser.company = userData.company;
-          if (userData.address) newUser.address = userData.address;
+          const secondaryAuth = getAuth(secondaryApp);
+          console.log('[SettingsStore] Creating user in secondary Firebase Auth...');
 
-          console.log('[SettingsStore] Adding user to Firestore:', newUser);
-          const docRef = await addDoc(collection(db, USERS_COLLECTION), newUser);
-          console.log('[SettingsStore] User created with ID:', docRef.id);
+          const userCredential = await createUserWithEmailAndPassword(
+            secondaryAuth,
+            userData.email!,
+            userData.password
+          );
 
-          const createdUser: User = {
-            id: docRef.id,
-            ...newUser,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          } as User;
+          const firebaseUid = userCredential.user.uid;
+          console.log('[SettingsStore] Firebase Auth user created with UID:', firebaseUid);
 
+          // Update display name
+          if (userData.name) {
+            await updateProfile(userCredential.user, {
+              displayName: userData.name,
+            });
+            console.log('[SettingsStore] Updated Firebase Auth profile');
+          }
+
+          // Create role-specific user data in Firestore
+          const userProfileData = createRoleSpecificUserData(userData, firebaseUid);
+
+          let newUser: User;
+          switch (userData.role) {
+            case 'client':
+              newUser = await createClientUser(firebaseUid, userProfileData as unknown as Omit<Client, 'id' | 'createdAt' | 'updatedAt' | 'role'>);
+              break;
+            case 'freelancer':
+              newUser = await createFreelancerUser(firebaseUid, userProfileData as unknown as Omit<Freelancer, 'id' | 'createdAt' | 'updatedAt' | 'role'>);
+              break;
+            case 'admin':
+              newUser = await createAdminUser(firebaseUid, userProfileData as unknown as Omit<Admin, 'id' | 'createdAt' | 'updatedAt' | 'role' | 'permissions'>);
+              break;
+            default:
+              throw new Error('Invalid user role');
+          }
+
+          // Clean up secondary auth session
+          await signOut(secondaryAuth);
+          console.log('[SettingsStore] Secondary auth session cleaned up');
+
+          console.log('[SettingsStore] User created successfully:', newUser.id);
           set({ isLoading: false });
-          return createdUser;
+          return newUser;
         } catch (error) {
           console.error('[SettingsStore] Error creating user:', error);
           set({ error: 'Failed to create user', isLoading: false });

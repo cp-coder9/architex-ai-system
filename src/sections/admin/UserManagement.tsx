@@ -56,6 +56,8 @@ import {
   Shield,
   Filter,
   Download,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 // User Form Component
@@ -311,6 +313,7 @@ export function UserManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [defaultRole, setDefaultRole] = useState<UserRole>('client');
+  const [createdUserInfo, setCreatedUserInfo] = useState<{ email: string; role: UserRole } | null>(null);
 
   // Memoize stats to prevent infinite re-renders
   const stats = useMemo(() => getUserStats(), [users]);
@@ -357,13 +360,20 @@ export function UserManagement() {
   });
 
   const handleCreateUser = async (data: Partial<User> & { password?: string }) => {
+    // Validate password length
+    if (!data.password || data.password.length < 8) {
+      toast.error('Password must be at least 8 characters long');
+      return;
+    }
+
     try {
-      await createUser(data);
+      const newUser = await createUser(data);
       setIsCreateDialogOpen(false);
-      toast.success('User created successfully. They can now log in with their credentials.');
+      setCreatedUserInfo({ email: newUser.email, role: newUser.role });
+      toast.success(`User ${newUser.email} created successfully.`);
     } catch (error) {
       console.error('Error creating user:', error);
-      toast.error('Failed to create user. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to create user. Please try again.');
     }
   };
 
@@ -630,6 +640,57 @@ export function UserManagement() {
               }}
             />
           )}
+        </DialogContent>
+      </Dialog>
+      {/* Credentials Dialog */}
+      <Dialog open={!!createdUserInfo} onOpenChange={(open) => !open && setCreatedUserInfo(null)}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="p-1 rounded-full bg-green-100 dark:bg-green-900/30">
+                <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+              </div>
+              User Created Successfully
+            </DialogTitle>
+            <DialogDescription>
+              User account has been provisioned. Please share these details with the user.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Email Address</Label>
+              <div className="flex gap-2">
+                <Input value={createdUserInfo?.email || ''} readOnly className="bg-muted/50" />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    if (createdUserInfo?.email) {
+                      navigator.clipboard.writeText(createdUserInfo.email);
+                      toast.success('Email copied to clipboard');
+                    }
+                  }}
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Assigned Role</Label>
+              <Input value={createdUserInfo?.role || ''} readOnly className="capitalize bg-muted/50" />
+            </div>
+            <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 rounded-lg text-sm">
+              <p className="font-semibold text-amber-800 dark:text-amber-400 mb-1">Security Reminder:</p>
+              <p className="text-amber-700 dark:text-amber-500/90">
+                The password is not shown here for security. Please share the password you just set with the user through a secure channel.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setCreatedUserInfo(null)} className="w-full">
+              Done
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

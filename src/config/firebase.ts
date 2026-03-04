@@ -19,7 +19,7 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 // Firebase configuration object using environment variables
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -62,24 +62,24 @@ let storage: ReturnType<typeof getStorage> | undefined;
 
 if (isFirebaseConfigured()) {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-  
+
   // Initialize Firebase services
   auth = getAuth(app);
   db = getFirestore(app);
   storage = getStorage(app);
-  
+
   // Connect to emulators in development mode
   // Supports both VITE_FIREBASE_EMULATOR and VITE_USE_FIREBASE_EMULATOR for compatibility
   const useEmulator =
     import.meta.env.VITE_FIREBASE_EMULATOR === 'true' ||
     import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true';
-  
+
   if (import.meta.env.DEV && useEmulator) {
     console.log('[Firebase] Connecting to local emulators...');
     console.log('[Firebase] Auth emulator: localhost:9099');
     console.log('[Firebase] Firestore emulator: localhost:8080');
     console.log('[Firebase] Storage emulator: localhost:9199');
-    
+
     try {
       connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: false });
       connectFirestoreEmulator(db, 'localhost', 8080);
