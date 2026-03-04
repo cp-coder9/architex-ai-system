@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Settings, User, UserRole } from '@/types';
+import { Settings, User, UserRole, Client, Freelancer, Admin } from '@/types';
 import { db, isFirebaseConfigured } from '@/config/firebase';
 import {
   collection,
@@ -16,6 +16,15 @@ import {
   Unsubscribe,
   serverTimestamp,
 } from 'firebase/firestore';
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from 'firebase/auth';
+import {
+  createClientUser,
+  createFreelancerUser,
+  createAdminUser,
+} from '@/services/firebase/userService';
 
 interface SettingsState {
   settings: Record<string, Settings>;
@@ -36,7 +45,7 @@ interface SettingsState {
   // User management actions (admin only)
   getAllUsers: () => User[];
   getUsersByRole: (role: UserRole) => User[];
-  createUser: (userData: Partial<User>) => Promise<User>;
+  createUser: (userData: Partial<User> & { password?: string }) => Promise<User>;
   updateUser: (id: string, updates: Partial<User>) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
   activateUser: (id: string) => Promise<void>;
@@ -70,6 +79,64 @@ const defaultSettings: Settings = {
 
 // Collection name
 const USERS_COLLECTION = 'users';
+
+/**
+ * Create role-specific user data for Firestore
+ */
+function createRoleSpecificUserData(
+  userData: Partial<User>,
+  uid: string
+): Omit<User, 'id' | 'createdAt' | 'updatedAt'> {
+  const baseUser: Record<string, unknown> = {
+    email: userData.email!,
+    name: userData.name!,
+    role: userData.role!,
+    avatar: userData.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${uid}`,
+    isActive: true,
+  };
+
+  // Only add optional fields if they have values (avoid undefined)
+  if (userData.phone) baseUser.phone = userData.phone;
+  if (userData.company) baseUser.company = userData.company;
+  if (userData.address) baseUser.address = userData.address;
+
+  switch (userData.role) {
+    case 'client':
+      return {
+        ...baseUser,
+        role: 'client' as const,
+        totalHoursPurchased: 0,
+        totalHoursUsed: 0,
+        projects: [],
+        paymentMethods: [],
+      } as unknown as Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
+
+    case 'freelancer':
+      return {
+        ...baseUser,
+        role: 'freelancer' as const,
+        hourlyRate: (userData as unknown as Freelancer).hourlyRate || 0,
+        skills: (userData as unknown as Freelancer).skills || [],
+        totalHoursWorked: 0,
+        totalEarnings: 0,
+        rating: 0,
+        availability: 'available',
+        currentProjects: [],
+        certifications: (userData as unknown as Freelancer).certifications || [],
+      } as unknown as Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
+
+    case 'admin':
+      return {
+        ...baseUser,
+        role: 'admin' as const,
+        permissions: ['all'],
+        lastLogin: new Date(),
+      } as unknown as Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
+
+    default:
+      throw new Error('Invalid user role');
+  }
+}
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
@@ -166,6 +233,8 @@ export const useSettingsStore = create<SettingsState>()(
       createUser: async (userData) => {
         console.log('[SettingsStore] createUser called with:', userData);
         
+        const { auth, isFirebaseConfigured: isAuthConfigured } = await import('@/config/firebase');
+        
         if (!isFirebaseConfigured() || !db) {
           console.warn('[SettingsStore] Firebase not configured');
           throw new Error('Firebase not configured');
@@ -174,6 +243,53 @@ export const useSettingsStore = create<SettingsState>()(
         set({ isLoading: true });
 
         try {
+          // If password is provided, create user in Firebase Auth first
+          if (userData.password && isAuthConfigured() && auth) {
+            console.log('[SettingsStore] Creating user in Firebase Auth...');
+            
+            const userCredential = await createUserWithEmailAndPassword(
+              auth,
+              userData.email!,
+              userData.password
+            );
+            
+            const firebaseUid = userCredential.user.uid;
+            console.log('[SettingsStore] Firebase Auth user created with UID:', firebaseUid);
+
+            // Update display name
+            if (userData.name) {
+              await updateProfile(userCredential.user, {
+                displayName: userData.name,
+              });
+              console.log('[SettingsStore] Updated Firebase Auth profile');
+            }
+
+            // Create role-specific user data in Firestore
+            const userProfileData = createRoleSpecificUserData(userData, firebaseUid);
+            
+            let newUser: User;
+            switch (userData.role) {
+              case 'client':
+                newUser = await createClientUser(firebaseUid, userProfileData as unknown as Omit<Client, 'id' | 'createdAt' | 'updatedAt' | 'role'>);
+                break;
+              case 'freelancer':
+                newUser = await createFreelancerUser(firebaseUid, userProfileData as unknown as Omit<Freelancer, 'id' | 'createdAt' | 'updatedAt' | 'role'>);
+                break;
+              case 'admin':
+                newUser = await createAdminUser(firebaseUid, userProfileData as unknown as Omit<Admin, 'id' | 'createdAt' | 'updatedAt' | 'role' | 'permissions'>);
+                break;
+              default:
+                throw new Error('Invalid user role');
+            }
+
+            console.log('[SettingsStore] User created successfully:', newUser.id);
+            set({ isLoading: false });
+            return newUser;
+          }
+          
+          // Fallback: Create only Firestore document (legacy behavior without Auth)
+          console.log('[SettingsStore] No password provided, creating Firestore document only (legacy mode)');
+          
           const newUser: Record<string, unknown> = {
             email: userData.email!,
             name: userData.name!,

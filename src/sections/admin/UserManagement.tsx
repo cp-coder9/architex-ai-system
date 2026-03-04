@@ -67,16 +67,17 @@ function UserForm({
 }: {
   user?: User;
   defaultRole?: UserRole;
-  onSubmit: (data: Partial<User>) => void;
+  onSubmit: (data: Partial<User> & { password?: string }) => void;
   onCancel: () => void;
 }) {
-  const [formData, setFormData] = useState<Partial<User>>({
+  const [formData, setFormData] = useState<Partial<User> & { password?: string }>({
     name: user?.name || '',
     email: user?.email || '',
     role: user?.role || defaultRole || 'client',
     phone: user?.phone || '',
     company: user?.company || '',
     isActive: user?.isActive ?? true,
+    password: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -108,6 +109,20 @@ function UserForm({
           required
         />
       </div>
+
+      {!user && (
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            value={formData.password || ''}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            placeholder="Enter password"
+            required
+          />
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="role">Role</Label>
@@ -341,10 +356,15 @@ export function UserManagement() {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const handleCreateUser = async (data: Partial<User>) => {
-    await createUser(data);
-    setIsCreateDialogOpen(false);
-    toast.success('User created successfully');
+  const handleCreateUser = async (data: Partial<User> & { password?: string }) => {
+    try {
+      await createUser(data);
+      setIsCreateDialogOpen(false);
+      toast.success('User created successfully. They can now log in with their credentials.');
+    } catch (error) {
+      console.error('Error creating user:', error);
+      toast.error('Failed to create user. Please try again.');
+    }
   };
 
   const handleEditUser = async (data: Partial<User>) => {
