@@ -21,9 +21,11 @@ import {
 
 export function FreelancerMessages() {
   const { currentUser } = useAuthStore();
-  const { chatMessages, sendMessage } = useNotificationStore();
+  const { chatMessages, sendMessage, subscribeToProjectChat, unsubscribeFromProjectChat } = useNotificationStore();
   const allProjects = useProjectStore(state => state.projects);
   const getUserById = useSettingsStore(state => state.getUserById);
+
+  const userId = currentUser?.id || '';
 
   const projects = useMemo(() =>
     allProjects.filter(p => p.freelancerId === currentUser?.id),
@@ -41,6 +43,18 @@ export function FreelancerMessages() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [projectMessages]);
+
+  // Subscribe to project chat
+  useEffect(() => {
+    if (selectedProject?.id) {
+      subscribeToProjectChat(selectedProject.id, userId);
+    }
+    return () => {
+      if (selectedProject?.id) {
+        unsubscribeFromProjectChat(selectedProject.id);
+      }
+    };
+  }, [selectedProject?.id, userId, subscribeToProjectChat, unsubscribeFromProjectChat]);
 
   const handleSendMessage = () => {
     if (!messageInput.trim() || !selectedProject) return;

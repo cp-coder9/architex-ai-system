@@ -19,10 +19,12 @@ import {
 
 export function ClientMessages() {
   const { currentUser } = useAuthStore();
-  const { chatMessages, sendMessage } = useNotificationStore();
+  const { chatMessages, sendMessage, subscribeToProjectChat, unsubscribeFromProjectChat } = useNotificationStore();
   const allProjects = useProjectStore(state => state.projects);
   const getUserById = useSettingsStore(state => state.getUserById);
   const projects = useMemo(() => allProjects.filter(p => p.clientId === currentUser?.id), [allProjects, currentUser?.id]);
+
+  const userId = currentUser?.id || '';
 
   const [selectedProject, setSelectedProject] = useState(projects[0]);
   const [messageInput, setMessageInput] = useState('');
@@ -41,6 +43,18 @@ export function ClientMessages() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [projectMessages]);
+
+  // Subscribe to project chat
+  useEffect(() => {
+    if (selectedProject?.id) {
+      subscribeToProjectChat(selectedProject.id, userId);
+    }
+    return () => {
+      if (selectedProject?.id) {
+        unsubscribeFromProjectChat(selectedProject.id);
+      }
+    };
+  }, [selectedProject?.id, userId, subscribeToProjectChat, unsubscribeFromProjectChat]);
 
   const handleSendMessage = () => {
     if (!messageInput.trim() || !selectedProject) return;

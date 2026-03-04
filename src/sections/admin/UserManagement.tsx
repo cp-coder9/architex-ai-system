@@ -298,14 +298,15 @@ function UserTable({
 
 export function UserManagement() {
   const users = useSettingsStore(state => state.users);
+  const isLoading = useSettingsStore(state => state.isLoading);
   const createUser = useSettingsStore(state => state.createUser);
   const updateUser = useSettingsStore(state => state.updateUser);
   const deleteUser = useSettingsStore(state => state.deleteUser);
   const activateUser = useSettingsStore(state => state.activateUser);
   const deactivateUser = useSettingsStore(state => state.deactivateUser);
+  const getUsersByRole = useSettingsStore(state => state.getUsersByRole);
   const getUserStats = useSettingsStore(state => state.getUserStats);
-  const initialize = useSettingsStore(state => state.initialize);
-  const cleanup = useSettingsStore(state => state.cleanup);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
@@ -318,25 +319,9 @@ export function UserManagement() {
   // Memoize stats to prevent infinite re-renders
   const stats = useMemo(() => getUserStats(), [users]);
 
-  // Wrap initialize and cleanup with useCallback to prevent dependency changes
-  const handleInitialize = useCallback(() => {
-    console.log('[UserManagement] Component mounted, calling initialize()...');
-    initialize();
-  }, [initialize]);
+  // Data is initialized by StoreInitializer at the app root
+  // No local initialize/cleanup needed here to avoid redundant listeners
 
-  const handleCleanup = useCallback(() => {
-    console.log('[UserManagement] Component unmounting, calling cleanup()...');
-    cleanup();
-  }, [cleanup]);
-
-  // Initialize the store on component mount
-  useEffect(() => {
-    handleInitialize();
-
-    return () => {
-      handleCleanup();
-    };
-  }, [handleInitialize, handleCleanup]);
 
   // Log users state changes
   useEffect(() => {

@@ -481,25 +481,16 @@ const getAllocationStatusColor = (status: string) => {
 export function ProjectOversight() {
   const projects = useProjectStore(state => state.projects);
   const drawings = useProjectStore(state => state.drawings);
-  const initialize = useProjectStore(state => state.initialize);
-  const cleanup = useProjectStore(state => state.cleanup);
 
   const hourAllocations = useInvoiceStore(state => state.hourAllocations);
   const hourPackages = useInvoiceStore(state => state.hourPackages);
-  const initInvoices = useInvoiceStore(state => state.initialize);
-  const cleanupInvoices = useInvoiceStore(state => state.cleanup);
+
 
   const getUserById = useSettingsStore(state => state.getUserById);
 
-  // Initialize project and invoice stores on mount
-  useEffect(() => {
-    initialize();
-    initInvoices();
-    return () => {
-      cleanup();
-      cleanupInvoices();
-    };
-  }, [initialize, cleanup, initInvoices, cleanupInvoices]);
+  // Data is initialized by StoreInitializer at the app root 
+  // No local initialize/cleanup needed here to avoid redundant listeners
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);

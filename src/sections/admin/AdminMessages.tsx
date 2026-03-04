@@ -103,6 +103,8 @@ export function AdminMessages() {
   const markAllAsRead = useNotificationStore(state => state.markAllAsRead);
   const deleteNotification = useNotificationStore(state => state.deleteNotification);
   const getUserNotifications = useNotificationStore(state => state.getUserNotifications);
+  const subscribeToProjectChat = useNotificationStore(state => state.subscribeToProjectChat);
+  const unsubscribeFromProjectChat = useNotificationStore(state => state.unsubscribeFromProjectChat);
   const allProjects = useProjectStore(state => state.projects);
   const users = useSettingsStore(state => state.users);
 
@@ -179,6 +181,18 @@ export function AdminMessages() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [projectMessages]);
+
+  // Subscribe to project chat
+  useEffect(() => {
+    if (selectedProject?.id) {
+      subscribeToProjectChat(selectedProject.id, userId);
+    }
+    return () => {
+      if (selectedProject?.id) {
+        unsubscribeFromProjectChat(selectedProject.id);
+      }
+    };
+  }, [selectedProject?.id, userId, subscribeToProjectChat, unsubscribeFromProjectChat]);
 
   const handleSendMessage = () => {
     if (!messageInput.trim() || !selectedProject) return;

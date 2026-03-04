@@ -46,8 +46,9 @@ import {
   OrchestratorStatus,
   TaskDelegation,
   ConflictResolution,
-  AgentAccuracy,
 } from '@/lib/agentApi';
+import { agentOrchestrator } from '@/orchestrator/AgentOrchestrator';
+import { AgentStatus } from '@/types/agent';
 
 // Agent type
 interface Agent {
@@ -654,12 +655,70 @@ function IssueDetailDialog({
 }
 
 export function AgentMonitor() {
-  const [agents, setAgents] = useState<Agent[]>(() => getAllAgents());
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [isAgentDialogOpen, setIsAgentDialogOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<AgentIssue | null>(null);
   const [isIssueDialogOpen, setIsIssueDialogOpen] = useState(false);
   const drawings = useProjectStore(state => state.drawings);
+
+  useEffect(() => {
+    const fetchLiveAgents = async () => {
+      try {
+        const accuracyMetrics = await getAgentAccuracyMetrics();
+        const liveMetrics = agentOrchestrator.getAgentMetrics() as Map<string, any>;
+        const staticAgents = getAllAgents();
+
+        const mergedAgents: Agent[] = accuracyMetrics.agents.map(acc => {
+          const staticData = staticAgents.find(a => a.id === acc.agentId);
+          const metrics = liveMetrics.get(acc.agentId);
+
+          // Map AgentStatus enum to local Agent['status'] union
+          let status: Agent['status'] = 'idle';
+          if (metrics) {
+            switch (metrics.status) {
+              case AgentStatus.ACTIVE:
+              case AgentStatus.PROCESSING:
+                status = 'active';
+                break;
+              case AgentStatus.IDLE:
+                status = 'idle';
+                break;
+              case AgentStatus.ERROR:
+                status = 'error';
+                break;
+              default:
+                status = 'idle';
+            }
+          }
+
+          return {
+            id: acc.agentId,
+            name: staticData?.name || acc.agentName,
+            type: staticData?.type || 'analyzer',
+            status,
+            checksToday: acc.successfulChecks,
+            checksTotal: acc.totalChecks,
+            avgProcessingTime: staticData?.avgProcessingTime || '0s',
+            accuracy: acc.accuracy,
+            lastActive: acc.lastUpdated,
+            capabilities: staticData?.capabilities || [],
+          };
+        });
+
+        setAgents(mergedAgents);
+      } catch (error) {
+        console.error('Failed to fetch live agents:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLiveAgents();
+    const interval = setInterval(fetchLiveAgents, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Get all agent checks from drawings
   const allChecks = drawings
@@ -684,8 +743,10 @@ export function AgentMonitor() {
     setAgents(agents.map(a => {
       if (a.id === agentId) {
         const newStatus = a.status === 'active' ? 'paused' : 'active';
+        // Call orchestrator to update enabled status
+        agentOrchestrator.setAgentEnabled(agentId, newStatus === 'active');
         toast.success(`${a.name} ${newStatus === 'active' ? 'started' : 'paused'}`);
-        return { ...a, status: newStatus };
+        return { ...a, status: newStatus as Agent['status'] };
       }
       return a;
     }));
@@ -823,24 +884,36 @@ export function AgentMonitor() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {agents.map((agent, index) => (
-              <motion.div
-                key={agent.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <AgentCard
-                  agent={agent}
-                  onView={() => {
-                    setSelectedAgent(agent);
-                    setIsAgentDialogOpen(true);
-                  }}
-                  onToggle={() => handleToggleAgent(agent.id)}
-                />
-              </motion.div>
-            ))}
-          </div>
+            {isLoading && agents.length === 0 ? (
+                <div className="col-span-full flex flex-col items-center justify-center p-12 border rounded-xl bg-muted/50">
+                  <RefreshCw className="w-8 h-8 animate-spin text-primary mb-4" />
+                  <p className="text-muted-foreground font-medium">Loading agents metrics...</p>
+                </div>
+              ) : agents.length === 0 ? (
+                <div className="col-span-full flex flex-col items-center justify-center p-12 border rounded-xl bg-muted/50">
+                  <Bot className="w-8 h-8 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground font-medium">No agents active in the system yet.</p>
+                </div>
+              ) : (
+                agents.map((agent, index) => (
+                  <motion.div
+                    key={agent.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <AgentCard
+                      agent={agent}
+                      onView={() => {
+                        setSelectedAgent(agent);
+                        setIsAgentDialogOpen(true);
+                      }}
+                      onToggle={() => handleToggleAgent(agent.id)}
+                    />
+                  </motion.div>
+                ))
+              )}
+            </div>
         </TabsContent>
 
         <TabsContent value="checks">

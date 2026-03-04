@@ -407,10 +407,9 @@ export function InvoiceManagement() {
   const projects = useProjectStore(state => state.projects);
 
   // Initialize invoice store listeners on mount
-  useEffect(() => {
-    initialize();
-    return () => cleanup();
-  }, [initialize, cleanup]);
+  // Data is initialized by StoreInitializer at the app root
+  // No local initialize/cleanup needed here to avoid redundant listeners
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<Invoice['status'] | 'all'>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
@@ -509,10 +508,10 @@ export function InvoiceManagement() {
           `"${project.replace(/"/g, '""')}"`,
           `"${freelancer.replace(/"/g, '""')}"`,
           inv.hoursTotal,
-          inv.hourlyRate,
-          inv.subtotal,
-          inv.taxAmount,
-          inv.total,
+          `"${inv.hourlyRate.toLocaleString()}"`,
+          `"${inv.subtotal.toLocaleString()}"`,
+          `"${inv.taxAmount.toLocaleString()}"`,
+          `"${inv.total.toLocaleString()}"`,
           `"${new Date(inv.dueDate).toLocaleDateString()}"`,
           `"${new Date(inv.createdAt).toLocaleDateString()}"`
         ].join(',');
