@@ -36,6 +36,7 @@ import {
   AlertOctagon,
 } from 'lucide-react';
 import {
+  getAllAgents,
   getOrchestratorStatus,
   getTaskDelegationFlow,
   getConflictResolution,
@@ -43,6 +44,7 @@ import {
   OrchestratorStatus,
   TaskDelegation,
   ConflictResolution,
+  AgentAccuracy,
 } from '@/lib/agentApi';
 import { agentOrchestrator } from '@/orchestrator/AgentOrchestrator';
 import { AgentStatus } from '@/types/agent';
@@ -667,7 +669,7 @@ export function AgentMonitor() {
         const liveMetrics = agentOrchestrator.getAgentMetrics() as Map<string, any>;
         const staticAgents = getAllAgents();
 
-        const mergedAgents: Agent[] = accuracyMetrics.agents.map(acc => {
+        const mergedAgents: Agent[] = accuracyMetrics.agents.map((acc: AgentAccuracy) => {
           const staticData = staticAgents.find(a => a.id === acc.agentId);
           const metrics = liveMetrics.get(acc.agentId);
 

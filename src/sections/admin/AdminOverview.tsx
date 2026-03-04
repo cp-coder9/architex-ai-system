@@ -120,7 +120,7 @@ function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card>
+      <Card className="border border-border rounded-xl">
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div>

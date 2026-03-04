@@ -15,6 +15,7 @@ import {
   Zap,
   BarChart3,
   ArrowRight,
+  Plus,
 } from 'lucide-react';
 
 

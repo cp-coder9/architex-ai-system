@@ -47,6 +47,8 @@ import {
   XCircle,
   Eye,
   FileText,
+  Wrench,
+  ArrowRightCircle,
 } from 'lucide-react';
 
 // Task status colors

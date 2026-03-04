@@ -31,6 +31,14 @@ import {
   FolderKanban,
   Bot,
   FileText,
+  Plus,
+  Phone,
+  Video,
+  MoreVertical,
+  CheckCheck,
+  X,
+  Filter,
+  Trash2,
 } from 'lucide-react';
 
 // Notification type options for filtering
