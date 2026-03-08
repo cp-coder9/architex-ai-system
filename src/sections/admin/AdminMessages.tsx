@@ -23,7 +23,7 @@ import {
   Send,
   Paperclip,
   Search,
-  Clock,
+  _Clock,
   Check,
   Bell,
   CheckCircle2,
@@ -93,7 +93,7 @@ const getNotificationBadgeVariant = (type: string): 'default' | 'secondary' | 'd
 
 export function AdminMessages() {
   const { currentUser } = useAuthStore();
-  const notifications = useNotificationStore(state => state.notifications);
+  const _notifications = useNotificationStore(state => state.notifications);
   const chatMessages = useNotificationStore(state => state.chatMessages);
   const sendMessage = useNotificationStore(state => state.sendMessage);
   const markAsRead = useNotificationStore(state => state.markAsRead);
@@ -149,8 +149,8 @@ export function AdminMessages() {
 
     const query = chatSearchQuery.toLowerCase();
     return projectsWithChats.filter(p => {
-      const client = getUserInfo(p.clientId);
-      const freelancer = p.freelancerId ? getUserInfo(p.freelancerId) : null;
+      const client = users.find(u => u.id === p.clientId) || { name: 'Unknown User' };
+      const freelancer = p.freelancerId ? (users.find(u => u.id === p.freelancerId) || { name: 'Unknown User' }) : null;
 
       return (
         (p.name || '').toLowerCase().includes(query) ||
@@ -158,7 +158,7 @@ export function AdminMessages() {
         (freelancer && (freelancer.name || '').toLowerCase().includes(query))
       );
     });
-  }, [projectsWithChats, chatSearchQuery]);
+  }, [projectsWithChats, chatSearchQuery, users]);
 
   // Get messages for selected project
   const projectMessages = useMemo(() => {
@@ -318,7 +318,7 @@ export function AdminMessages() {
                     ) : (
                       filteredProjects.map((project) => {
                         const client = getUserInfo(project.clientId);
-                        const freelancer = project.freelancerId ? getUserInfo(project.freelancerId) : null;
+                        const _freelancer = project.freelancerId ? getUserInfo(project.freelancerId) : null;
                         const lastMessage = getLastMessagePreview(project.id);
                         const unreadCount = getProjectUnreadCount(project.id);
 

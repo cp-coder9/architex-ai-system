@@ -48,7 +48,7 @@ export function StoreInitializer() {
       useTaskStore.getState().cleanup();
       useNotificationStore.getState().cleanup();
     };
-  }, [isAuthenticated, currentUser?.id, currentUser?.role]);
+  }, [isAuthenticated, currentUser]);
 
   // This component doesn't render anything
   // It just manages side effects (initializing/cleaning up stores)

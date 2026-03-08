@@ -122,7 +122,7 @@ export const useProjectRequestStore = create<ProjectRequestState>((set, get) => 
 
     try {
       // Remove undefined fields to prevent Firestore errors
-      const newRequest: any = {
+      const newRequest: Record<string, unknown> = {
         clientId: requestData.clientId!,
         clientName: requestData.clientName!,
         clientEmail: requestData.clientEmail!,

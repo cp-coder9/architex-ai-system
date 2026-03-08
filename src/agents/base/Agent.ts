@@ -28,18 +28,18 @@ import {
 export abstract class Agent {
   // Configuration
   protected config: AgentConfig;
-  
+
   // State
   protected status: AgentStatus;
   protected metrics: AgentMetrics;
-  
+
   // Error handling
   protected lastError?: Error;
   protected retryCount: number;
-  
+
   // Rules cache
   protected rules: ComplianceRule[];
-  
+
   constructor(config: AgentConfig) {
     this.config = config;
     this.status = AgentStatus.IDLE;
@@ -47,7 +47,7 @@ export abstract class Agent {
     this.retryCount = 0;
     this.rules = [];
   }
-  
+
   /**
    * Initialize agent metrics
    */
@@ -63,85 +63,85 @@ export abstract class Agent {
       errorCount: 0
     };
   }
-  
+
   // ==========================================================================
   // Configuration Management
   // ==========================================================================
-  
+
   /**
    * Get agent ID
    */
   get id(): string {
     return this.config.id;
   }
-  
+
   /**
    * Get agent name
    */
   get name(): string {
     return this.config.name;
   }
-  
+
   /**
    * Get agent version
    */
   get version(): string {
     return this.config.version;
   }
-  
+
   /**
    * Get current status
    */
   get currentStatus(): AgentStatus {
     return this.status;
   }
-  
+
   /**
    * Get agent metrics
    */
   get agentMetrics(): AgentMetrics {
     return { ...this.metrics };
   }
-  
+
   /**
    * Check if agent is enabled
    */
   get isEnabled(): boolean {
     return this.config.enabled;
   }
-  
+
   /**
    * Set agent enabled state
    */
   set enabled(value: boolean) {
     this.config.enabled = value;
   }
-  
+
   /**
    * Get supported drawing types
    */
   get supportedDrawingTypes(): string[] {
     return this.config.supportedDrawingTypes;
   }
-  
+
   /**
    * Get supported standards
    */
   get supportedStandards(): string[] {
     return this.config.supportedStandards;
   }
-  
+
   /**
    * Get agent capabilities
    */
   get capabilities(): string[] {
     return this.config.capabilities;
   }
-  
+
   // ==========================================================================
   // State Management
   // ==========================================================================
-  
+
   /**
    * Set agent status
    */
@@ -151,7 +151,7 @@ export abstract class Agent {
       this.metrics.lastActive = new Date();
     }
   }
-  
+
   /**
    * Activate the agent
    */
@@ -162,14 +162,14 @@ export abstract class Agent {
     this.setStatus(AgentStatus.ACTIVE);
     await this.loadRules();
   }
-  
+
   /**
    * Deactivate the agent
    */
   async deactivate(): Promise<void> {
     this.setStatus(AgentStatus.IDLE);
   }
-  
+
   /**
    * Pause the agent
    */
@@ -179,7 +179,7 @@ export abstract class Agent {
     }
     this.setStatus(AgentStatus.PAUSED);
   }
-  
+
   /**
    * Resume the agent
    */
@@ -189,7 +189,7 @@ export abstract class Agent {
     }
     this.setStatus(AgentStatus.ACTIVE);
   }
-  
+
   /**
    * Set error state
    */
@@ -198,11 +198,11 @@ export abstract class Agent {
     this.lastError = error;
     this.metrics.errorCount++;
   }
-  
+
   // ==========================================================================
   // Rules Management
   // ==========================================================================
-  
+
   /**
    * Load rules for this agent
    * Must be implemented by subclasses
@@ -211,7 +211,7 @@ export abstract class Agent {
     // Override in subclasses to load specific rules
     this.rules = await this.fetchRules();
   }
-  
+
   /**
    * Fetch rules from the rules engine
    * 
@@ -236,61 +236,61 @@ export abstract class Agent {
     // Subclasses should override loadRules() or fetchRules() to provide actual rules
     return [];
   }
-  
+
   /**
    * Get all rules for this agent
    */
   getRules(): ComplianceRule[] {
     return [...this.rules];
   }
-  
+
   /**
    * Get rule by ID
    */
   getRuleById(ruleId: string): ComplianceRule | undefined {
     return this.rules.find(rule => rule.id === ruleId);
   }
-  
+
   /**
    * Get rule IDs
    * Must be implemented by subclasses to return relevant rule IDs
    */
   abstract getRuleIds(): string[];
-  
+
   /**
    * Filter rules by standard
    */
   protected filterRulesByStandard(standard: string): ComplianceRule[] {
     return this.rules.filter(rule => rule.standard === standard);
   }
-  
+
   /**
    * Filter rules by category
    */
   protected filterRulesByCategory(category: string): ComplianceRule[] {
     return this.rules.filter(rule => rule.category === category);
   }
-  
+
   // ==========================================================================
   // Core Analysis Methods
   // ==========================================================================
-  
+
   /**
    * Analyze a drawing
    * Must be implemented by subclasses
    */
   abstract analyze(drawing: DrawingData, projectInfo: ProjectInfo): Promise<AgentResult>;
-  
+
   /**
    * Process an agent check request
    */
   async processCheck(request: AgentCheckRequest): Promise<AgentCheckResult> {
     const startTime = Date.now();
     const requestId = `${this.config.id}-${Date.now()}`;
-    
+
     try {
       this.setStatus(AgentStatus.PROCESSING);
-      
+
       // Build context
       const context: AgentContext = {
         drawing: request.drawingData,
@@ -298,17 +298,17 @@ export abstract class Agent {
         userId: request.userId,
         sessionId: request.sessionId
       };
-      
+
       // Run analysis
-      const result = await this.analyze(context.drawing, context.projectInfo);
-      
+      const _result = await this.analyze(context.drawing, context.projectInfo);
+
       // Evaluate rules
       const ruleIds = request.ruleIds || this.getRuleIds();
       const results = await this.evaluateRules(context, ruleIds);
-      
+
       // Update metrics
       this.updateMetrics(true, Date.now() - startTime);
-      
+
       return {
         requestId,
         agentId: this.config.id,
@@ -327,7 +327,7 @@ export abstract class Agent {
     } catch (error) {
       this.setStatus(AgentStatus.ERROR);
       this.updateMetrics(false, Date.now() - startTime);
-      
+
       return {
         requestId,
         agentId: this.config.id,
@@ -346,7 +346,7 @@ export abstract class Agent {
       };
     }
   }
-  
+
   /**
    * Evaluate specific rules against the drawing
    */
@@ -355,11 +355,11 @@ export abstract class Agent {
     ruleIds: string[]
   ): Promise<ComplianceResult[]> {
     const results: ComplianceResult[] = [];
-    
+
     for (const ruleId of ruleIds) {
       const rule = this.getRuleById(ruleId);
       if (!rule) continue;
-      
+
       try {
         const result = await this.evaluateRule(rule, context);
         results.push(result);
@@ -372,10 +372,10 @@ export abstract class Agent {
         });
       }
     }
-    
+
     return results;
   }
-  
+
   /**
    * Evaluate a single rule
    * Must be implemented by subclasses for specific rule types
@@ -384,11 +384,11 @@ export abstract class Agent {
     rule: ComplianceRule,
     context: AgentContext
   ): Promise<ComplianceResult>;
-  
+
   // ==========================================================================
   // Error Handling and Retry Logic
   // ==========================================================================
-  
+
   /**
    * Execute with retry logic
    */
@@ -398,24 +398,24 @@ export abstract class Agent {
   ): Promise<T> {
     const maxRetries = customRetryCount ?? this.config.maxRetries;
     let lastError: Error | undefined;
-    
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         this.retryCount = attempt;
         return await operation();
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        
+
         if (attempt < maxRetries) {
           const delay = this.calculateBackoff(attempt);
           await this.sleep(delay);
         }
       }
     }
-    
+
     throw lastError || new Error('Operation failed after retries');
   }
-  
+
   /**
    * Calculate exponential backoff delay
    */
@@ -425,14 +425,14 @@ export abstract class Agent {
     const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
     return delay + Math.random() * 1000; // Add jitter
   }
-  
+
   /**
    * Sleep for specified milliseconds
    */
   protected sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
-  
+
   /**
    * Create error finding
    */
@@ -449,42 +449,42 @@ export abstract class Agent {
       isResolved: false
     };
   }
-  
+
   // ==========================================================================
   // Metrics Tracking
   // ==========================================================================
-  
+
   /**
    * Update metrics after a check
    */
   protected updateMetrics(success: boolean, processingTime: number): void {
     const now = new Date();
     const isToday = now.toDateString() === this.metrics.lastActive.toDateString();
-    
+
     this.metrics.totalChecks++;
     this.metrics.checksToday = isToday ? this.metrics.checksToday + 1 : 1;
     this.metrics.lastCheckAt = now;
-    
+
     if (success) {
       this.metrics.successfulChecks++;
     } else {
       this.metrics.failedChecks++;
     }
-    
+
     // Update average processing time using exponential moving average
     const alpha = 0.2;
-    this.metrics.averageProcessingTime = 
+    this.metrics.averageProcessingTime =
       (alpha * processingTime + (1 - alpha) * this.metrics.averageProcessingTime);
-    
+
     // Update accuracy
     if (this.metrics.totalChecks > 0) {
-      this.metrics.accuracy = 
+      this.metrics.accuracy =
         (this.metrics.successfulChecks / this.metrics.totalChecks) * 100;
     }
-    
+
     this.setStatus(AgentStatus.ACTIVE);
   }
-  
+
   /**
    * Get accuracy metrics
    */
@@ -499,25 +499,25 @@ export abstract class Agent {
       averageProcessingTime: this.metrics.averageProcessingTime
     };
   }
-  
+
   /**
    * Reset daily metrics
    */
   resetDailyMetrics(): void {
     this.metrics.checksToday = 0;
   }
-  
+
   /**
    * Get last error
    */
   getLastError(): Error | undefined {
     return this.lastError;
   }
-  
+
   // ==========================================================================
   // Helper Methods
   // ==========================================================================
-  
+
   /**
    * Create a finding from a failed rule
    */
@@ -544,7 +544,7 @@ export abstract class Agent {
       isResolved: false
     };
   }
-  
+
   /**
    * Validate required data is present
    */
@@ -553,20 +553,20 @@ export abstract class Agent {
     requiredFields: string[]
   ): { valid: boolean; missing: string[] } {
     const missing: string[] = [];
-    
+
     for (const field of requiredFields) {
       const value = this.getNestedValue(context, field);
       if (value === undefined || value === null) {
         missing.push(field);
       }
     }
-    
+
     return {
       valid: missing.length === 0,
       missing
     };
   }
-  
+
   /**
    * Get nested value from object using dot notation
    */
@@ -578,11 +578,11 @@ export abstract class Agent {
       return undefined;
     }, obj);
   }
-  
+
   // ==========================================================================
   // Lifecycle Methods
   // ==========================================================================
-  
+
   /**
    * Initialize the agent
    */
@@ -590,7 +590,7 @@ export abstract class Agent {
     await this.loadRules();
     this.setStatus(AgentStatus.IDLE);
   }
-  
+
   /**
    * Cleanup resources
    */
@@ -598,7 +598,7 @@ export abstract class Agent {
     this.setStatus(AgentStatus.IDLE);
     this.rules = [];
   }
-  
+
   /**
    * Get agent health status
    */

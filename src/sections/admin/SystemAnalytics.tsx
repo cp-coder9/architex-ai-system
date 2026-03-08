@@ -9,44 +9,44 @@ import { Button } from '@/components/ui/button';
 import { subDays, startOfDay, format, eachDayOfInterval, isWithinInterval, parseISO } from 'date-fns';
 import { LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 import { ChartContainer, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  FolderKanban, 
-  FileText, 
-  Bot, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  DollarSign, 
-  Activity, 
-  Zap, 
-  PieChart, 
-  Download, 
-  Briefcase, 
-  Clock3, 
-  Wallet, 
-  FileCheck, 
-  UserCheck 
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  FolderKanban,
+  FileText,
+  Bot,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  DollarSign,
+  Activity,
+  Zap,
+  PieChart,
+  Download,
+  Briefcase,
+  Clock3,
+  Wallet,
+  FileCheck,
+  UserCheck
 } from 'lucide-react';
 
 // Reusable TrendLineChart component using ChartContainer pattern
-function TrendLineChart({ 
-  data, 
+function TrendLineChart({
+  data,
   dataKey = 'value',
   xAxisKey = 'label',
   color = '#1C6FFF',
   title,
-}: { 
-  data: { label: string; value: number }[]; 
+}: {
+  data: { label: string; value: number }[];
   dataKey?: string;
   xAxisKey?: string;
   color?: string;
   title?: string;
 }) {
   const chartConfig: ChartConfig = {
-    [dataKey]: { 
+    [dataKey]: {
       label: title || 'Value',
       color: color,
     },
@@ -64,15 +64,15 @@ function TrendLineChart({
     <ChartContainer config={chartConfig} className="h-64 w-full">
       <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
-        <XAxis 
-          dataKey={xAxisKey} 
-          tick={{ fontSize: 11 }} 
+        <XAxis
+          dataKey={xAxisKey}
+          tick={{ fontSize: 11 }}
           className="fill-muted-foreground"
           tickLine={false}
           axisLine={false}
         />
-        <YAxis 
-          tick={{ fontSize: 11 }} 
+        <YAxis
+          tick={{ fontSize: 11 }}
           className="fill-muted-foreground"
           tickLine={false}
           axisLine={false}
@@ -95,17 +95,17 @@ function TrendLineChart({
 }
 
 // Reusable StatusBarChart component using ChartContainer pattern
-function StatusBarChart({ 
-  data, 
+function StatusBarChart({
+  data,
   title,
   color = '#1C6FFF'
-}: { 
-  data: { label: string; value: number; color?: string }[]; 
+}: {
+  data: { label: string; value: number; color?: string }[];
   title?: string;
   color?: string;
 }) {
   const chartConfig: ChartConfig = {
-    value: { 
+    value: {
       label: title || 'Count',
       color: color,
     },
@@ -123,15 +123,15 @@ function StatusBarChart({
     <ChartContainer config={chartConfig} className="h-64 w-full">
       <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
-        <XAxis 
-          dataKey="label" 
-          tick={{ fontSize: 11 }} 
+        <XAxis
+          dataKey="label"
+          tick={{ fontSize: 11 }}
           className="fill-muted-foreground"
           tickLine={false}
           axisLine={false}
         />
-        <YAxis 
-          tick={{ fontSize: 11 }} 
+        <YAxis
+          tick={{ fontSize: 11 }}
           className="fill-muted-foreground"
           tickLine={false}
           axisLine={false}
@@ -139,8 +139,8 @@ function StatusBarChart({
         <RechartsTooltip
           content={<ChartTooltipContent />}
         />
-        <Bar 
-          dataKey="value" 
+        <Bar
+          dataKey="value"
           fill={color}
           radius={[4, 4, 0, 0]}
         >
@@ -154,7 +154,7 @@ function StatusBarChart({
 }
 
 // Simple bar chart component (kept for fallback)
-function SimpleBarChart({ data, maxValue }: { data: { label: string; value: number; color: string }[]; maxValue: number }) {
+function _SimpleBarChart({ data, maxValue }: { data: { label: string; value: number; color: string }[]; maxValue: number }) {
   return (
     <div className="space-y-3">
       {data.map((item, index) => (
@@ -179,23 +179,23 @@ function SimpleBarChart({ data, maxValue }: { data: { label: string; value: numb
 }
 
 // Metric Card with dynamic change calculation
-function MetricCard({ 
-  title, 
-  value, 
-  change, 
-  icon: Icon, 
+function MetricCard({
+  title,
+  value,
+  change,
+  icon: Icon,
   color,
-  trend 
-}: { 
-  title: string; 
-  value: string; 
-  change?: string; 
-  icon: React.ComponentType<{ className?: string }>; 
+  trend
+}: {
+  title: string;
+  value: string;
+  change?: string;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
   trend?: 'up' | 'down' | 'neutral';
 }) {
   const trendColor = trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-muted-foreground';
-  
+
   return (
     <Card>
       <CardContent className="p-6">
@@ -219,24 +219,24 @@ function MetricCard({
 }
 
 // KPI Card with progress ring
-function KPICard({ 
-  title, 
-  value, 
-  progress, 
-  icon: Icon, 
+function KPICard({
+  title,
+  value,
+  progress,
+  icon: Icon,
   colorClass,
   format = 'percent'
-}: { 
-  title: string; 
-  value: string | number; 
+}: {
+  title: string;
+  value: string | number;
   progress: number;
-  icon: React.ComponentType<{ className?: string }>; 
+  icon: React.ComponentType<{ className?: string }>;
   colorClass: string;
   format?: 'percent' | 'currency' | 'number';
 }) {
-  const displayValue = format === 'percent' 
-    ? `${value}%` 
-      : format === 'currency'
+  const displayValue = format === 'percent'
+    ? `${value}%`
+    : format === 'currency'
       ? `R${Number(value).toLocaleString()}`
       : value;
 
@@ -258,6 +258,9 @@ function KPICard({
   );
 }
 
+const daysMap = { '7d': 7, '30d': 30, '90d': 90 };
+const avgHourlyRate = 75;
+
 export function SystemAnalytics() {
   const projects = useProjectStore(state => state.projects);
   const drawings = useProjectStore(state => state.drawings);
@@ -270,14 +273,13 @@ export function SystemAnalytics() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
 
   // Calculate cutoff date based on time range
-  const daysMap = { '7d': 7, '30d': 30, '90d': 90 };
-  const cutoffDate = useMemo(() => 
-    subDays(new Date(), daysMap[timeRange]), 
+  const cutoffDate = useMemo(() =>
+    subDays(new Date(), daysMap[timeRange]),
     [timeRange]
   );
-  
-  const previousCutoffDate = useMemo(() => 
-    subDays(cutoffDate, daysMap[timeRange]), 
+
+  const previousCutoffDate = useMemo(() =>
+    subDays(cutoffDate, daysMap[timeRange]),
     [cutoffDate, timeRange]
   );
 
@@ -326,7 +328,7 @@ export function SystemAnalytics() {
   };
 
   // Days in range
-  const daysInRange = daysMap[timeRange];
+  const _daysInRange = daysMap[timeRange];
 
   // Calculate metrics
   const filteredProjects = useMemo(() => {
@@ -335,21 +337,20 @@ export function SystemAnalytics() {
       return createdAt >= cutoffDate;
     });
   }, [projects, cutoffDate]);
-  
+
   const activeProjects = filteredProjects.filter(p => p.status === 'active').length;
   const completedProjects = filteredProjects.filter(p => p.status === 'completed').length;
-  
+
   const filteredDrawings = useMemo(() => { return drawings.filter(d => { const uploadedAt = typeof d.uploadedAt === "string" ? parseISO(d.uploadedAt) : new Date(d.uploadedAt); return uploadedAt >= cutoffDate; }); }, [drawings, cutoffDate]);
-  
+
   const totalHours = filteredTimeEntries.reduce((sum, te) => sum + te.hours, 0);
   const previousTotalHours = previousTimeEntries.reduce((sum, te) => sum + te.hours, 0);
   const hoursChange = calculateChange(totalHours, previousTotalHours);
-  const avgHoursPerProject = filteredProjects.length > 0 ? totalHours / filteredProjects.length : 0;
-  
+
   const totalRevenue = filteredInvoices
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + inv.total, 0);
-  
+
   const previousTotalRevenue = previousInvoices
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + inv.total, 0);
@@ -363,10 +364,9 @@ export function SystemAnalytics() {
   const agentIssues = filteredDrawings
     .filter(d => d.agentCheck)
     .reduce((sum, d) => sum + (d.agentCheck?.issues.length || 0), 0);
-  
+
   // Freelancers
   const freelancers = users.filter(u => u.role === 'freelancer');
-  const avgHourlyRate = 75;
 
   // KPI Calculations
   const completedMilestones = useMemo(() => {
@@ -402,11 +402,11 @@ export function SystemAnalytics() {
   }, [filteredProjects]);
 
   // Profit Margin
-  const totalCosts = totalHours * avgHourlyRate;
-  const profitMargin = useMemo(() => {
+  const profitMargin = (() => {
     if (totalRevenue === 0) return 0;
-    return ((totalRevenue - totalCosts) / totalRevenue) * 100;
-  }, [totalRevenue, totalCosts]);
+    const costs = totalHours * avgHourlyRate;
+    return ((totalRevenue - costs) / totalRevenue) * 100;
+  })();
 
   // Client Satisfaction - calculated from completed projects with positive ratings
   const clientSatisfaction = useMemo(() => {
@@ -426,11 +426,7 @@ export function SystemAnalytics() {
   }, [completedProjects, filteredProjects, avgHourlyRate]);
 
   // Team Productivity
-  const teamProductivity = useMemo(() => {
-    if (freelancers.length === 0 || daysInRange === 0) return 0;
-    const maxPossibleHours = freelancers.length * daysInRange * 8;
-    return (totalHours / maxPossibleHours) * 100;
-  }, [freelancers, daysInRange, totalHours]);
+  // Removed unused teamProductivity calculation
 
   // Project status distribution
   const projectStatusData = [
@@ -455,19 +451,19 @@ export function SystemAnalytics() {
       start: cutoffDate,
       end: new Date()
     });
-    
+
     return days.map(day => {
       const dayStart = startOfDay(day);
       const dayEnd = new Date(dayStart);
       dayEnd.setDate(dayEnd.getDate() + 1);
-      
+
       const hours = filteredTimeEntries
         .filter(te => {
           const entryDate = typeof te.date === 'string' ? parseISO(te.date) : new Date(te.date);
           return isWithinInterval(entryDate, { start: dayStart, end: dayEnd });
         })
         .reduce((sum, te) => sum + te.hours, 0);
-      
+
       return {
         label: format(day, 'MMM dd'),
         value: hours,
@@ -485,7 +481,7 @@ export function SystemAnalytics() {
         const monthKey = format(date, 'MMM yyyy');
         months[monthKey] = (months[monthKey] || 0) + inv.total;
       });
-    
+
     return Object.entries(months).map(([month, amount]) => ({
       label: month,
       value: amount,
@@ -500,8 +496,8 @@ export function SystemAnalytics() {
         .filter(te => te.freelancerId === f.id)
         .reduce((sum, te) => sum + te.hours, 0),
     }))
-    .sort((a, b) => b.hours - a.hours)
-    .slice(0, 5);
+      .sort((a, b) => b.hours - a.hours)
+      .slice(0, 5);
   }, [freelancers, filteredTimeEntries]);
 
   // Project completion trend (cumulative)
@@ -511,14 +507,12 @@ export function SystemAnalytics() {
       const dateB = typeof b.createdAt === 'string' ? parseISO(b.createdAt) : new Date(b.createdAt);
       return dateA.getTime() - dateB.getTime();
     });
-    
-    let cumulative = 0;
-    return sortedProjects.map(p => {
-      cumulative += 1;
+
+    return sortedProjects.map((p, index) => {
       const date = typeof p.createdAt === 'string' ? parseISO(p.createdAt) : new Date(p.createdAt);
       return {
         label: format(date, 'MMM dd'),
-        value: cumulative,
+        value: index + 1,
       };
     });
   }, [filteredProjects]);
@@ -529,7 +523,7 @@ export function SystemAnalytics() {
     filteredTimeEntries.forEach(te => {
       projectHours[te.projectId] = (projectHours[te.projectId] || 0) + te.hours;
     });
-    
+
     return Object.entries(projectHours).map(([projectId, hours]) => {
       const project = projects.find(p => p.id === projectId);
       return {
@@ -545,7 +539,7 @@ export function SystemAnalytics() {
     filteredProjects.forEach(p => {
       clientProjects[p.clientId] = (clientProjects[p.clientId] || 0) + 1;
     });
-    
+
     return Object.entries(clientProjects).map(([clientId, count]) => {
       const client = getUserById(clientId);
       return {
@@ -564,7 +558,7 @@ export function SystemAnalytics() {
         clientHours[project.clientId] = (clientHours[project.clientId] || 0) + te.hours;
       }
     });
-    
+
     return Object.entries(clientHours).map(([clientId, hours]) => {
       const client = getUserById(clientId);
       return {
@@ -769,8 +763,8 @@ export function SystemAnalytics() {
               <CardDescription>Daily hours logged over the selected period</CardDescription>
             </CardHeader>
             <CardContent>
-              <TrendLineChart 
-                data={dailyHoursData} 
+              <TrendLineChart
+                data={dailyHoursData}
                 color="#8B5CF6"
                 title="Hours"
               />
@@ -827,8 +821,8 @@ export function SystemAnalytics() {
                 <CardDescription>Breakdown of projects by status</CardDescription>
               </CardHeader>
               <CardContent>
-                <StatusBarChart 
-                  data={projectStatusData} 
+                <StatusBarChart
+                  data={projectStatusData}
                   color="#1C6FFF"
                 />
               </CardContent>
@@ -843,7 +837,7 @@ export function SystemAnalytics() {
                 <CardDescription>Cumulative projects over time</CardDescription>
               </CardHeader>
               <CardContent>
-                <TrendLineChart 
+                <TrendLineChart
                   data={projectTrendData}
                   color="#22c55e"
                   title="Projects"
@@ -862,8 +856,8 @@ export function SystemAnalytics() {
                 <CardDescription>Breakdown of drawings by status</CardDescription>
               </CardHeader>
               <CardContent>
-                <StatusBarChart 
-                  data={drawingStatusData} 
+                <StatusBarChart
+                  data={drawingStatusData}
                   color="#8B5CF6"
                 />
               </CardContent>
@@ -915,7 +909,7 @@ export function SystemAnalytics() {
               <CardDescription>Time logged by each team member</CardDescription>
             </CardHeader>
             <CardContent>
-              <StatusBarChart 
+              <StatusBarChart
                 data={freelancerHours.map(f => ({ label: f.name, value: f.hours, color: '#10B981' }))}
                 color="#10B981"
               />
@@ -932,7 +926,7 @@ export function SystemAnalytics() {
                 <CardDescription>Daily hours in the selected window</CardDescription>
               </CardHeader>
               <CardContent>
-                <TrendLineChart 
+                <TrendLineChart
                   data={dailyHoursData}
                   color="#F59E0B"
                   title="Hours"
@@ -949,7 +943,7 @@ export function SystemAnalytics() {
                 <CardDescription>Time logged by project</CardDescription>
               </CardHeader>
               <CardContent>
-                <StatusBarChart 
+                <StatusBarChart
                   data={hoursPerProject.map(h => ({ ...h, color: '#6366F1' }))}
                   color="#6366F1"
                 />
@@ -970,7 +964,7 @@ export function SystemAnalytics() {
                 <CardDescription>Number of projects by client</CardDescription>
               </CardHeader>
               <CardContent>
-                <StatusBarChart 
+                <StatusBarChart
                   data={projectsPerClient.map(p => ({ ...p, color: '#EC4899' }))}
                   color="#EC4899"
                 />
@@ -986,7 +980,7 @@ export function SystemAnalytics() {
                 <CardDescription>Time logged by client</CardDescription>
               </CardHeader>
               <CardContent>
-                <StatusBarChart 
+                <StatusBarChart
                   data={hoursPerClient.map(h => ({ ...h, color: '#14B8A6' }))}
                   color="#14B8A6"
                 />
@@ -1003,7 +997,7 @@ export function SystemAnalytics() {
               <CardDescription>Invoices by status</CardDescription>
             </CardHeader>
             <CardContent>
-              <StatusBarChart 
+              <StatusBarChart
                 data={invoiceStatusData}
                 color="#1C6FFF"
               />
@@ -1022,7 +1016,7 @@ export function SystemAnalytics() {
               <CardDescription>Revenue from paid invoices by month</CardDescription>
             </CardHeader>
             <CardContent>
-              <TrendLineChart 
+              <TrendLineChart
                 data={monthlyRevenueData}
                 color="#22C55E"
                 title="Revenue"
@@ -1050,8 +1044,8 @@ export function SystemAnalytics() {
                       </div>
                     </div>
                     <div className="h-3 bg-muted rounded-full overflow-hidden flex">
-                      <div 
-                        className="h-full bg-blue-500" 
+                      <div
+                        className="h-full bg-blue-500"
                         style={{ width: `${Math.min((item.budget / Math.max(item.budget, item.actual)) * 100, 100)}%` }}
                       />
                     </div>
@@ -1106,7 +1100,7 @@ export function SystemAnalytics() {
         <TabsContent value="reports" className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Time Reports & Analytics</h2>
-            <Button 
+            <Button
               onClick={handleExportCSV}
               className="bg-teal-600 hover:bg-teal-700"
             >
@@ -1125,7 +1119,7 @@ export function SystemAnalytics() {
                 <CardDescription>Daily hours logged</CardDescription>
               </CardHeader>
               <CardContent>
-                <TrendLineChart 
+                <TrendLineChart
                   data={dailyHoursData}
                   color="#14B8A6"
                   title="Hours"
@@ -1142,7 +1136,7 @@ export function SystemAnalytics() {
                 <CardDescription>Cumulative projects over time</CardDescription>
               </CardHeader>
               <CardContent>
-                <TrendLineChart 
+                <TrendLineChart
                   data={projectTrendData}
                   color="#8B5CF6"
                   title="Projects"
@@ -1160,7 +1154,7 @@ export function SystemAnalytics() {
               <CardDescription>Monthly revenue from paid invoices</CardDescription>
             </CardHeader>
             <CardContent>
-              <TrendLineChart 
+              <TrendLineChart
                 data={monthlyRevenueData}
                 color="#22C55E"
                 title="Revenue"

@@ -37,7 +37,7 @@ import {
   Upload,
   File,
   FileText as FileTextIcon,
-  Image,
+  _Image,
   Edit3,
   Calendar,
   Zap as ZapIcon,

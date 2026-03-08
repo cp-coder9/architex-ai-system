@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Project } from '@/types';
+import { Project, Milestone, Drawing } from '@/types';
 import {
   Search,
   Eye,
@@ -31,7 +31,7 @@ function ProjectDetailDialog({ project, isOpen, onClose }: { project: Project; i
     [allDrawings, project.id]
   );
 
-  const timeEntries = useMemo(() =>
+  const _timeEntries = useMemo(() =>
     allTimeEntries.filter(te => te.projectId === project.id),
     [allTimeEntries, project.id]
   );
@@ -82,7 +82,7 @@ function ProjectDetailDialog({ project, isOpen, onClose }: { project: Project; i
           <div>
             <p className="font-medium mb-3">Milestones</p>
             <div className="space-y-2">
-              {project.milestones.map((milestone: any) => (
+              {project.milestones.map((milestone: Milestone) => (
                 <div key={milestone.id} className="flex items-center justify-between p-3 rounded-lg border">
                   <div className="flex items-center gap-3">
                     {milestone.status === 'completed' ? (
@@ -107,7 +107,7 @@ function ProjectDetailDialog({ project, isOpen, onClose }: { project: Project; i
             <p className="font-medium mb-3">Drawings ({drawings.length})</p>
             <ScrollArea className="h-[200px]">
               <div className="space-y-2">
-                {drawings.map((drawing: any) => (
+                {drawings.map((drawing: Drawing) => (
                   <div key={drawing.id} className="flex items-center justify-between p-3 rounded-lg border">
                     <div className="flex items-center gap-3">
                       <FileText className="w-4 h-4 text-muted-foreground" />

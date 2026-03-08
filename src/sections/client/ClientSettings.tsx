@@ -11,8 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { auth } from '@/services/firebase';
-import { Settings as SettingsType } from '@/types';
+
 import {
   User,
   Mail,
@@ -147,12 +146,12 @@ export function ClientSettings() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Avatar */}
-               <div className="flex items-center gap-4">
-                 <Avatar className="w-20 h-20">
-                   <AvatarImage src={currentUser?.avatar} />
-                   <AvatarFallback className="text-2xl">{(currentUser?.name || '?').charAt(0)}</AvatarFallback>
-                 </Avatar>
-                 <Button variant="outline" className="gap-2">
+              <div className="flex items-center gap-4">
+                <Avatar className="w-20 h-20">
+                  <AvatarImage src={currentUser?.avatar} />
+                  <AvatarFallback className="text-2xl">{(currentUser?.name || '?').charAt(0)}</AvatarFallback>
+                </Avatar>
+                <Button variant="outline" className="gap-2">
                   <Camera className="w-4 h-4" />
                   Change Avatar
                 </Button>
@@ -322,27 +321,27 @@ export function ClientSettings() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="current-password">Current Password</Label>
-                <Input 
-                  id="current-password" 
-                  type="password" 
+                <Input
+                  id="current-password"
+                  type="password"
                   value={passwordData.current}
                   onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="new-password">New Password</Label>
-                <Input 
-                  id="new-password" 
-                  type="password" 
+                <Input
+                  id="new-password"
+                  type="password"
                   value={passwordData.newPass}
                   onChange={(e) => setPasswordData({ ...passwordData, newPass: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <Input 
-                  id="confirm-password" 
-                  type="password" 
+                <Input
+                  id="confirm-password"
+                  type="password"
                   value={passwordData.confirm}
                   onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
                 />

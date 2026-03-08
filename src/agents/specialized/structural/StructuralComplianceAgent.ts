@@ -236,7 +236,7 @@ export class StructuralComplianceAgent extends Agent {
   /**
    * Analyze structural drawings
    */
-  async analyze(drawing: DrawingData, projectInfo: ProjectInfo): Promise<AgentResult> {
+  async analyze(drawing: DrawingData, _projectInfo: ProjectInfo): Promise<AgentResult> {
     const startTime = Date.now();
     const findings: Finding[] = [];
     const passedRules: string[] = [];
@@ -401,7 +401,7 @@ export class StructuralComplianceAgent extends Agent {
   // Rule Check Methods
   // ==========================================================================
 
-  private checkFloorLoads(text: string, drawing: DrawingData): Finding[] {
+  private checkFloorLoads(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-001')!;
     
@@ -421,7 +421,7 @@ export class StructuralComplianceAgent extends Agent {
     return findings;
   }
 
-  private checkRoofLoads(text: string, drawing: DrawingData): Finding[] {
+  private checkRoofLoads(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-002')!;
     
@@ -436,7 +436,7 @@ export class StructuralComplianceAgent extends Agent {
     return findings;
   }
 
-  private checkWindLoads(text: string, drawing: DrawingData): Finding[] {
+  private checkWindLoads(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-003')!;
     
@@ -451,7 +451,7 @@ export class StructuralComplianceAgent extends Agent {
     return findings;
   }
 
-  private checkConcreteGrade(text: string, drawing: DrawingData): Finding[] {
+  private checkConcreteGrade(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-004')!;
     
@@ -471,12 +471,12 @@ export class StructuralComplianceAgent extends Agent {
     return findings;
   }
 
-  private checkReinforcementDetails(text: string, drawing: DrawingData): Finding[] {
+  private checkReinforcementDetails(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-005')!;
     
     const hasReinforcement = /reinforcement|rebar|steel.*bar|Y\d+|Y12|Y16|Y20/i.test(text);
-    const hasBarSizes = /Y\d+|Y12|Y16|Y20|bar.*size/i.test(text);
+    const _hasBarSizes = /Y\d+|Y12|Y16|Y20|bar.*size/i.test(text);
 
     if (!hasReinforcement) {
       findings.push(this.createFinding(rule, {} as AgentContext, {
@@ -487,7 +487,7 @@ export class StructuralComplianceAgent extends Agent {
     return findings;
   }
 
-  private checkCoverToReinforcement(text: string, drawing: DrawingData): Finding[] {
+  private checkCoverToReinforcement(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-006')!;
     
@@ -507,7 +507,7 @@ export class StructuralComplianceAgent extends Agent {
     return findings;
   }
 
-  private checkSteelGrade(text: string, drawing: DrawingData): Finding[] {
+  private checkSteelGrade(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-007')!;
     
@@ -522,7 +522,7 @@ export class StructuralComplianceAgent extends Agent {
     return findings;
   }
 
-  private checkConnectionDetails(text: string, drawing: DrawingData): Finding[] {
+  private checkConnectionDetails(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-008')!;
     
@@ -537,7 +537,7 @@ export class StructuralComplianceAgent extends Agent {
     return findings;
   }
 
-  private checkTimberDetails(text: string, drawing: DrawingData): Finding[] {
+  private checkTimberDetails(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-009')!;
     
@@ -555,7 +555,7 @@ export class StructuralComplianceAgent extends Agent {
     return findings;
   }
 
-  private checkJointDetails(text: string, drawing: DrawingData): Finding[] {
+  private checkJointDetails(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-010')!;
     
@@ -570,7 +570,7 @@ export class StructuralComplianceAgent extends Agent {
     return findings;
   }
 
-  private checkFoundationDesign(text: string, drawing: DrawingData): Finding[] {
+  private checkFoundationDesign(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-011')!;
     
@@ -585,7 +585,7 @@ export class StructuralComplianceAgent extends Agent {
     return findings;
   }
 
-  private checkStructuralCalculations(text: string, drawing: DrawingData): Finding[] {
+  private checkStructuralCalculations(text: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.structuralRules.find(r => r.id === 'STR-012')!;
     

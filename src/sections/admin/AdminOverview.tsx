@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useProjectStore, useInvoiceStore, useSettingsStore, useNotificationStore, useAuthStore } from '@/store';
@@ -26,7 +26,7 @@ import {
   MessageSquare,
   RefreshCw,
 } from 'lucide-react';
-import { getAgentAccuracyMetrics, AgentAccuracyMetrics, AgentAccuracy, getAllAgents } from '@/lib/agentApi';
+import { getAgentAccuracyMetrics, AgentAccuracyMetrics, getAllAgents } from '@/lib/agentApi';
 
 // Animated Counter Component
 function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) {
@@ -543,39 +543,39 @@ export function AdminOverview() {
 
     // Count projects created in last 30 days
     const currentPeriodProjects = projects.filter(p => {
-      const createdAt = new Date(p.createdAt || Date.now());
+      const createdAt = new Date(p.createdAt || now.getTime());
       return createdAt >= thirtyDaysAgo;
     }).length;
 
     // Count projects created in prior 30 days (30-60 days ago)
     const previousPeriodProjects = projects.filter(p => {
-      const createdAt = new Date(p.createdAt || Date.now());
+      const createdAt = new Date(p.createdAt || now.getTime());
       return createdAt >= sixtyDaysAgo && createdAt < thirtyDaysAgo;
     }).length;
 
     // Count users created in last 30 days
     const currentPeriodUsers = users.filter(u => {
-      const createdAt = new Date(u.createdAt || Date.now());
+      const createdAt = new Date(u.createdAt || now.getTime());
       return createdAt >= thirtyDaysAgo;
     }).length;
 
     // Count users created in prior 30 days
     const previousPeriodUsers = users.filter(u => {
-      const createdAt = new Date(u.createdAt || Date.now());
+      const createdAt = new Date(u.createdAt || now.getTime());
       return createdAt >= sixtyDaysAgo && createdAt < thirtyDaysAgo;
     }).length;
 
     // Calculate revenue from last 30 days vs prior 30 days
     const currentPeriodRevenue = invoices
       .filter(inv => {
-        const createdAt = new Date(inv.createdAt || Date.now());
+        const createdAt = new Date(inv.createdAt || now.getTime());
         return inv.status === 'paid' && createdAt >= thirtyDaysAgo;
       })
       .reduce((sum, inv) => sum + inv.total, 0);
 
     const previousPeriodRevenue = invoices
       .filter(inv => {
-        const createdAt = new Date(inv.createdAt || Date.now());
+        const createdAt = new Date(inv.createdAt || now.getTime());
         return inv.status === 'paid' && createdAt >= sixtyDaysAgo && createdAt < thirtyDaysAgo;
       })
       .reduce((sum, inv) => sum + inv.total, 0);

@@ -303,7 +303,7 @@ export function MyWork() {
   const myMilestones = useMemo(() => {
     if (!currentUser) return [];
     const result: MockTask[] = [];
-    
+
     // Get milestones from projects assigned to this freelancer
     projects
       .filter(p => p.freelancerId === currentUser.id)
@@ -321,7 +321,7 @@ export function MyWork() {
           });
         });
       });
-    
+
     return result;
   }, [projects, currentUser]);
 
@@ -353,13 +353,13 @@ export function MyWork() {
     // Check if it's a milestone (has projectId/milestoneId) or marketplace task (has taskId)
     const milestoneTask = task as MockTask & { milestoneId: string; projectId: string };
     const marketplaceTask = task as MockTask & { taskId: string };
-    
+
     if (milestoneTask.milestoneId && milestoneTask.projectId) {
       // It's a project milestone
-      await updateMilestone(milestoneTask.milestoneId, { status: newStatus as any });
+      await updateMilestone(milestoneTask.milestoneId, { status: newStatus as TaskMilestone['status'] });
     } else if (marketplaceTask.taskId) {
       // It's a marketplace task
-      await updateTask(marketplaceTask.taskId, { status: newStatus as any });
+      await updateTask(marketplaceTask.taskId, { status: newStatus as Task['status'] });
     }
   };
 

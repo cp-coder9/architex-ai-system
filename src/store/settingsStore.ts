@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Settings, User, UserRole, Client, Freelancer, Admin } from '@/types';
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { initializeApp, getApps,  FirebaseApp } from 'firebase/app';
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -12,12 +12,12 @@ import { db, isFirebaseConfigured, firebaseConfig } from '@/config/firebase';
 import {
   collection,
   doc,
-  getDocs,
-  addDoc,
+  _getDocs,
+  _addDoc,
   updateDoc,
   deleteDoc,
   query,
-  where,
+  _where,
   orderBy,
   onSnapshot,
   Unsubscribe,

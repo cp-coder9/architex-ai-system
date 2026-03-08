@@ -4,7 +4,7 @@ import { db, isFirebaseConfigured } from '@/config/firebase';
 import {
   collection,
   doc,
-  getDocs,
+  _getDocs,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -16,7 +16,7 @@ import {
   Timestamp,
   serverTimestamp,
 } from 'firebase/firestore';
-import { COLLECTIONS } from '@/services/firebase/utils';
+
 
 // Collection names
 const TASKS_COLLECTION = 'tasks';

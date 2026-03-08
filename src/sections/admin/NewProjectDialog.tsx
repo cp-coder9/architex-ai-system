@@ -149,7 +149,7 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
       
       toast.success('Project created successfully!');
       onOpenChange(false);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to create project');
     }
   };

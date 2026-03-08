@@ -11,13 +11,13 @@ import { useAuthStore } from './authStore';
 import {
   uploadFileToR2,
   deleteFileFromR2,
-  listFilesInFolder,
+  _listFilesInFolder,
   uploadDrawing,
   uploadProof,
   uploadProfileImage,
-  uploadProjectFile,
+  _uploadProjectFile,
   R2File,
-  UploadProgress,
+  _UploadProgress,
 } from '@/services/r2StorageService';
 import {
   collection,
@@ -28,11 +28,11 @@ import {
   where,
   onSnapshot,
   serverTimestamp,
-  Timestamp,
-  getDocs,
+  _Timestamp,
+  _getDocs,
   Firestore,
 } from 'firebase/firestore';
-import { db, isFirebaseConfigured } from '@/config/firebase';
+import { db } from '@/config/firebase';
 
 // Helper to safely get db instance
 const getDb = (): Firestore => {

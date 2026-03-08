@@ -225,7 +225,7 @@ export class ReportingService {
    * Export report to HTML
    */
   exportToHTML(reportData: ReportData): string {
-    const { config, summary, categories, recommendations, findings } = reportData;
+    const { config, summary, _categories, recommendations, findings } = reportData;
 
     return `
 <!DOCTYPE html>

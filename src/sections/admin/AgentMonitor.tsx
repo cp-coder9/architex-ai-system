@@ -16,7 +16,7 @@ import {
   Bot,
   CheckCircle2,
   AlertTriangle,
-  XCircle,
+  _XCircle,
   Clock,
   Activity,
   Zap,
@@ -25,7 +25,7 @@ import {
   Eye,
   Play,
   Pause,
-  RotateCcw,
+  _RotateCcw,
   Shield,
   AlertCircle,
   CheckCircle,
@@ -666,7 +666,7 @@ export function AgentMonitor() {
     const fetchLiveAgents = async () => {
       try {
         const accuracyMetrics = await getAgentAccuracyMetrics();
-        const liveMetrics = agentOrchestrator.getAgentMetrics() as Map<string, any>;
+        const liveMetrics = agentOrchestrator.getAgentMetrics() as Map<string, { status: number | string }>;
         const staticAgents = getAllAgents();
 
         const mergedAgents: Agent[] = accuracyMetrics.agents.map((acc: AgentAccuracy) => {
@@ -751,7 +751,7 @@ export function AgentMonitor() {
     }));
   };
 
-  const handleOverrideIssue = (reason: string) => {
+  const handleOverrideIssue = (_reason: string) => {
     if (selectedIssue) {
       toast.success('Issue overridden successfully');
       setIsIssueDialogOpen(false);

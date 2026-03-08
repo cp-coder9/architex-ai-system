@@ -218,7 +218,7 @@ export class LayerAnalyzerAgent extends Agent {
   /**
    * Analyze layers on a drawing
    */
-  async analyze(drawing: DrawingData, projectInfo: ProjectInfo): Promise<AgentResult> {
+  async analyze(drawing: DrawingData, _projectInfo: ProjectInfo): Promise<AgentResult> {
     const startTime = Date.now();
     const findings: Finding[] = [];
     const passedRules: string[] = [];
@@ -524,10 +524,10 @@ export class LayerAnalyzerAgent extends Agent {
    */
   private checkLayerNaming(
     layerData: LayerAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
-    const { compliant, nonCompliant } = layerData.namingConvention;
+    const { compliant, _nonCompliant } = layerData.namingConvention;
     const total = layerData.totalLayers;
     
     // If more than 70% follow convention, consider compliant
@@ -539,8 +539,8 @@ export class LayerAnalyzerAgent extends Agent {
    */
   private checkDisciplineOrganization(
     layerData: LayerAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // Check if at least some layers follow discipline organization
     return layerData.hasDisciplineOrganization;
@@ -551,8 +551,8 @@ export class LayerAnalyzerAgent extends Agent {
    */
   private checkUnusedLayers(
     layerData: LayerAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // Allow some unused layers but warn if too many
     const unusedRatio = layerData.unusedLayers.length / layerData.totalLayers;
@@ -564,8 +564,8 @@ export class LayerAnalyzerAgent extends Agent {
    */
   private checkTextLayers(
     layerData: LayerAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     return layerData.textOnCorrectLayers;
   }
@@ -574,9 +574,9 @@ export class LayerAnalyzerAgent extends Agent {
    * LAY-005: Layer Colors Consistent
    */
   private checkLayerColors(
-    layerData: LayerAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _layerData: LayerAnalysisData,
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // This is a soft check - colors should be consistent within disciplines
     // Not critical for compliance
@@ -588,8 +588,8 @@ export class LayerAnalyzerAgent extends Agent {
    */
   private checkLayerVisibility(
     layerData: LayerAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // Check if essential layers are visible
     const visibleLayers = layerData.layers.filter(l => l.visible);
@@ -601,8 +601,8 @@ export class LayerAnalyzerAgent extends Agent {
    */
   private checkDimensionLayers(
     layerData: LayerAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     return layerData.dimensionsOnCorrectLayers;
   }
@@ -611,9 +611,9 @@ export class LayerAnalyzerAgent extends Agent {
    * LAY-008: Reference Layers
    */
   private checkReferenceLayers(
-    layerData: LayerAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _layerData: LayerAnalysisData,
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // This is optional - check for XREF layers
     // Not required to pass

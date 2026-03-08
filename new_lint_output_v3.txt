@@ -1,4 +1,8 @@
 
+> my-app@0.0.0 lint
+> eslint .
+
+
 E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\accessibility\AccessibilityAgent.ts
   359:67  error  'drawing' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
   374:44  error  'annotations' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars
@@ -257,6 +261,7 @@ E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specia
 
 E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\technical\DimensionValidatorAgent.ts
   271:39  error  'projectInfo' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
+  531:10  error  Unnecessary escape character: \+                                                      no-useless-escape
   643:5   error  'rule' is defined but never used. Allowed unused args must match /^_/u                @typescript-eslint/no-unused-vars
   644:5   error  'drawing' is defined but never used. Allowed unused args must match /^_/u             @typescript-eslint/no-unused-vars
   670:5   error  'rule' is defined but never used. Allowed unused args must match /^_/u                @typescript-eslint/no-unused-vars
@@ -345,6 +350,24 @@ E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\Er
 E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\FileManager.tsx
   755:5  error  'files' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
 
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\dev\FirebaseConnectionStatus.tsx
+  81:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\dev\FirebaseConnectionStatus.tsx:81:5
+  79 |   // Initial check
+  80 |   useEffect(() => {
+> 81 |     checkConnection();
+     |     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  82 |   }, [checkConnection]);
+  83 |
+  84 |   // Auto-refresh interval  react-hooks/set-state-in-effect
+
 E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\ui\badge.tsx
   46:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
 
@@ -423,7 +446,19 @@ E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admi
   754:32  error  'reason' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars
 
 E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\FreelancerMarketplace.tsx
-  565:10  error  'TaskDetailDialog' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  565:10  error  'TaskDetailDialog' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  665:29  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\FreelancerMarketplace.tsx:665:29
+  663 |   const [selectedTaskForApplications, setSelectedTaskForApplications] = useState<Task | null>(null);
+  664 |
+> 665 |   const now = useMemo(() => Date.now(), []);
+      |                             ^^^^^^^^^^ Cannot call impure function
+  666 |
+  667 |   // Filter tasks
+  668 |   const filteredTasks = useMemo(() => {  react-hooks/purity
 
 E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\InvoiceManagement.tsx
   32:3  error  'DollarSign' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
@@ -621,5 +656,5 @@ E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\store\taskSto
 E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\types\index.ts
   226:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-Γ£û 414 problems (397 errors, 17 warnings)
+Γ£û 417 problems (400 errors, 17 warnings)
 

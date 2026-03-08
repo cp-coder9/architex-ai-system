@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useAuthStore, useFileStore } from '@/store';
 import { FileManager } from '@/components/FileManager';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import {

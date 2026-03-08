@@ -25,7 +25,7 @@ import {
   serverTimestamp,
   onSnapshot,
   Unsubscribe,
-  DocumentSnapshot,
+  _DocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { Notification, ChatMessage } from '@/types';

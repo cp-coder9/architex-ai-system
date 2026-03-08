@@ -237,7 +237,7 @@ export class TextClarityCheckerAgent extends Agent {
   /**
    * Analyze text clarity on a drawing
    */
-  async analyze(drawing: DrawingData, projectInfo: ProjectInfo): Promise<AgentResult> {
+  async analyze(drawing: DrawingData, _projectInfo: ProjectInfo): Promise<AgentResult> {
     const startTime = Date.now();
     const findings: Finding[] = [];
     const passedRules: string[] = [];
@@ -252,7 +252,7 @@ export class TextClarityCheckerAgent extends Agent {
       // Run each compliance check
       for (const rule of this.textRules) {
         const result = await this.evaluateTextRule(rule, textData, drawing);
-        
+
         if (result.passed) {
           passedRules.push(rule.id);
         } else {
@@ -325,29 +325,29 @@ export class TextClarityCheckerAgent extends Agent {
   private extractTextData(drawing: DrawingData): TextAnalysisData {
     const textElements = drawing.textElements;
     const totalTextElements = textElements.length;
-    
+
     // Extract font sizes
     const fontSizes = this.extractFontSizes(textElements);
     const minFontSize = fontSizes.length > 0 ? Math.min(...fontSizes) : 0;
     const maxFontSize = fontSizes.length > 0 ? Math.max(...fontSizes) : 0;
-    
+
     // Check font usage
     const fontsUsed = this.extractFonts(textElements);
     const usesStandardFonts = this.checkStandardFonts(fontsUsed);
-    
+
     // Check for title block text
     const hasTitleBlock = this.checkTitleBlock(drawing);
-    
+
     // Check for room labels
     const roomLabels = this.extractRoomLabels(textElements);
     const roomLabelSizes = roomLabels.map(t => t.height || 0);
-    
+
     // Check text orientation
     const orientations = this.checkTextOrientation(textElements);
-    
+
     // Categorize text by type
     const textCategories = this.categorizeText(textElements);
-    
+
     // Check text height consistency
     const heightConsistency = this.checkHeightConsistency(textElements);
 
@@ -382,13 +382,13 @@ export class TextClarityCheckerAgent extends Agent {
    */
   private extractFonts(textElements: DrawingData['textElements']): Set<string> {
     const fonts = new Set<string>();
-    
+
     for (const text of textElements) {
       if (text.font) {
         fonts.add(text.font.toLowerCase());
       }
     }
-    
+
     return fonts;
   }
 
@@ -399,14 +399,14 @@ export class TextClarityCheckerAgent extends Agent {
     if (fonts.size === 0) {
       return true; // No fonts to check
     }
-    
+
     // Check if at least one standard font is used
     for (const font of fonts) {
       if (STANDARD_FONTS.some(std => font.includes(std))) {
         return true;
       }
     }
-    
+
     // Or if there are very few fonts
     return fonts.size <= 2;
   }
@@ -418,14 +418,14 @@ export class TextClarityCheckerAgent extends Agent {
     const textContent = drawing.textElements.map(t => t.content.toLowerCase());
     const annotationContent = drawing.annotations.map(a => a.content.toLowerCase());
     const allText = [...textContent, ...annotationContent];
-    
+
     // Look for title block indicators
     const titleBlockKeywords = [
       'drawing', 'project', 'scale', 'date', 'drawn', 'checked',
       'approved', 'revision', 'sheet', 'drawing number'
     ];
-    
-    return allText.some(text => 
+
+    return allText.some(text =>
       titleBlockKeywords.some(keyword => text.includes(keyword))
     );
   }
@@ -435,7 +435,7 @@ export class TextClarityCheckerAgent extends Agent {
    */
   private extractRoomLabels(textElements: DrawingData['textElements']): DrawingData['textElements'] {
     const roomKeywords = ['bedroom', 'kitchen', 'bathroom', 'living', 'dining', 'wc', 'toilet', 'study', 'hall', 'laundry', 'garage', 'store', 'room'];
-    
+
     return textElements.filter(t => {
       const content = t.content.toLowerCase();
       return roomKeywords.some(keyword => content.includes(keyword));
@@ -453,13 +453,13 @@ export class TextClarityCheckerAgent extends Agent {
     let horizontal = 0;
     let vertical = 0;
     let rotated = 0;
-    
+
     for (const text of textElements) {
       const rotation = text.rotation || 0;
-      
+
       // Normalize rotation to 0-180
       const normalizedRotation = Math.abs(rotation % 180);
-      
+
       if (normalizedRotation < 10 || normalizedRotation > 170) {
         horizontal++;
       } else if (normalizedRotation > 80 && normalizedRotation < 100) {
@@ -468,7 +468,7 @@ export class TextClarityCheckerAgent extends Agent {
         rotated++;
       }
     }
-    
+
     return { horizontal, vertical, rotated };
   }
 
@@ -489,10 +489,10 @@ export class TextClarityCheckerAgent extends Agent {
       labels: 0,
       other: 0
     };
-    
+
     for (const text of textElements) {
       const content = text.content.toLowerCase();
-      
+
       if (content.includes('title') || content.includes('drawing') || content.includes('project')) {
         categories.titles++;
       } else if (content.match(/\d+\s*mm/) || content.match(/\d+\s*m/)) {
@@ -505,7 +505,7 @@ export class TextClarityCheckerAgent extends Agent {
         categories.other++;
       }
     }
-    
+
     return categories;
   }
 
@@ -516,12 +516,12 @@ export class TextClarityCheckerAgent extends Agent {
     const heights = textElements
       .filter(t => t.height !== undefined && t.height > 0)
       .map(t => t.height!);
-    
+
     if (heights.length < 2) return true;
-    
+
     const avg = heights.reduce((a, b) => a + b, 0) / heights.length;
     const maxDeviation = Math.max(...heights.map(h => Math.abs(h - avg) / avg));
-    
+
     // Allow 30% deviation
     return maxDeviation < 0.3;
   }
@@ -547,35 +547,35 @@ export class TextClarityCheckerAgent extends Agent {
       case 'TXT-001': // Font Sizes Adequate
         ({ passed, value, expected, finding } = this.checkFontSizes(textData, rule, drawing));
         break;
-        
+
       case 'TXT-002': // Text Legibility
         passed = this.checkTextLegibility(textData, rule, drawing);
         break;
-        
+
       case 'TXT-003': // Consistent Text Height
         passed = this.checkTextHeightConsistency(textData, rule, drawing);
         break;
-        
+
       case 'TXT-004': // Title Block Text
         ({ passed, value, expected, finding } = this.checkTitleBlockText(textData, rule, drawing));
         break;
-        
+
       case 'TXT-005': // Dimension Text
         passed = this.checkDimensionText(textData, rule, drawing);
         break;
-        
+
       case 'TXT-006': // Notes and Specifications
         passed = this.checkNotesText(textData, rule, drawing);
         break;
-        
+
       case 'TXT-007': // Room Labels
         passed = this.checkRoomLabelText(textData, rule, drawing);
         break;
-        
+
       case 'TXT-008': // Text Orientation
         passed = this.checkTextOrientationCompliance(textData, rule, drawing);
         break;
-        
+
       default:
         passed = false;
     }
@@ -599,12 +599,12 @@ export class TextClarityCheckerAgent extends Agent {
     drawing: DrawingData
   ): { passed: boolean; value?: number; expected?: number; finding?: Finding } {
     const minRequired = 2.5; // mm
-    
+
     if (textData.fontSizes.length === 0) {
       // Can't verify if no text
       return { passed: true };
     }
-    
+
     if (textData.minFontSize < minRequired) {
       return {
         passed: false,
@@ -619,7 +619,7 @@ export class TextClarityCheckerAgent extends Agent {
         )
       };
     }
-    
+
     return { passed: true, value: textData.minFontSize, expected: minRequired };
   }
 
@@ -628,8 +628,8 @@ export class TextClarityCheckerAgent extends Agent {
    */
   private checkTextLegibility(
     textData: TextAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     return textData.usesStandardFonts;
   }
@@ -639,8 +639,8 @@ export class TextClarityCheckerAgent extends Agent {
    */
   private checkTextHeightConsistency(
     textData: TextAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     return textData.heightConsistency;
   }
@@ -654,20 +654,20 @@ export class TextClarityCheckerAgent extends Agent {
     drawing: DrawingData
   ): { passed: boolean; value?: number; expected?: number; finding?: Finding } {
     const minRequired = 3; // mm
-    
+
     if (!textData.hasTitleBlock) {
       return { passed: true }; // No title block to check
     }
-    
+
     // Check if any text is in title block area (usually large text)
     const titleBlockTextSizes = textData.textElements
       .filter(t => {
         const content = t.content.toLowerCase();
-        return content.includes('drawing') || content.includes('project') || 
-               content.includes('scale') || content.includes('date');
+        return content.includes('drawing') || content.includes('project') ||
+          content.includes('scale') || content.includes('date');
       })
       .map(t => t.height || 0);
-    
+
     if (titleBlockTextSizes.length > 0) {
       const minTitleSize = Math.min(...titleBlockTextSizes);
       if (minTitleSize < minRequired) {
@@ -685,7 +685,7 @@ export class TextClarityCheckerAgent extends Agent {
         };
       }
     }
-    
+
     return { passed: true };
   }
 
@@ -693,9 +693,9 @@ export class TextClarityCheckerAgent extends Agent {
    * TXT-005: Dimension Text
    */
   private checkDimensionText(
-    textData: TextAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _textData: TextAnalysisData,
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // Dimension text is usually extracted from annotations
     // Check if dimension-related text is present
@@ -706,9 +706,9 @@ export class TextClarityCheckerAgent extends Agent {
    * TXT-006: Notes Text
    */
   private checkNotesText(
-    textData: TextAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _textData: TextAnalysisData,
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // Notes should have adequate size
     return true;
@@ -719,13 +719,13 @@ export class TextClarityCheckerAgent extends Agent {
    */
   private checkRoomLabelText(
     textData: TextAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     if (textData.roomLabels.length === 0) {
       return true; // No room labels
     }
-    
+
     // Check if room labels have adequate size
     const minSize = Math.min(...textData.roomLabelSizes.filter(s => s > 0));
     return minSize >= 3; // 3mm minimum for labels
@@ -736,16 +736,16 @@ export class TextClarityCheckerAgent extends Agent {
    */
   private checkTextOrientationCompliance(
     textData: TextAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // Most text should be horizontal
-    const total = textData.orientations.horizontal + 
-                  textData.orientations.vertical + 
-                  textData.orientations.rotated;
-    
+    const total = textData.orientations.horizontal +
+      textData.orientations.vertical +
+      textData.orientations.rotated;
+
     if (total === 0) return true;
-    
+
     const horizontalRatio = textData.orientations.horizontal / total;
     return horizontalRatio >= 0.7; // At least 70% horizontal
   }
@@ -765,9 +765,9 @@ export class TextClarityCheckerAgent extends Agent {
       ruleId: rule.id,
       ruleName: rule.name,
       standard: rule.standard,
-      severity: severity === 'critical' ? Severity.CRITICAL : 
-                severity === 'high' ? Severity.HIGH : 
-                severity === 'medium' ? Severity.MEDIUM : Severity.LOW,
+      severity: severity === 'critical' ? Severity.CRITICAL :
+        severity === 'high' ? Severity.HIGH :
+          severity === 'medium' ? Severity.MEDIUM : Severity.LOW,
       title: rule.name,
       description,
       location: {

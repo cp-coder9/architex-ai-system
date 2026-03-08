@@ -21,16 +21,16 @@ import {
   calculateComplianceScore
 } from '@/types/agent';
 import {
-  ROOM_REQUIREMENTS,
-  FloorPlanCheck,
-  DoorCheck,
-  WindowCheck,
-  SanitaryCheck,
-  VentilationCheck,
-  LightingCheck,
-  FireExitCheck,
-  CeilingHeightRoom,
-  RoomAreaCheck
+  _ROOM_REQUIREMENTS,
+  _FloorPlanCheck,
+  _DoorCheck,
+  _WindowCheck,
+  _SanitaryCheck,
+  _VentilationCheck,
+  _LightingCheck,
+  _FireExitCheck,
+  _CeilingHeightRoom,
+  _RoomAreaCheck
 } from '@/config/sans10400/types';
 
 // ============================================================================
@@ -566,7 +566,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * Extract floor plan data from drawing and project info
    */
-  private extractFloorData(drawing: DrawingData, projectInfo: ProjectInfo): FloorAnalysisData {
+  private extractFloorData(drawing: DrawingData, _projectInfo: ProjectInfo): FloorAnalysisData {
     // Extract text elements for room names and labels
     const textContent = drawing.textElements.map(t => t.content.toLowerCase());
     const annotations = drawing.annotations.map(a => a.content.toLowerCase());
@@ -632,7 +632,7 @@ export class FloorPlanComplianceAgent extends Agent {
    */
   private extractRooms(drawing: DrawingData, textContent: string[], annotations: string[]): RoomData[] {
     const rooms: RoomData[] = [];
-    const allText = [...textContent, ...annotations];
+    const _allText = [...textContent, ...annotations];
     
     // Room type patterns to search for
     const roomPatterns = [
@@ -1499,7 +1499,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-001: Room Dimensions Shown
    */
-  private checkRoomDimensionsPresent(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkRoomDimensionsPresent(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const hasRooms = floorData.rooms.length > 0;
     const hasDimensions = floorData.dimensions.roomDimensions.length > 0;
     return hasRooms && hasDimensions;
@@ -1508,7 +1508,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-002: Ceiling Height Minimum 2400mm
    */
-  private checkCeilingHeight(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkCeilingHeight(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // Check if any rooms have ceiling height indicated
     const roomsWithHeight = floorData.rooms.filter(r => r.ceilingHeight !== null);
     
@@ -1525,7 +1525,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-003: Room Names/Labels Present
    */
-  private checkRoomLabelsPresent(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkRoomLabelsPresent(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // Check if rooms have labels
     const labeledRooms = floorData.rooms.filter(r => r.name && r.name !== 'Room');
     return labeledRooms.length === floorData.rooms.length && floorData.rooms.length > 0;
@@ -1534,14 +1534,14 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-004: Wall Thicknesses Indicated
    */
-  private checkWallThicknesses(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkWallThicknesses(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return floorData.dimensions.wallThicknesses.length > 0;
   }
 
   /**
    * FLR-005: Door Sizes and Swings Shown
    */
-  private checkDoorDetails(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkDoorDetails(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     if (floorData.doors.length === 0) return false;
     
     // Check if doors have dimensions
@@ -1552,7 +1552,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-006: Window Sizes and Positions
    */
-  private checkWindowDetails(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkWindowDetails(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     if (floorData.windows.length === 0) return false;
     
     // Check if windows have dimensions
@@ -1601,7 +1601,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-008: Mechanical Ventilation Where Required
    */
-  private checkMechanicalVentilationRequired(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkMechanicalVentilationRequired(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // Check if interior rooms without windows have mechanical ventilation
     const interiorRooms = floorData.rooms.filter(r => !r.hasWindow);
     
@@ -1616,7 +1616,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-009: Cross Ventilation
    */
-  private checkCrossVentilation(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkCrossVentilation(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // Check habitable rooms for windows on multiple walls
     const habitableRooms = floorData.rooms.filter(r => r.isHabitable);
     
@@ -1712,7 +1712,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-012: Light Ratios Adequate
    */
-  private checkLightRatios(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkLightRatios(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // Similar to FLR-010, but checks room by room
     const habitableRooms = floorData.rooms.filter(r => r.isHabitable);
     
@@ -1727,7 +1727,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-013: Fire Escape Routes Clear
    */
-  private checkFireEscapeRoutes(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFireEscapeRoutes(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // Check if there are doors that could serve as escape routes
     return floorData.doors.length > 0;
   }
@@ -1771,10 +1771,10 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-015: Alternative Escape Route
    */
-  private checkAlternativeEscape(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkAlternativeEscape(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // For multi-story or large rooms, check for multiple exits
     // This is a simplified check - in practice would need more detailed analysis
-    const hasMultipleExits = floorData.doors.length >= 2;
+    const _hasMultipleExits = floorData.doors.length >= 2;
     
     // If only one door, warn but don't fail for now
     return true;
@@ -1840,7 +1840,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-017: Bathroom Ventilation
    */
-  private checkBathroomVentilation(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkBathroomVentilation(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const bathrooms = floorData.rooms.filter(r => r.type === 'bathroom');
     
     if (bathrooms.length === 0) {
@@ -1859,7 +1859,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-018: WC Position and Ventilation
    */
-  private checkWCVentilation(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkWCVentilation(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const wcs = floorData.rooms.filter(r => r.type === 'wc');
     
     if (wcs.length === 0) {
@@ -1875,7 +1875,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-019: Kitchen Ventilation
    */
-  private checkKitchenVentilation(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkKitchenVentilation(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     if (!floorData.kitchen) {
       return true; // No kitchen to check
     }
@@ -1886,7 +1886,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-020: Laundry Ventilation
    */
-  private checkLaundryVentilation(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkLaundryVentilation(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     if (!floorData.laundry) {
       return true; // No laundry to check
     }
@@ -1964,7 +1964,7 @@ export class FloorPlanComplianceAgent extends Agent {
   /**
    * FLR-023: Garage Ventilation
    */
-  private checkGarageVentilation(floorData: FloorAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkGarageVentilation(floorData: FloorAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     if (!floorData.garage) {
       return true; // No garage to check
     }

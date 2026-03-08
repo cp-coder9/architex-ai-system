@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import {
   Table,
   TableBody,
@@ -296,13 +296,13 @@ function UserTable({
 
 export function UserManagement() {
   const users = useSettingsStore(state => state.users);
-  const isLoading = useSettingsStore(state => state.isLoading);
+  const _isLoading = useSettingsStore(state => state.isLoading);
   const createUser = useSettingsStore(state => state.createUser);
   const updateUser = useSettingsStore(state => state.updateUser);
   const deleteUser = useSettingsStore(state => state.deleteUser);
   const activateUser = useSettingsStore(state => state.activateUser);
   const deactivateUser = useSettingsStore(state => state.deactivateUser);
-  const getUsersByRole = useSettingsStore(state => state.getUsersByRole);
+  const _getUsersByRole = useSettingsStore(state => state.getUsersByRole);
   const getUserStats = useSettingsStore(state => state.getUserStats);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -315,7 +315,7 @@ export function UserManagement() {
   const [createdUserInfo, setCreatedUserInfo] = useState<{ email: string; role: UserRole } | null>(null);
 
   // Memoize stats to prevent infinite re-renders
-  const stats = useMemo(() => getUserStats(), [users]);
+  const stats = useMemo(() => getUserStats(), [users, getUserStats]);
 
   // Data is initialized by StoreInitializer at the app root
   // No local initialize/cleanup needed here to avoid redundant listeners

@@ -1,11 +1,11 @@
 import { useState, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAuthStore, useProjectRequestStore } from '@/store';
-import { UserRole } from '@/types';
+import type { User as UserType, UserRole } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -149,8 +149,7 @@ function BackgroundScene() {
 
 export function LoginScreen() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { login, register, isLoading, error, clearError, currentUser, tempOnboardingData, setTempOnboardingData } = useAuthStore();
+  const { login, register, isLoading, error, clearError, tempOnboardingData, setTempOnboardingData } = useAuthStore();
   const { createRequest } = useProjectRequestStore();
 
   const [activeTab, setActiveTab] = useState('login');
@@ -167,6 +166,60 @@ export function LoginScreen() {
   const [registerPhone, setRegisterPhone] = useState('');
   const [registerCompany, setRegisterCompany] = useState('');
 
+  const handleOnboardingRequest = async (user: UserType, email: string) => {
+    // Store reference to data before any operations
+    const onboardingData = tempOnboardingData;
+    if (!onboardingData) return;
+
+    if (selectedRole === 'client' && onboardingData) {
+      console.log('[LoginScreen] Onboarding data found, creating project request...');
+      try {
+        const serviceLabel = onboardingData.serviceType === 'other'
+          ? onboardingData.customServiceDescription
+          : onboardingData.serviceType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+        console.log('[LoginScreen] Creating request for clientId:', user.id);
+
+        await createRequest({
+          clientId: user.id,
+          clientName: `${onboardingData.personalDetails.firstName} ${onboardingData.personalDetails.surname}`,
+          clientEmail: email,
+          projectName: `${serviceLabel} - ${onboardingData.propertyDetails.physicalAddress.city}`,
+          description: onboardingData.customServiceDescription || `Service request for ${onboardingData.serviceType} at ${onboardingData.propertyDetails.physicalAddress.street}`,
+          projectType: onboardingData.propertyType as 'residential' | 'commercial' | 'industrial' | 'landscape',
+          hoursRequested: 0,
+          budget: 0,
+          status: 'pending',
+          address: onboardingData.propertyDetails.physicalAddress.street,
+          propertyDetails: {
+            identifierType: onboardingData.propertyDetails.identifierType,
+            identifierNumber: onboardingData.propertyDetails.identifierNumber,
+            physicalAddress: onboardingData.propertyDetails.physicalAddress
+          },
+          serviceDetails: {
+            serviceType: onboardingData.serviceType,
+            customDescription: onboardingData.customServiceDescription,
+            urgency: onboardingData.urgency
+          },
+          attachments: onboardingData.uploadedFiles?.map(file => ({
+            id: file.id,
+            name: file.name,
+            preview: file.preview,
+            type: file.type,
+            size: file.size
+          }))
+        });
+
+        console.log('[LoginScreen] Project request created successfully');
+        // Clear onboarding data from store
+        setTempOnboardingData(null);
+      } catch (err) {
+        console.error('[LoginScreen] Project request creation failed:', err);
+        toast.error('Failed to create project request, but you have been signed in.');
+      }
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
@@ -174,8 +227,22 @@ export function LoginScreen() {
     const success = await login(loginEmail, loginPassword, selectedRole);
 
     if (success) {
+      const hasOnboardingData = !!tempOnboardingData;
+      const user = useAuthStore.getState().currentUser;
+      if (user) {
+        await handleOnboardingRequest(user, loginEmail);
+      }
+
       const route = selectedRole === 'admin' ? '/admin' : selectedRole === 'client' ? '/client' : '/freelancer';
-      navigate(route);
+
+      // Pass onboarding data via router state if it existed
+      if (selectedRole === 'client' && hasOnboardingData) {
+        const dataToPass = tempOnboardingData;
+        setTempOnboardingData(null);
+        navigate(route, { state: { onboardingData: dataToPass } });
+      } else {
+        navigate(route);
+      }
     }
   };
 
@@ -193,68 +260,19 @@ export function LoginScreen() {
     });
 
     if (success) {
-      // If we have onboarding data, create a project request for the new client
-      if (selectedRole === 'client' && tempOnboardingData) {
-        console.log('[LoginScreen] Onboarding data found, creating project request...');
-        try {
-          const serviceLabel = tempOnboardingData.serviceType === 'other'
-            ? tempOnboardingData.customServiceDescription
-            : tempOnboardingData.serviceType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-
-          // Get the newly created user from the store state to ensure we have the ID
-          const newUser = useAuthStore.getState().currentUser;
-
-          if (!newUser) {
-            console.error('[LoginScreen] Cannot create project request: newUser is null');
-            return;
-          }
-
-          console.log('[LoginScreen] Creating request for clientId:', newUser.id);
-
-          await createRequest({
-            clientId: newUser.id,
-            clientName: `${tempOnboardingData.personalDetails.firstName} ${tempOnboardingData.personalDetails.surname}`,
-            clientEmail: registerEmail,
-            projectName: `${serviceLabel} - ${tempOnboardingData.propertyDetails.physicalAddress.city}`,
-            description: tempOnboardingData.customServiceDescription || `Service request for ${tempOnboardingData.serviceType} at ${tempOnboardingData.propertyDetails.physicalAddress.street}`,
-            projectType: tempOnboardingData.propertyType as 'residential' | 'commercial' | 'industrial' | 'landscape',
-            hoursRequested: 0,
-            budget: 0,
-            status: 'pending',
-            address: tempOnboardingData.propertyDetails.physicalAddress.street,
-            propertyDetails: {
-              identifierType: tempOnboardingData.propertyDetails.identifierType,
-              identifierNumber: tempOnboardingData.propertyDetails.identifierNumber,
-              physicalAddress: tempOnboardingData.propertyDetails.physicalAddress
-            },
-            serviceDetails: {
-              serviceType: tempOnboardingData.serviceType,
-              customDescription: tempOnboardingData.customServiceDescription,
-              urgency: tempOnboardingData.urgency
-            },
-            attachments: tempOnboardingData.uploadedFiles?.map(file => ({
-              id: file.id,
-              name: file.name,
-              preview: file.preview,
-              type: file.type,
-              size: file.size
-            }))
-          });
-
-          console.log('[LoginScreen] Project request created successfully');
-          // Clear onboarding data
-          setTempOnboardingData(null);
-        } catch (err) {
-          console.error('[Login] Project request creation failed:', err);
-          toast.error('Failed to create project request, but your account was created successfully.');
-        }
+      const hasOnboardingData = !!tempOnboardingData;
+      const newUser = useAuthStore.getState().currentUser;
+      if (newUser) {
+        await handleOnboardingRequest(newUser, registerEmail);
       }
 
       const route = selectedRole === 'admin' ? '/admin' : selectedRole === 'client' ? '/client' : '/freelancer';
 
       // Pass onboarding data via router state for newly registered clients
-      if (selectedRole === 'client' && tempOnboardingData) {
-        navigate(route, { state: { onboardingData: tempOnboardingData } });
+      if (selectedRole === 'client' && hasOnboardingData) {
+        const dataToPass = tempOnboardingData;
+        setTempOnboardingData(null);
+        navigate(route, { state: { onboardingData: dataToPass } });
       } else {
         navigate(route);
       }

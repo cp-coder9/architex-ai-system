@@ -8,7 +8,6 @@
 
 import { Agent } from '@/agents/base/Agent';
 import {
-  AgentConfig,
   AgentResult,
   AgentStatus,
   DrawingData,
@@ -123,18 +122,18 @@ const DEFAULT_ORCHESTRATOR_CONFIG: OrchestratorConfig = {
 export class AgentOrchestrator {
   // Configuration
   private config: OrchestratorConfig;
-  
+
   // Agent registry
   private agents: Map<string, Agent>;
   private agentMetrics: Map<string, AgentMetrics>;
-  
+
   // Task management
   private taskQueue: OrchestratorTask[];
   private activeTasks: Map<string, OrchestratorTask>;
-  
+
   // Audit logging
   private auditLog: AuditLogEntry[];
-  
+
   // Circuit breaker state
   private circuitBreakerState: Map<string, {
     failures: number;
@@ -150,7 +149,7 @@ export class AgentOrchestrator {
     this.activeTasks = new Map();
     this.auditLog = [];
     this.circuitBreakerState = new Map();
-    
+
     // Initialize all agents
     this.initializeAgents();
   }
@@ -224,7 +223,7 @@ export class AgentOrchestrator {
     try {
       // Determine which agents to run based on drawing type
       const agentIds = options?.agentIds || this.getAgentsForDrawingType(drawing.type);
-      
+
       this.logAudit('AGENTS_SELECTED', undefined, {
         taskId,
         agentIds,
@@ -273,7 +272,7 @@ export class AgentOrchestrator {
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       this.logAudit('TASK_FAILED', undefined, {
         taskId,
         error: errorMessage
@@ -359,7 +358,7 @@ export class AgentOrchestrator {
     parallel: boolean
   ): Promise<AgentResult[]> {
     const results: AgentResult[] = [];
-    
+
     if (parallel) {
       // Execute agents in parallel batches
       const batchSize = this.config.maxConcurrentAgents;
@@ -427,9 +426,9 @@ export class AgentOrchestrator {
       // Update metrics
       agentMetrics.status = AgentStatus.ACTIVE;
       agentMetrics.tasksCompleted++;
-      agentMetrics.averageProcessingTime = 
-        (agentMetrics.averageProcessingTime * (agentMetrics.tasksCompleted - 1) + 
-         (result.processingTime || 0)) / agentMetrics.tasksCompleted;
+      agentMetrics.averageProcessingTime =
+        (agentMetrics.averageProcessingTime * (agentMetrics.tasksCompleted - 1) +
+          (result.processingTime || 0)) / agentMetrics.tasksCompleted;
       agentMetrics.lastExecution = new Date();
 
       this.logAudit('AGENT_COMPLETED', agentId, {
@@ -479,7 +478,7 @@ export class AgentOrchestrator {
   private async handleAgentError(
     agent: Agent,
     drawing: DrawingData,
-    projectInfo: ProjectInfo
+    _projectInfo: ProjectInfo
   ): Promise<AgentResult> {
     // Return a failed result with error information
     return {
@@ -507,11 +506,10 @@ export class AgentOrchestrator {
    */
   private detectConflicts(agentResults: AgentResult[]): ConflictResult[] {
     const conflicts: ConflictResult[] = [];
-    const findings = agentResults.flatMap(r => r.findings);
 
     // Check for duplicate rule IDs across agents
     const ruleIdMap = new Map<string, { agentId: string; finding: Finding }[]>();
-    
+
     for (const result of agentResults) {
       for (const finding of result.findings) {
         if (!ruleIdMap.has(finding.ruleId)) {
@@ -569,7 +567,7 @@ export class AgentOrchestrator {
       [Severity.LOW]: 3
     };
 
-    return allFindings.sort((a, b) => 
+    return allFindings.sort((a, b) =>
       severityOrder[a.severity] - severityOrder[b.severity]
     );
   }
@@ -588,7 +586,7 @@ export class AgentOrchestrator {
    * Create a timeout promise
    */
   private createTimeout(ms: number): Promise<never> {
-    return new Promise((_, reject) => 
+    return new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Task timeout')), ms)
     );
   }

@@ -22,12 +22,12 @@ import {
 } from '@/types/agent';
 import {
   SETBACK_REQUIREMENTS,
-  SitePlanCheck,
-  CoverageCalculation,
-  DimensionCheck,
-  BuildingLineCheck,
-  ZoningCheck,
-  ServitudeCheck
+  _SitePlanCheck,
+  _CoverageCalculation,
+  _DimensionCheck,
+  _BuildingLineCheck,
+  _ZoningCheck,
+  _ServitudeCheck
 } from '@/config/sans10400/types';
 
 // ============================================================================
@@ -621,7 +621,7 @@ export class SitePlanComplianceAgent extends Agent {
     
     // Look for setback dimensions
     for (const dim of dimensions.setbacks) {
-      const content = `${dim.startPoint.x},${dim.startPoint.y} to ${dim.endPoint.x},${dim.endPoint.y}`.toLowerCase();
+      const _content = `${dim.startPoint.x},${dim.startPoint.y} to ${dim.endPoint.x},${dim.endPoint.y}`.toLowerCase();
       
       // Determine which setback based on position
       if (dim.startPoint.y < 100 || dim.endPoint.y < 100) {
@@ -879,7 +879,7 @@ export class SitePlanComplianceAgent extends Agent {
   /**
    * Check SITE-001: Property Boundaries Dimensioned
    */
-  private checkBoundariesDimensioned(siteData: SiteAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkBoundariesDimensioned(siteData: SiteAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const hasBoundaries = siteData.dimensions.boundaries.length >= 4;
     
     if (!hasBoundaries) {
@@ -894,7 +894,7 @@ export class SitePlanComplianceAgent extends Agent {
   /**
    * Check SITE-002: Building Setbacks Present
    */
-  private checkSetbacksPresent(siteData: SiteAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkSetbacksPresent(siteData: SiteAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const { setbacks } = siteData;
     
     // At least front and rear OR both sides should be indicated
@@ -942,14 +942,14 @@ export class SitePlanComplianceAgent extends Agent {
   /**
    * Check SITE-004: North Point
    */
-  private checkNorthPoint(siteData: SiteAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkNorthPoint(siteData: SiteAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return siteData.hasNorthPoint;
   }
 
   /**
    * Check SITE-005: Erf Number and Street Address
    */
-  private checkErfAndAddress(siteData: SiteAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkErfAndAddress(siteData: SiteAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const hasErf = siteData.erfNumber !== undefined;
     const hasAddress = siteData.streetAddress !== undefined;
     
@@ -959,14 +959,14 @@ export class SitePlanComplianceAgent extends Agent {
   /**
    * Check SITE-006: Zoning Indicated
    */
-  private checkZoningIndicated(siteData: SiteAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkZoningIndicated(siteData: SiteAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return siteData.zoning !== undefined;
   }
 
   /**
    * Check SITE-007: Building Lines and Servitudes
    */
-  private checkBuildingLinesServitudes(siteData: SiteAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkBuildingLinesServitudes(siteData: SiteAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const hasBuildingLines = siteData.buildingLines.front !== null || 
                             siteData.buildingLines.rear !== null ||
                             siteData.buildingLines.left !== null ||
@@ -978,14 +978,14 @@ export class SitePlanComplianceAgent extends Agent {
   /**
    * Check SITE-008: Existing Structures
    */
-  private checkExistingStructures(siteData: SiteAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkExistingStructures(siteData: SiteAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return siteData.hasExistingStructures;
   }
 
   /**
    * Check SITE-009: Access Points
    */
-  private checkAccessPoints(siteData: SiteAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkAccessPoints(siteData: SiteAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return siteData.accessPoints.driveway || 
            siteData.accessPoints.pedestrian || 
            siteData.accessPoints.garage;

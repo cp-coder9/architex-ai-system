@@ -41,7 +41,6 @@ import {
   RefreshCw,
   Database,
   Shield,
-  Clock,
   Server,
   Activity,
   Wifi,
@@ -62,7 +61,7 @@ import {
   clearTestData,
   getSeededDataSummary,
 } from '@/services/firebase/seedData';
-import { isFirebaseConfigured } from '@/config/firebase';
+// Removed unused isFirebaseConfigured import
 import { COLLECTIONS } from '@/services/firebase/utils';
 
 interface ConnectionStatus {
@@ -92,12 +91,7 @@ export const FirebaseDebugger: React.FC = () => {
     summary: null,
   });
 
-  // Load initial state
-  useEffect(() => {
-    setConfig(checkFirebaseConfig());
-    checkConnection();
-    loadSeedSummary();
-  }, []);
+
 
   const checkConnection = useCallback(async () => {
     setConnectionStatus((prev) => ({ ...prev, isChecking: true }));
@@ -115,6 +109,13 @@ export const FirebaseDebugger: React.FC = () => {
       summary: getSeededDataSummary(),
     }));
   }, []);
+
+  // Load initial state
+  useEffect(() => {
+    setConfig(checkFirebaseConfig());
+    checkConnection();
+    loadSeedSummary();
+  }, [checkConnection, loadSeedSummary]);
 
   const runTests = async () => {
     setIsRunningTests(true);

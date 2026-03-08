@@ -154,7 +154,7 @@ const getFileIcon = (type: string) => {
 
 export function OnboardingScreen() {
     const navigate = useNavigate();
-    const { setTempOnboardingData, acceptTerms, tempOnboardingData: storedOnboardingData } = useAuthStore();
+    const { setTempOnboardingData, acceptTerms } = useAuthStore();
     const [step, setStep] = useState(0);
     const [isOtherModalOpen, setIsOtherModalOpen] = useState(false);
     const [customInput, setCustomInput] = useState('');
@@ -370,35 +370,24 @@ export function OnboardingScreen() {
 
         return personalValid && propertyValid;
     }, [data.personalDetails, data.propertyDetails]);
-
-    // File upload handlers
-    const handleDragOver = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(true);
+    const simulateUploadProgress = useCallback((fileId: string) => {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 30;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+            }
+            setData((prev) => ({
+                ...prev,
+                uploadedFiles: prev.uploadedFiles.map((f) =>
+                    f.id === fileId ? { ...f, progress: Math.round(progress) } : f
+                ),
+            }));
+        }, 200);
     }, []);
 
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
-    }, []);
-
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
-        const files = Array.from(e.dataTransfer.files);
-        processFiles(files);
-    }, []);
-
-    const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files ? Array.from(e.target.files) : [];
-        processFiles(files);
-        // Reset input so same file can be selected again
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-    }, []);
-
-    const processFiles = (files: File[]) => {
+    const processFiles = useCallback((files: File[]) => {
         const validTypes = [
             'application/pdf',
             'image/png',
@@ -439,24 +428,34 @@ export function OnboardingScreen() {
                 simulateUploadProgress(newFile.id);
             }
         });
-    };
+    }, [simulateUploadProgress]);
 
-    const simulateUploadProgress = (fileId: string) => {
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 30;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-            }
-            setData((prev) => ({
-                ...prev,
-                uploadedFiles: prev.uploadedFiles.map((f) =>
-                    f.id === fileId ? { ...f, progress: Math.round(progress) } : f
-                ),
-            }));
-        }, 200);
-    };
+    // File upload handlers
+    const handleDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    }, []);
+
+    const handleDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    }, []);
+
+    const handleDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const files = Array.from(e.dataTransfer.files);
+        processFiles(files);
+    }, [processFiles]);
+
+    const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files ? Array.from(e.target.files) : [];
+        processFiles(files);
+        // Reset input so same file can be selected again
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    }, [processFiles]);
 
     const removeFile = (fileId: string) => {
         setData((prev) => ({

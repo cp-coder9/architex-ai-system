@@ -223,7 +223,7 @@ export interface Notification {
   read: boolean;
   createdAt: Date;
   link?: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 export interface AgentLog {

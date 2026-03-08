@@ -44,7 +44,7 @@ import {
   FileX,
   ArrowRightCircle,
   DollarSign,
-  Calendar,
+  _Calendar,
   Building2,
   FileText,
   Loader2,
@@ -528,7 +528,7 @@ export function ProjectRequests() {
                       <h3 className="text-lg font-semibold text-red-900 mb-1">Error Loading Requests</h3>
                       <p className="text-muted-foreground max-w-sm">{error}</p>
                     </div>
-                    <Button variant="outline" onClick={() => useProjectRequestStore.getState().initialize()}>
+                    <Button variant="outline" onClick={() => useProjectRequestStore.getState().initialize(currentUser?.id || '', 'admin')}>
                       Try Again
                     </Button>
                   </div>

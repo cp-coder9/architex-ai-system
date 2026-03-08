@@ -221,7 +221,7 @@ export class SymbolRecognizerAgent extends Agent {
   /**
    * Analyze symbols on a drawing
    */
-  async analyze(drawing: DrawingData, projectInfo: ProjectInfo): Promise<AgentResult> {
+  async analyze(drawing: DrawingData, _projectInfo: ProjectInfo): Promise<AgentResult> {
     const startTime = Date.now();
     const findings: Finding[] = [];
     const passedRules: string[] = [];
@@ -527,8 +527,8 @@ export class SymbolRecognizerAgent extends Agent {
    */
   private checkArchitecturalSymbols(
     symbolData: SymbolAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // Check if architectural symbols are present and recognized
     const totalArchitectural = symbolData.architecturalSymbols.length;
@@ -547,8 +547,8 @@ export class SymbolRecognizerAgent extends Agent {
    */
   private checkElectricalSymbols(
     symbolData: SymbolAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // If there are electrical symbols, they should follow SANS 10142-1
     if (symbolData.hasElectricalSymbols) {
@@ -563,8 +563,8 @@ export class SymbolRecognizerAgent extends Agent {
    */
   private checkLegendComplete(
     symbolData: SymbolAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // If there are unrecognized symbols, legend should be present
     if (symbolData.unrecognizedSymbols.length > 0) {
@@ -579,8 +579,8 @@ export class SymbolRecognizerAgent extends Agent {
    */
   private checkDoorSymbols(
     symbolData: SymbolAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // Check if door symbols are present
     return symbolData.doorSymbols.length > 0 || symbolData.totalSymbols === 0;
@@ -591,8 +591,8 @@ export class SymbolRecognizerAgent extends Agent {
    */
   private checkWindowSymbols(
     symbolData: SymbolAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     return symbolData.windowSymbols.length > 0 || symbolData.totalSymbols === 0;
   }
@@ -602,8 +602,8 @@ export class SymbolRecognizerAgent extends Agent {
    */
   private checkSanitarySymbols(
     symbolData: SymbolAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     return symbolData.sanitarySymbols.length > 0 || symbolData.totalSymbols === 0;
   }
@@ -613,8 +613,8 @@ export class SymbolRecognizerAgent extends Agent {
    */
   private checkElectricalSymbolStandards(
     symbolData: SymbolAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // If there are electrical symbols, check they follow SANS 10142-1
     if (symbolData.hasElectricalSymbols) {
@@ -631,8 +631,8 @@ export class SymbolRecognizerAgent extends Agent {
    */
   private checkSymbolConsistency(
     symbolData: SymbolAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     return symbolData.consistentScaling;
   }

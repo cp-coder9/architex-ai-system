@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useInvoiceStore, useProjectStore } from '@/store';
-import { Invoice, TimeEntry } from '@/types';
+import { Invoice } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// Removed unused Tabs imports
 import {
   Table,
   TableBody,
@@ -29,7 +29,7 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import {
   FileText,
-  DollarSign,
+  _DollarSign,
   CheckCircle2,
   Clock,
   AlertCircle,
@@ -38,9 +38,6 @@ import {
   Send,
   Plus,
   Search,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
   Eye,
   Printer,
   Users,
@@ -401,8 +398,6 @@ export function InvoiceManagement() {
   const invoices = useInvoiceStore(state => state.invoices);
   const markInvoiceAsPaid = useInvoiceStore(state => state.markInvoiceAsPaid);
   const markInvoiceAsSent = useInvoiceStore(state => state.markInvoiceAsSent);
-  const initialize = useInvoiceStore(state => state.initialize);
-  const cleanup = useInvoiceStore(state => state.cleanup);
 
   const projects = useProjectStore(state => state.projects);
 
@@ -763,15 +758,7 @@ export function InvoiceManagement() {
               const total = invoices.length;
               const percentage = total > 0 ? (count / total) * 100 : 0;
 
-              const getStatusColor = (status: string) => {
-                switch (status) {
-                  case 'paid': return 'bg-green-500';
-                  case 'sent': return 'bg-blue-500';
-                  case 'draft': return 'bg-gray-500';
-                  case 'overdue': return 'bg-red-500';
-                  default: return 'bg-gray-500';
-                }
-              };
+              // Removed unused getStatusColor function
 
               return (
                 <div key={status} className="space-y-1">

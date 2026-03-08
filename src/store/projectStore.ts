@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Project, Drawing, Milestone, TimeEntry, ProjectStatus, DrawingStatus, AgentCheck, AgentIssue, ProofOfWork, ProofAttachment } from '@/types';
+import { Project, Drawing, Milestone, TimeEntry, ProjectStatus, DrawingStatus, AgentCheck, AgentIssue, ProofOfWork } from '@/types';
 import { DrawingType } from '@/types/agent';
 import { db, isFirebaseConfigured } from '@/config/firebase';
 import {

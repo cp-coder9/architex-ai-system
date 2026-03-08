@@ -55,7 +55,7 @@ const createUserProfile = async (uid: string, userData: SeedUser): Promise<void>
     throw new Error('Firebase Firestore not initialized');
   }
   const userRef = doc(db, 'users', uid);
-  
+
   // Check if user already exists
   const existingUser = await getDoc(userRef);
   if (existingUser.exists()) {
@@ -105,11 +105,12 @@ const createUser = async (userData: SeedUser): Promise<void> => {
     await createUserProfile(userCredential.user.uid, userData);
 
     console.log(`[SeedUsers] ✓ Successfully created user: ${userData.email}`);
-  } catch (error: any) {
-    if (error.code === 'auth/email-already-in-use') {
+  } catch (error: unknown) {
+    const err = error as { code?: string, message?: string };
+    if (err.code === 'auth/email-already-in-use') {
       console.log(`[SeedUsers] User ${userData.email} already exists in Auth`);
     } else {
-      console.error(`[SeedUsers] Error creating user ${userData.email}:`, error.message);
+      console.error(`[SeedUsers] Error creating user ${userData.email}:`, err.message);
     }
   }
 };
@@ -119,11 +120,11 @@ const createUser = async (userData: SeedUser): Promise<void> => {
  */
 export const seedUsers = async (): Promise<void> => {
   console.log('[SeedUsers] Starting to seed test users...');
-  
+
   for (const user of SEED_USERS) {
     await createUser(user);
   }
-  
+
   console.log('[SeedUsers] Seeding complete!');
   console.log('[SeedUsers] User credentials:');
   SEED_USERS.forEach(u => {
@@ -137,14 +138,14 @@ export const seedUsers = async (): Promise<void> => {
  */
 export const seedFirestoreProfilesOnly = async (users: Array<{ uid: string; email: string; role: UserRole }>): Promise<void> => {
   console.log('[SeedUsers] Creating Firestore profiles only...');
-  
+
   for (const user of users) {
     const seedUser = SEED_USERS.find(u => u.email === user.email);
     if (seedUser) {
       await createUserProfile(user.uid, seedUser);
     }
   }
-  
+
   console.log('[SeedUsers] Firestore profile seeding complete!');
 };
 

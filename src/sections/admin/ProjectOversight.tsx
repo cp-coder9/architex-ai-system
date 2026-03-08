@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useProjectStore, useInvoiceStore, useSettingsStore } from '@/store';
 import { Project, ProjectStatus, HourAllocation } from '@/types';
@@ -56,11 +56,11 @@ import {
 // Clients will be fetched from settingsStore
 
 // Project Card component for grid view
-interface ProjectCardProps { project: Project; getStatusIcon: (status: ProjectStatus) => React.ComponentType<{ className?: string }>; getStatusColor: (status: ProjectStatus) => string; onSelect: (project: Project) => void; } function ProjectCard({ project, getStatusIcon, getStatusColor, onSelect }: ProjectCardProps) {
+function ProjectCard({ project, onSelect }: ProjectCardProps) {
   const allDrawings = useProjectStore(state => state.drawings);
   const projectDrawings = useMemo(() => allDrawings.filter(d => d.projectId === project.id), [allDrawings, project.id]);
-  const StatusIcon = getStatusIcon(project.status);
   const progress = project.hoursAllocated > 0 ? Math.round((project.hoursUsed / project.hoursAllocated) * 100) : 0;
+  const statusColor = getStatusColor(project.status);
 
   return (
     <Card className="overflow-hidden">
@@ -79,8 +79,12 @@ interface ProjectCardProps { project: Project; getStatusIcon: (status: ProjectSt
             <h3 className="font-semibold truncate">{project.name}</h3>
             <p className="text-sm text-muted-foreground truncate">{project.address || 'No address'}</p>
           </div>
-          <Badge className={`${getStatusColor(project.status)} text-white text-xs`}>
-            <StatusIcon className="w-3 h-3 mr-1" />
+          <Badge className={`${statusColor} text-white text-xs`}>
+            {project.status === 'active' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+            {project.status === 'draft' && <FileText className="w-3 h-3 mr-1" />}
+            {project.status === 'on_hold' && <PauseCircle className="w-3 h-3 mr-1" />}
+            {project.status === 'completed' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+            {project.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
             {project.status}
           </Badge>
         </div>
@@ -283,7 +287,7 @@ function AllocationDetailsDialog({ allocation }: { allocation: HourAllocation })
 function AllocateHoursDialog() {
   const { projects } = useProjectStore();
   const { hourPackages, createAllocation } = useInvoiceStore();
-  const { users, getUsersByRole } = useSettingsStore();
+  const { users } = useSettingsStore();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string>('');
   const [selectedProject, setSelectedProject] = useState<string>('');
@@ -291,8 +295,8 @@ function AllocateHoursDialog() {
   const [hoursToAllocate, setHoursToAllocate] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get all clients from settingsStore
-  const clients = useMemo(() => getUsersByRole('client'), [getUsersByRole, users]);
+  // Get all clients from users
+  const clients = useMemo(() => users.filter(u => u.role === 'client'), [users]);
 
   // Get available packages for selected client
   const availablePackages = useMemo(() => {
@@ -447,16 +451,7 @@ function AllocateHoursDialog() {
   );
 }
 
-const getStatusIcon = (status: ProjectStatus) => {
-  switch (status) {
-    case 'active': return CheckCircle2;
-    case 'draft': return FileText;
-    case 'on_hold': return PauseCircle;
-    case 'completed': return CheckCircle2;
-    case 'cancelled': return XCircle;
-    default: return FolderKanban;
-  }
-};
+
 
 const getStatusColor = (status: ProjectStatus) => {
   switch (status) {
@@ -759,7 +754,7 @@ export function ProjectOversight() {
                     <TableBody>
                       {filteredProjects.map((project, index) => {
                         const projectDrawings = drawings.filter(d => d.projectId === project.id);
-                        const StatusIcon = getStatusIcon(project.status);
+                        const statusColor = getStatusColor(project.status);
 
                         return (
                           <motion.tr
@@ -785,8 +780,12 @@ export function ProjectOversight() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Badge className={`${getStatusColor(project.status)} text-white`}>
-                                <StatusIcon className="w-3 h-3 mr-1" />
+                              <Badge className={`${statusColor} text-white`}>
+                                {project.status === 'active' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                                {project.status === 'draft' && <FileText className="w-3 h-3 mr-1" />}
+                                {project.status === 'on_hold' && <PauseCircle className="w-3 h-3 mr-1" />}
+                                {project.status === 'completed' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                                {project.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
                                 {project.status}
                               </Badge>
                             </TableCell>
@@ -837,8 +836,6 @@ export function ProjectOversight() {
                     >
                       <ProjectCard
                         project={project}
-                        getStatusIcon={getStatusIcon}
-                        getStatusColor={getStatusColor}
                         onSelect={(project) => {
                           setSelectedProject(project);
                           setIsProjectDialogOpen(true);

@@ -21,15 +21,7 @@ import {
   calculateComplianceScore
 } from '@/types/agent';
 import {
-  DrainageCheck,
-  PipeCheck,
-  GulleyCheck,
-  ManholeCheck,
-  ConnectionCheck,
-  PipeSizeCheck,
-  GradientCheck,
-  VentCheck,
-  SupplyCheck
+  // Constants removed as they are unused
 } from '@/config/sans10400/types';
 
 // ============================================================================
@@ -354,7 +346,7 @@ export class DrainageComplianceAgent extends Agent {
       // Run each compliance check
       for (const rule of this.drainageRules) {
         const result = await this.evaluateDrainageRule(rule, drainageData, drawing);
-        
+
         if (result.passed) {
           passedRules.push(rule.id);
         } else {
@@ -425,39 +417,39 @@ export class DrainageComplianceAgent extends Agent {
   /**
    * Extract drainage data from drawing and project info
    */
-  private extractDrainageData(drawing: DrawingData, projectInfo: ProjectInfo): DrainageAnalysisData {
+  private extractDrainageData(drawing: DrawingData, _projectInfo: ProjectInfo): DrainageAnalysisData {
     const textContent = drawing.textElements.map(t => t.content.toLowerCase());
     const annotations = drawing.annotations.map(a => a.content.toLowerCase());
-    
+
     return {
       // Pipe systems
       pipeSizes: this.extractPipeSizes(drawing),
       gradients: this.extractGradients(drawing),
       pipeMaterials: this.extractPipeMaterials(textContent, annotations),
       connections: this.extractConnections(drawing),
-      
+
       // Sanitary fixtures
       floorGullies: this.extractFloorGullies(drawing),
       wasteConnections: this.extractWasteConnections(drawing),
       traps: this.extractTraps(drawing),
-      
+
       // Municipal connection
       municipalConnection: this.hasMunicipalConnection(textContent, annotations),
       connectionPoint: this.extractConnectionPoint(drawing),
-      
+
       // Inspection points
       manholes: this.extractManholes(drawing),
       cleanouts: this.extractCleanouts(drawing),
       inspectionChambers: this.extractInspectionChambers(drawing),
-      
+
       // Ventilation
       ventPipes: this.extractVentPipes(drawing),
       ventTermination: this.extractVentTermination(textContent, annotations),
-      
+
       // Water supply
       coldWaterLayout: this.hasColdWaterLayout(drawing),
       hotWaterLayout: this.hasHotWaterLayout(drawing),
-      
+
       // Raw data
       textContent: drawing.textElements.map(t => t.content),
       annotations: drawing.annotations.map(a => a.content),
@@ -495,7 +487,7 @@ export class DrainageComplianceAgent extends Agent {
         if (match) {
           const size = parseInt(match[1]);
           const content = text.content.toLowerCase();
-          
+
           if (content.includes('soil') || content.includes('stack')) {
             result.soilPipes.push(size);
           } else if (content.includes('waste')) {
@@ -526,7 +518,7 @@ export class DrainageComplianceAgent extends Agent {
     };
 
     const gradientPatterns = [
-      /(\d+)\s*[:\/]\s*(\d+)/i,
+      /(\d+)\s*[:/]\s*(\d+)/i,
       /gradient\s*[:=]?\s*1\s*:\s*(\d+)/i,
       /fall\s*[:=]?\s*(\d+)%/i,
       /1\s*:\s*(\d+)/i
@@ -537,7 +529,7 @@ export class DrainageComplianceAgent extends Agent {
         const match = text.content.match(pattern);
         if (match) {
           let gradient: number;
-          
+
           if (text.content.includes('%')) {
             gradient = parseFloat(match[1]);
           } else if (match[2]) {
@@ -545,7 +537,7 @@ export class DrainageComplianceAgent extends Agent {
           } else {
             gradient = (1 / parseInt(match[1])) * 100;
           }
-          
+
           const content = text.content.toLowerCase();
           if (content.includes('soil')) {
             result.soilGradients.push(gradient);
@@ -567,7 +559,7 @@ export class DrainageComplianceAgent extends Agent {
   private extractPipeMaterials(textContent: string[], annotations: string[]): string[] {
     const materials: string[] = [];
     const allText = [...textContent, ...annotations];
-    
+
     const materialPatterns = [
       /pvc/i,
       /hdpe/i,
@@ -596,9 +588,9 @@ export class DrainageComplianceAgent extends Agent {
    */
   private extractConnections(drawing: DrawingData): ConnectionData[] {
     const connections: ConnectionData[] = [];
-    
+
     // Look for connection symbols
-    const connectionSymbols = drawing.symbols.filter(s => 
+    const connectionSymbols = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('connection') ||
       s.name.toLowerCase().includes('junction') ||
       s.category === 'drainage'
@@ -619,9 +611,9 @@ export class DrainageComplianceAgent extends Agent {
    */
   private extractFloorGullies(drawing: DrawingData): GulleyData[] {
     const gullies: GulleyData[] = [];
-    
+
     // Look for gully symbols
-    const gullySymbols = drawing.symbols.filter(s => 
+    const gullySymbols = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('gully') ||
       s.name.toLowerCase().includes('floor') ||
       s.category === 'drainage'
@@ -652,9 +644,9 @@ export class DrainageComplianceAgent extends Agent {
    */
   private extractWasteConnections(drawing: DrawingData): string[] {
     const connections: string[] = [];
-    
+
     const wasteTypes = ['basin', 'sink', 'bath', 'shower', 'wc', 'toilet', 'urinal', 'laundry'];
-    
+
     for (const text of drawing.textElements) {
       const content = text.content.toLowerCase();
       for (const type of wasteTypes) {
@@ -671,7 +663,7 @@ export class DrainageComplianceAgent extends Agent {
    * Extract traps
    */
   private extractTraps(drawing: DrawingData): boolean {
-    const trapText = drawing.textElements.filter(t => 
+    const trapText = drawing.textElements.filter(t =>
       t.content.toLowerCase().includes('trap') ||
       t.content.toLowerCase().includes('p-trap') ||
       t.content.toLowerCase().includes('s-trap')
@@ -685,7 +677,7 @@ export class DrainageComplianceAgent extends Agent {
    */
   private hasMunicipalConnection(textContent: string[], annotations: string[]): boolean {
     const allText = [...textContent, ...annotations];
-    
+
     const patterns = [
       /municipal\s*sewer/i,
       /sewer\s*connection/i,
@@ -702,7 +694,7 @@ export class DrainageComplianceAgent extends Agent {
    */
   private extractConnectionPoint(drawing: DrawingData): { x: number; y: number } | null {
     // Look for connection point symbol
-    const connectionSymbols = drawing.symbols.filter(s => 
+    const connectionSymbols = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('connection') ||
       s.name.toLowerCase().includes('outlet')
     );
@@ -712,7 +704,7 @@ export class DrainageComplianceAgent extends Agent {
     }
 
     // Look for boundary line
-    const boundaryLayers = drawing.layers.filter(l => 
+    const boundaryLayers = drawing.layers.filter(l =>
       l.name.toLowerCase().includes('boundary') ||
       l.name.toLowerCase().includes('property')
     );
@@ -730,9 +722,9 @@ export class DrainageComplianceAgent extends Agent {
    */
   private extractManholes(drawing: DrawingData): ManholeData[] {
     const manholes: ManholeData[] = [];
-    
+
     // Look for manhole symbols
-    const manholeSymbols = drawing.symbols.filter(s => 
+    const manholeSymbols = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('manhole') ||
       s.name.toLowerCase().includes('mh') ||
       s.name.toLowerCase().includes('inspection')
@@ -763,9 +755,9 @@ export class DrainageComplianceAgent extends Agent {
    */
   private extractCleanouts(drawing: DrawingData): CleanoutData[] {
     const cleanouts: CleanoutData[] = [];
-    
+
     // Look for cleanout symbols
-    const cleanoutSymbols = drawing.symbols.filter(s => 
+    const cleanoutSymbols = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('cleanout') ||
       s.name.toLowerCase().includes('co') ||
       s.name.toLowerCase().includes('access')
@@ -796,9 +788,9 @@ export class DrainageComplianceAgent extends Agent {
    */
   private extractInspectionChambers(drawing: DrawingData): InspectionChamberData[] {
     const chambers: InspectionChamberData[] = [];
-    
+
     // Look for inspection chamber symbols
-    const chamberSymbols = drawing.symbols.filter(s => 
+    const chamberSymbols = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('inspection') ||
       s.name.toLowerCase().includes('chamber') ||
       s.name.toLowerCase().includes('ic')
@@ -819,9 +811,9 @@ export class DrainageComplianceAgent extends Agent {
    */
   private extractVentPipes(drawing: DrawingData): VentPipeData[] {
     const vents: VentPipeData[] = [];
-    
+
     // Look for vent symbols
-    const ventSymbols = drawing.symbols.filter(s => 
+    const ventSymbols = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('vent') ||
       s.category === 'drainage'
     );
@@ -851,7 +843,7 @@ export class DrainageComplianceAgent extends Agent {
    */
   private extractVentTermination(textContent: string[], annotations: string[]): number | null {
     const allText = [...textContent, ...annotations];
-    
+
     const terminationPatterns = [
       /vent\s*height\s*[:=]?\s*(\d+)/i,
       /termination\s*height\s*[:=]?\s*(\d+)/i,
@@ -874,7 +866,7 @@ export class DrainageComplianceAgent extends Agent {
    * Check for cold water layout
    */
   private hasColdWaterLayout(drawing: DrawingData): boolean {
-    const coldWaterIndicators = drawing.symbols.filter(s => 
+    const coldWaterIndicators = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('cold') ||
       s.name.toLowerCase().includes('cws') ||
       s.name.toLowerCase().includes('water') ||
@@ -883,7 +875,7 @@ export class DrainageComplianceAgent extends Agent {
 
     if (coldWaterIndicators.length > 0) return true;
 
-    const coldWaterText = drawing.textElements.filter(t => 
+    const coldWaterText = drawing.textElements.filter(t =>
       t.content.toLowerCase().includes('cold water') ||
       t.content.toLowerCase().includes('cws') ||
       t.content.toLowerCase().includes(' potable')
@@ -896,7 +888,7 @@ export class DrainageComplianceAgent extends Agent {
    * Check for hot water layout
    */
   private hasHotWaterLayout(drawing: DrawingData): boolean {
-    const hotWaterIndicators = drawing.symbols.filter(s => 
+    const hotWaterIndicators = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('hot') ||
       s.name.toLowerCase().includes('hws') ||
       s.name.toLowerCase().includes('geyser') ||
@@ -905,7 +897,7 @@ export class DrainageComplianceAgent extends Agent {
 
     if (hotWaterIndicators.length > 0) return true;
 
-    const hotWaterText = drawing.textElements.filter(t => 
+    const hotWaterText = drawing.textElements.filter(t =>
       t.content.toLowerCase().includes('hot water') ||
       t.content.toLowerCase().includes('hws')
     );
@@ -992,36 +984,36 @@ export class DrainageComplianceAgent extends Agent {
   /**
    * Check DRN-001: Pipe Sizes Indicated
    */
-  private checkPipeSizesPresent(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkPipeSizesPresent(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const { pipeSizes } = drainageData;
     const hasSoilPipes = pipeSizes.soilPipes.length > 0;
     const hasWastePipes = pipeSizes.wastePipes.length > 0;
     const hasVentPipes = pipeSizes.ventPipes.length > 0;
-    
+
     return hasSoilPipes || hasWastePipes || hasVentPipes;
   }
 
   /**
    * Check DRN-002: Gradients Indicated
    */
-  private checkGradientsPresent(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkGradientsPresent(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const { gradients } = drainageData;
-    return gradients.soilGradients.length > 0 || 
-           gradients.wasteGradients.length > 0 || 
-           gradients.generalGradients.length > 0;
+    return gradients.soilGradients.length > 0 ||
+      gradients.wasteGradients.length > 0 ||
+      gradients.generalGradients.length > 0;
   }
 
   /**
    * Check DRN-003: Pipe Materials Specified
    */
-  private checkPipeMaterials(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkPipeMaterials(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return drainageData.pipeMaterials.length > 0;
   }
 
   /**
    * Check DRN-004: Pipe Connections
    */
-  private checkPipeConnections(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkPipeConnections(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // Check if connections are indicated
     return drainageData.connections.length > 0;
   }
@@ -1029,7 +1021,7 @@ export class DrainageComplianceAgent extends Agent {
   /**
    * Check DRN-005: Floor Gullies
    */
-  private checkFloorGullies(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFloorGullies(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // For residential, expect at least one floor gully in wet areas
     return drainageData.floorGullies.length > 0;
   }
@@ -1037,28 +1029,28 @@ export class DrainageComplianceAgent extends Agent {
   /**
    * Check DRN-006: Waste Connections
    */
-  private checkWasteConnections(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkWasteConnections(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return drainageData.wasteConnections.length >= 3; // Minimum: sink, basin, shower/bath
   }
 
   /**
    * Check DRN-007: Traps
    */
-  private checkTraps(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkTraps(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return drainageData.traps;
   }
 
   /**
    * Check DRN-008: Municipal Connection
    */
-  private checkMunicipalConnection(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkMunicipalConnection(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return drainageData.municipalConnection;
   }
 
   /**
    * Check DRN-009: Connection Point Accessible
    */
-  private checkConnectionPointAccessible(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkConnectionPointAccessible(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // If connection point is shown, it's assumed accessible
     return drainageData.connectionPoint !== null || drainageData.municipalConnection;
   }
@@ -1066,7 +1058,7 @@ export class DrainageComplianceAgent extends Agent {
   /**
    * Check DRN-010: Manholes
    */
-  private checkManholes(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkManholes(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // Expect manholes at junctions
     return drainageData.manholes.length > 0;
   }
@@ -1074,28 +1066,28 @@ export class DrainageComplianceAgent extends Agent {
   /**
    * Check DRN-011: Cleanouts
    */
-  private checkCleanouts(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkCleanouts(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return drainageData.cleanouts.length > 0;
   }
 
   /**
    * Check DRN-012: Inspection Chambers
    */
-  private checkInspectionChambers(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkInspectionChambers(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return drainageData.inspectionChambers.length > 0 || drainageData.manholes.length > 0;
   }
 
   /**
    * Check DRN-013: Vent Pipes
    */
-  private checkVentPipes(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkVentPipes(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return drainageData.ventPipes.length > 0;
   }
 
   /**
    * Check DRN-014: Vent Termination
    */
-  private checkVentTermination(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkVentTermination(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // If vent termination height is shown, check if it's >= 3m
     if (drainageData.ventTermination !== null) {
       return drainageData.ventTermination >= 3000;
@@ -1107,14 +1099,14 @@ export class DrainageComplianceAgent extends Agent {
   /**
    * Check DRN-015: Cold Water Layout
    */
-  private checkColdWaterLayout(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkColdWaterLayout(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return drainageData.coldWaterLayout;
   }
 
   /**
    * Check DRN-016: Hot Water Layout
    */
-  private checkHotWaterLayout(drainageData: DrainageAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkHotWaterLayout(drainageData: DrainageAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return drainageData.hotWaterLayout;
   }
 

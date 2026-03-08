@@ -269,7 +269,7 @@ export const uploadProfileImage = async (
     for (const existingFile of existingFiles) {
       await deleteFileFromR2(existingFile.key);
     }
-  } catch (error) {
+  } catch (_error) {
     // Ignore errors, file might not exist
   }
   

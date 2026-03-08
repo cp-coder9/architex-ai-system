@@ -20,10 +20,10 @@ import {
   DrawingType,
   calculateComplianceScore,
   ExtractedDimension,
-  TextElement,
+  _TextElement,
   SymbolInfo,
   LayerInfo,
-  AnnotationInfo
+  _AnnotationInfo
 } from '@/types/agent';
 import { ENERGY_DTS } from '@/config/sans10400/types';
 
@@ -382,10 +382,10 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract section data from drawing and project info
    */
-  private extractSectionData(drawing: DrawingData, projectInfo: ProjectInfo): SectionAnalysisData {
+  private extractSectionData(drawing: DrawingData, _projectInfo: ProjectInfo): SectionAnalysisData {
     // Extract text elements
     const textContent = drawing.textElements.map(t => t.content.toLowerCase());
-    const annotations = drawing.annotations.map(a => a.content.toLowerCase());
+    const _annotations = drawing.annotations.map(a => a.content.toLowerCase());
     
     // Extract foundation information
     const foundationDepth = this.extractFoundationDepth(drawing);
@@ -492,7 +492,7 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract foundation type
    */
-  private extractFoundationType(drawing: DrawingData, textContent: string[]): string | null {
+  private extractFoundationType(drawing: DrawingData, _textContent: string[]): string | null {
     const foundationTypes = ['strip', 'raft', 'pad', 'pile', ' pier', 'column'];
     
     for (const text of drawing.textElements) {
@@ -511,11 +511,11 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract wall build-up
    */
-  private extractWallBuildUp(drawing: DrawingData, textContent: string[]): WallLayerData[] {
+  private extractWallBuildUp(drawing: DrawingData, _textContent: string[]): WallLayerData[] {
     const layers: WallLayerData[] = [];
     
     const wallMaterials = ['brick', 'block', 'concrete', 'plaster', 'render', 'drywall', 'gyproc', 'steel', 'timber'];
-    const finishMaterials = ['paint', 'plaster', 'render', 'tile', 'brick', 'stone'];
+    const _finishMaterials = ['paint', 'plaster', 'render', 'tile', 'brick', 'stone'];
     
     for (const text of drawing.textElements) {
       const contentLower = text.content.toLowerCase();
@@ -541,7 +541,7 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract wall thickness
    */
-  private extractWallThickness(drawing: DrawingData, textContent: string[]): number | null {
+  private extractWallThickness(drawing: DrawingData, _textContent: string[]): number | null {
     const thicknessPatterns = [
       /wall\s*thickness\s*[:=]?\s*(\d+)/i,
       /(\d+)\s*mm\s*wall/i,
@@ -566,7 +566,7 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract floor build-up
    */
-  private extractFloorBuildUp(drawing: DrawingData, textContent: string[]): FloorLayerData[] {
+  private extractFloorBuildUp(drawing: DrawingData, _textContent: string[]): FloorLayerData[] {
     const layers: FloorLayerData[] = [];
     
     const floorMaterials = ['slab', 'concrete', 'screed', 'tile', 'carpet', 'wood', 'timber', 'dpm', 'membrane', 'gravel', 'backfill'];
@@ -594,7 +594,7 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract roof structure
    */
-  private extractRoofStructure(drawing: DrawingData, textContent: string[]): RoofStructureData | null {
+  private extractRoofStructure(drawing: DrawingData, _textContent: string[]): RoofStructureData | null {
     const structureTypes = ['truss', 'rafter', 'beam', 'portal', 'steel', 'timber', 'concrete'];
     
     for (const text of drawing.textElements) {
@@ -633,7 +633,7 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract fire ratings
    */
-  private extractFireRatings(drawing: DrawingData, textContent: string[]): FireRatingData[] {
+  private extractFireRatings(drawing: DrawingData, _textContent: string[]): FireRatingData[] {
     const ratings: FireRatingData[] = [];
     
     const ratingPatterns = [
@@ -681,7 +681,7 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract fire stopping
    */
-  private extractFireStopping(drawing: DrawingData, textContent: string[]): boolean {
+  private extractFireStopping(drawing: DrawingData, _textContent: string[]): boolean {
     const fireStoppingPatterns = [
       /fire\s*stop/i,
       /fire\s*penetration/i,
@@ -706,7 +706,7 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract insulation
    */
-  private extractInsulation(drawing: DrawingData, textContent: string[]): boolean {
+  private extractInsulation(drawing: DrawingData, _textContent: string[]): boolean {
     const insulationPatterns = [
       /insulation/i,
       /insulated/i,
@@ -742,7 +742,7 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract insulation R-values
    */
-  private extractInsulationRValues(drawing: DrawingData, textContent: string[]): InsulationRValueData[] {
+  private extractInsulationRValues(drawing: DrawingData, _textContent: string[]): InsulationRValueData[] {
     const rValues: InsulationRValueData[] = [];
     
     const rValuePatterns = [
@@ -875,7 +875,7 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract DPC
    */
-  private extractDPC(drawing: DrawingData, textContent: string[]): boolean {
+  private extractDPC(drawing: DrawingData, _textContent: string[]): boolean {
     const dpcPatterns = [
       /dpc/i,
       /damp\s*proof\s*course/i,
@@ -906,7 +906,7 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract DPC height
    */
-  private extractDPHeight(drawing: DrawingData, textContent: string[]): number | null {
+  private extractDPHeight(drawing: DrawingData, _textContent: string[]): number | null {
     const heightPatterns = [
       /dpc.*(\d+)\s*mm/i,
       /(\d+)\s*mm.*above/i,
@@ -932,7 +932,7 @@ export class SectionComplianceAgent extends Agent {
   /**
    * Extract ventilation
    */
-  private extractVentilation(drawing: DrawingData, textContent: string[]): boolean {
+  private extractVentilation(drawing: DrawingData, _textContent: string[]): boolean {
     const ventilationPatterns = [
       /ventilation/i,
       /vent/i,
@@ -1045,7 +1045,7 @@ export class SectionComplianceAgent extends Agent {
     rule: ComplianceRule,
     sectionData: SectionAnalysisData,
     drawing: DrawingData,
-    projectInfo: ProjectInfo
+    _projectInfo: ProjectInfo
   ): Promise<ComplianceResult> {
     let passed = false;
     let value: string | number | boolean | undefined;
@@ -1126,49 +1126,49 @@ export class SectionComplianceAgent extends Agent {
   /**
    * SEC-001: Foundation Depth Indicated
    */
-  private checkFoundationDepthIndicated(sectionData: SectionAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFoundationDepthIndicated(sectionData: SectionAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return sectionData.foundationDepth !== null || sectionData.foundationType !== null;
   }
 
   /**
    * SEC-002: Wall Construction Build-up Shown
    */
-  private checkWallBuildUpShown(sectionData: SectionAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkWallBuildUpShown(sectionData: SectionAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return sectionData.wallBuildUp.length > 0 || sectionData.wallThickness !== null;
   }
 
   /**
    * SEC-003: Floor Build-up Indicated
    */
-  private checkFloorBuildUpIndicated(sectionData: SectionAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFloorBuildUpIndicated(sectionData: SectionAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return sectionData.floorBuildUp.length > 0;
   }
 
   /**
    * SEC-004: Roof Structure Detailed
    */
-  private checkRoofStructureDetailed(sectionData: SectionAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkRoofStructureDetailed(sectionData: SectionAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return sectionData.roofStructure !== null;
   }
 
   /**
    * SEC-005: Fire Resistance Periods Indicated
    */
-  private checkFireResistanceIndicated(sectionData: SectionAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFireResistanceIndicated(sectionData: SectionAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return sectionData.fireRatings.length > 0;
   }
 
   /**
    * SEC-006: Fire Stopping Details Shown
    */
-  private checkFireStoppingShown(sectionData: SectionAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFireStoppingShown(sectionData: SectionAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return sectionData.fireStopping;
   }
 
   /**
    * SEC-007: Thermal Insulation Specified
    */
-  private checkThermalInsulationSpecified(sectionData: SectionAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkThermalInsulationSpecified(sectionData: SectionAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return sectionData.insulationSpecified;
   }
 
@@ -1273,21 +1273,21 @@ export class SectionComplianceAgent extends Agent {
   /**
    * SEC-010: Floor Levels Indicated
    */
-  private checkFloorLevelsIndicated(sectionData: SectionAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFloorLevelsIndicated(sectionData: SectionAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return sectionData.floorLevels.length > 0;
   }
 
   /**
    * SEC-011: Damp Proof Course Shown
    */
-  private checkDPCShown(sectionData: SectionAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkDPCShown(sectionData: SectionAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return sectionData.dpcIndicated;
   }
 
   /**
    * SEC-012: Ventilation Provisions
    */
-  private checkVentilationProvisions(sectionData: SectionAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkVentilationProvisions(sectionData: SectionAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return sectionData.ventilationIndicated;
   }
 

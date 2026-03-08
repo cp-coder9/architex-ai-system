@@ -119,7 +119,7 @@ function InvoiceDetailDialog({ invoice, isOpen, onClose }: { invoice: Invoice; i
       await markInvoiceAsPaid(invoice.id);
       toast.success(`Invoice ${invoice.invoiceNumber} marked as paid`);
       onClose();
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to process payment');
     }
   };
@@ -236,7 +236,7 @@ function PendingInvoiceRow({
     try {
       await markInvoiceAsPaid(invoice.id);
       toast.success(`Invoice ${invoice.invoiceNumber} marked as paid`);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to process payment');
     }
   };

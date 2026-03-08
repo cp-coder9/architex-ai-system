@@ -19,8 +19,8 @@ import {
   orderBy,
   limit,
   getDocs,
-  Timestamp,
-  serverTimestamp,
+  _Timestamp,
+  _serverTimestamp,
   onSnapshot,
   Unsubscribe,
 } from 'firebase/firestore';

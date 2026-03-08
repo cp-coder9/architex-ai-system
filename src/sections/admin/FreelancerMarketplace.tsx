@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useTaskStore, useAuthStore } from '@/store';
-import { Task, TaskApplication, TaskMilestone } from '@/types';
+import { useTaskStore } from '@/store';
+import { Task, TaskApplication } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -99,9 +99,11 @@ const getExperienceBadge = (level: Task['experienceLevel']) => {
 function TaskTable({
   tasks,
   onViewApplications,
+  now,
 }: {
   tasks: Task[];
   onViewApplications: (task: Task) => void;
+  now: number;
 }) {
   return (
     <Table>
@@ -168,7 +170,7 @@ function TaskTable({
                   {new Date(task.deadline).toLocaleDateString()}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {Math.ceil((new Date(task.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days left
+                  {Math.ceil((new Date(task.deadline).getTime() - now) / (1000 * 60 * 60 * 24))} days left
                 </span>
               </div>
             </TableCell>
@@ -198,12 +200,10 @@ function TaskTable({
 // Applications Table Component
 function ApplicationsTable({
   applications,
-  taskTitle,
   onAccept,
   onReject,
 }: {
   applications: TaskApplication[];
-  taskTitle: string;
   onAccept: (application: TaskApplication) => void;
   onReject: (application: TaskApplication) => void;
 }) {
@@ -562,7 +562,7 @@ function ApplicationDetailDialog({
 }
 
 // Task Detail Dialog
-function TaskDetailDialog({ task }: { task: Task }) {
+function _TaskDetailDialog({ task }: { task: Task }) {
   return (
     <div className="space-y-6">
       <div>
@@ -646,7 +646,6 @@ function EmptyState({ type }: { type: 'tasks' | 'applications' }) {
 
 export function FreelancerMarketplace() {
   const { tasks, applications, addTask, assignFreelancer, updateApplicationStatus, getApplicationsByTaskId } = useTaskStore();
-  const { currentUser } = useAuthStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<Task['status'] | 'all'>('all');
@@ -659,10 +658,11 @@ export function FreelancerMarketplace() {
   const [isApplicationDetailOpen, setIsApplicationDetailOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
 
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<TaskApplication | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [selectedTaskForApplications, setSelectedTaskForApplications] = useState<Task | null>(null);
+
+  const [now] = useState(() => Date.now());
 
   // Filter tasks
   const filteredTasks = useMemo(() => {
@@ -701,10 +701,7 @@ export function FreelancerMarketplace() {
     setIsApplicationsOpen(true);
   };
 
-  const handleViewTaskDetail = (task: Task) => {
-    setSelectedTask(task);
-    setIsTaskDetailOpen(true);
-  };
+  // Removed unused handleViewTaskDetail
 
   const handleViewApplicationDetail = (application: TaskApplication) => {
     setSelectedApplication(application);
@@ -905,6 +902,7 @@ export function FreelancerMarketplace() {
                   <TaskTable
                     tasks={filteredTasks}
                     onViewApplications={handleViewApplications}
+                    now={now}
                   />
                 )}
               </ScrollArea>
@@ -1028,7 +1026,7 @@ export function FreelancerMarketplace() {
           <DialogHeader>
             <DialogTitle>Task Details</DialogTitle>
           </DialogHeader>
-          {selectedTask && <TaskDetailDialog task={selectedTask} />}
+          {/* Add selectedTask if needed, currently unused */}
         </DialogContent>
       </Dialog>
 
@@ -1045,7 +1043,6 @@ export function FreelancerMarketplace() {
             <ScrollArea className="h-[400px]">
               <ApplicationsTable
                 applications={getApplicationsByTaskId(selectedTaskForApplications.id)}
-                taskTitle={selectedTaskForApplications.title}
                 onAccept={handleAcceptApplication}
                 onReject={handleRejectApplication}
               />

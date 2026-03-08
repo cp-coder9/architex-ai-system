@@ -26,20 +26,20 @@ import {
   Unsubscribe,
   serverTimestamp,
   Timestamp,
-  enableNetwork,
-  disableNetwork,
-  type Firestore,
+  _enableNetwork,
+  _disableNetwork,
+  type _Firestore,
 } from 'firebase/firestore';
 import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  type Auth,
+  _signInWithEmailAndPassword,
+  _createUserWithEmailAndPassword,
+  _signOut,
+  _onAuthStateChanged,
+  type _Auth,
 } from 'firebase/auth';
 import { ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 import { auth, db, storage, isFirebaseConfigured } from '@/config/firebase';
-import { getAuthErrorMessage } from './utils';
+
 
 // Test result types
 export interface TestResult {

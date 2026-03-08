@@ -19,17 +19,14 @@ import {
   Finding,
   Severity,
   DrawingType,
-  calculateComplianceScore
+  calculateComplianceScore,
+  _ExtractedDimension,
+  _TextElement,
+  SymbolInfo,
+  LayerInfo
 } from '@/types/agent';
 import {
-  ENERGY_DTS,
-  EnergyCheck,
-  DTSCheck,
-  ThermalCheck,
-  GlazingLimitCheck,
-  EnergyInsulationCheck,
-  EnergyLightingCheck,
-  OrientationCheck
+  ENERGY_DTS
 } from '@/config/sans10400/types';
 
 // ============================================================================
@@ -356,7 +353,7 @@ export class EnergyComplianceAgent extends Agent {
       // Run each compliance check
       for (const rule of this.energyRules) {
         const result = await this.evaluateEnergyRule(rule, energyData, drawing, projectInfo);
-        
+
         if (result.passed) {
           passedRules.push(rule.id);
         } else {
@@ -428,41 +425,41 @@ export class EnergyComplianceAgent extends Agent {
    * Extract energy compliance data from drawing and project info
    */
   private extractEnergyData(drawing: DrawingData, projectInfo: ProjectInfo): EnergyAnalysisData {
-    const textContent = drawing.textElements.map(t => t.content.toLowerCase());
-    const annotations = drawing.annotations.map(a => a.content.toLowerCase());
-    
+    const textContentLower = drawing.textElements.map(t => t.content.toLowerCase());
+    const annotationsLower = drawing.annotations.map(a => a.content.toLowerCase());
+    const allText = [...textContentLower, ...annotationsLower];
+
     return {
       // Documentation
-      xaFormPresent: this.checkXAForm(textContent, annotations),
-      competentPersonDeclaration: this.checkCompetentPerson(textContent, annotations),
-      
+      xaFormPresent: this.checkXAForm(allText),
+      competentPersonDeclaration: this.checkCompetentPerson(allText),
+
       // Thermal performance
-      wallRValue: this.extractRValue(textContent, annotations, 'wall'),
       roofRValue: this.extractRValue(textContent, annotations, 'roof'),
       floorRValue: this.extractRValue(textContent, annotations, 'floor'),
-      
+
       // Glazing
       glazingArea: this.extractGlazingArea(drawing),
       floorArea: projectInfo.totalArea || 0,
       glazingRatio: this.calculateGlazingRatio(drawing, projectInfo.totalArea || 0),
       glazingSHGC: this.extractSHGC(textContent, annotations),
       shadingDevices: this.extractShadingDevices(drawing),
-      
+
       // Lighting
       efficientLighting: this.checkEfficientLighting(textContent, annotations),
       lightSensors: this.checkLightSensors(textContent, annotations),
-      
+
       // HVAC
       hvacEfficiency: this.checkHVACEfficiency(textContent, annotations),
       thermostatControls: this.checkThermostatControls(textContent, annotations),
-      
+
       // Water heating
       solarWaterHeating: this.checkSolarWaterHeating(textContent, annotations),
       geyserInsulation: this.checkGeyserInsulation(textContent, annotations),
-      
+
       // General
       energySummary: this.checkEnergySummary(textContent, annotations),
-      
+
       // Raw data
       textContent: drawing.textElements.map(t => t.content),
       annotations: drawing.annotations.map(a => a.content),
@@ -477,8 +474,8 @@ export class EnergyComplianceAgent extends Agent {
    */
   private checkXAForm(textContent: string[], annotations: string[]): boolean {
     const allText = [...textContent, ...annotations];
-    return allText.some(text => 
-      text.includes('xa form') || 
+    return allText.some(text =>
+      text.includes('xa form') ||
       text.includes('energy declaration') ||
       text.includes('sans 10400-xa')
     );
@@ -489,8 +486,8 @@ export class EnergyComplianceAgent extends Agent {
    */
   private checkCompetentPerson(textContent: string[], annotations: string[]): boolean {
     const allText = [...textContent, ...annotations];
-    return allText.some(text => 
-      text.includes('competent person') || 
+    return allText.some(text =>
+      text.includes('competent person') ||
       text.includes('energy assessor') ||
       text.includes('declaration')
     );
@@ -501,11 +498,11 @@ export class EnergyComplianceAgent extends Agent {
    */
   private extractRValue(textContent: string[], annotations: string[], type: 'wall' | 'roof' | 'floor'): number | null {
     const allText = [...textContent, ...annotations];
-    
+
     const patterns = [
-      new RegExp(`${type}\\s*r\\s*value\\s*[:=]?\\s*(\\d+\\.?\\d*)/i`),
-      new RegExp(`r\\s*${type}\\s*[:=]?\\s*(\\d+\\.?\\d*)/i`),
-      new RegExp(`${type}\\s*insulation\\s*r\\s*value\\s*[:=]?\\s*(\\d+\\.?\\d*)/i`)
+      new RegExp(`${type}\\s*r\\s*value\\s*[:=]?\\s*(\\d+\\.?\\d*)`, 'i'),
+      new RegExp(`r\\s*${type}\\s*[:=]?\\s*(\\d+\\.?\\d*)`, 'i'),
+      new RegExp(`${type}\\s*insulation\\s*r\\s*value\\s*[:=]?\\s*(\\d+\\.?\\d*)`, 'i')
     ];
 
     for (const text of allText) {
@@ -541,7 +538,7 @@ export class EnergyComplianceAgent extends Agent {
     }
 
     // Estimate from dimensions
-    const windowDims = drawing.dimensions.filter(d => 
+    const windowDims = drawing.dimensions.filter(d =>
       d.layer?.toLowerCase().includes('window') ||
       d.layer?.toLowerCase().includes('glazing')
     );
@@ -559,10 +556,10 @@ export class EnergyComplianceAgent extends Agent {
    */
   private calculateGlazingRatio(drawing: DrawingData, floorArea: number): number | null {
     if (floorArea <= 0) return null;
-    
+
     const glazingArea = this.extractGlazingArea(drawing);
     if (glazingArea === null) return null;
-    
+
     return glazingArea / floorArea;
   }
 
@@ -571,7 +568,7 @@ export class EnergyComplianceAgent extends Agent {
    */
   private extractSHGC(textContent: string[], annotations: string[]): number | null {
     const allText = [...textContent, ...annotations];
-    
+
     const patterns = [
       /shgc\s*[:=]?\s*(\d+\.?\d*)/i,
       /solar\s*heat\s*gain\s*coefficient\s*[:=]?\s*(\d+\.?\d*)/i,
@@ -594,7 +591,7 @@ export class EnergyComplianceAgent extends Agent {
    * Extract shading devices
    */
   private extractShadingDevices(drawing: DrawingData): boolean {
-    const shadingSymbols = drawing.symbols.filter(s => 
+    const shadingSymbols = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('shade') ||
       s.name.toLowerCase().includes('overhang') ||
       s.name.toLowerCase().includes('pergola') ||
@@ -603,7 +600,7 @@ export class EnergyComplianceAgent extends Agent {
 
     if (shadingSymbols.length > 0) return true;
 
-    const shadingText = drawing.textElements.filter(t => 
+    const shadingText = drawing.textElements.filter(t =>
       t.content.toLowerCase().includes('shading') ||
       t.content.toLowerCase().includes('overhang') ||
       t.content.toLowerCase().includes('pergola') ||
@@ -618,8 +615,8 @@ export class EnergyComplianceAgent extends Agent {
    */
   private checkEfficientLighting(textContent: string[], annotations: string[]): boolean {
     const allText = [...textContent, ...annotations];
-    return allText.some(text => 
-      text.includes('led') || 
+    return allText.some(text =>
+      text.includes('led') ||
       text.includes('energy efficient') ||
       text.includes('luminaire') ||
       text.includes('efficacy')
@@ -631,8 +628,8 @@ export class EnergyComplianceAgent extends Agent {
    */
   private checkLightSensors(textContent: string[], annotations: string[]): boolean {
     const allText = [...textContent, ...annotations];
-    return allText.some(text => 
-      text.includes('daylight sensor') || 
+    return allText.some(text =>
+      text.includes('daylight sensor') ||
       text.includes('light sensor') ||
       text.includes('occupancy sensor')
     );
@@ -643,8 +640,8 @@ export class EnergyComplianceAgent extends Agent {
    */
   private checkHVACEfficiency(textContent: string[], annotations: string[]): boolean {
     const allText = [...textContent, ...annotations];
-    return allText.some(text => 
-      text.includes('hvac') || 
+    return allText.some(text =>
+      text.includes('hvac') ||
       text.includes('air conditioning') ||
       text.includes('cop') ||
       text.includes('eer') ||
@@ -657,8 +654,8 @@ export class EnergyComplianceAgent extends Agent {
    */
   private checkThermostatControls(textContent: string[], annotations: string[]): boolean {
     const allText = [...textContent, ...annotations];
-    return allText.some(text => 
-      text.includes('thermostat') || 
+    return allText.some(text =>
+      text.includes('thermostat') ||
       text.includes('temperature control') ||
       text.includes('programmable')
     );
@@ -669,7 +666,7 @@ export class EnergyComplianceAgent extends Agent {
    */
   private checkSolarWaterHeating(textContent: string[], annotations: string[]): boolean {
     const allText = [...textContent, ...annotations];
-    return allText.some(text => 
+    return allText.some(text =>
       text.includes('solar') && text.includes('water') ||
       text.includes('solar geyser') ||
       text.includes('heat pump')
@@ -681,8 +678,8 @@ export class EnergyComplianceAgent extends Agent {
    */
   private checkGeyserInsulation(textContent: string[], annotations: string[]): boolean {
     const allText = [...textContent, ...annotations];
-    return allText.some(text => 
-      text.includes('geyser blanket') || 
+    return allText.some(text =>
+      text.includes('geyser blanket') ||
       text.includes('cylinder insulation') ||
       text.includes('hot water insulation')
     );
@@ -693,8 +690,8 @@ export class EnergyComplianceAgent extends Agent {
    */
   private checkEnergySummary(textContent: string[], annotations: string[]): boolean {
     const allText = [...textContent, ...annotations];
-    return allText.some(text => 
-      text.includes('energy summary') || 
+    return allText.some(text =>
+      text.includes('energy summary') ||
       text.includes('energy compliance') ||
       text.includes('xa compliance')
     );
@@ -777,14 +774,14 @@ export class EnergyComplianceAgent extends Agent {
   /**
    * Check ENR-001: XA Form Present
    */
-  private checkXAFormPresent(energyData: EnergyAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkXAFormPresent(energyData: EnergyAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return energyData.xaFormPresent;
   }
 
   /**
    * Check ENR-002: Competent Person Declaration
    */
-  private checkCompetentPersonDeclaration(energyData: EnergyAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkCompetentPersonDeclaration(energyData: EnergyAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return energyData.competentPersonDeclaration;
   }
 
@@ -797,7 +794,7 @@ export class EnergyComplianceAgent extends Agent {
     drawing: DrawingData
   ): { passed: boolean; value?: number; expected?: number; finding?: Finding } {
     const minRValue = ENERGY_DTS.walls.minRValue;
-    
+
     if (energyData.wallRValue === null) {
       return {
         passed: false,
@@ -810,7 +807,7 @@ export class EnergyComplianceAgent extends Agent {
         )
       };
     }
-    
+
     if (energyData.wallRValue < minRValue) {
       return {
         passed: false,
@@ -825,7 +822,7 @@ export class EnergyComplianceAgent extends Agent {
         )
       };
     }
-    
+
     return { passed: true, value: energyData.wallRValue, expected: minRValue };
   }
 
@@ -838,7 +835,7 @@ export class EnergyComplianceAgent extends Agent {
     drawing: DrawingData
   ): { passed: boolean; value?: number; expected?: number; finding?: Finding } {
     const minRValue = ENERGY_DTS.roofs.minRValue;
-    
+
     if (energyData.roofRValue === null) {
       return {
         passed: false,
@@ -851,7 +848,7 @@ export class EnergyComplianceAgent extends Agent {
         )
       };
     }
-    
+
     if (energyData.roofRValue < minRValue) {
       return {
         passed: false,
@@ -866,7 +863,7 @@ export class EnergyComplianceAgent extends Agent {
         )
       };
     }
-    
+
     return { passed: true, value: energyData.roofRValue, expected: minRValue };
   }
 
@@ -879,12 +876,12 @@ export class EnergyComplianceAgent extends Agent {
     drawing: DrawingData
   ): { passed: boolean; value?: number; expected?: number; finding?: Finding } {
     const minRValue = ENERGY_DTS.floors.minRValue;
-    
+
     if (energyData.floorRValue === null) {
       // Floor R-value is optional, but recommended
       return { passed: true };
     }
-    
+
     if (energyData.floorRValue < minRValue) {
       return {
         passed: false,
@@ -899,7 +896,7 @@ export class EnergyComplianceAgent extends Agent {
         )
       };
     }
-    
+
     return { passed: true, value: energyData.floorRValue, expected: minRValue };
   }
 
@@ -912,7 +909,7 @@ export class EnergyComplianceAgent extends Agent {
     drawing: DrawingData
   ): { passed: boolean; value?: number; expected?: number; finding?: Finding } {
     const maxGlazing = ENERGY_DTS.glazing.maxGlazingRatio;
-    
+
     if (energyData.glazingRatio === null) {
       return {
         passed: false,
@@ -925,7 +922,7 @@ export class EnergyComplianceAgent extends Agent {
         )
       };
     }
-    
+
     if (energyData.glazingRatio > maxGlazing) {
       return {
         passed: false,
@@ -940,7 +937,7 @@ export class EnergyComplianceAgent extends Agent {
         )
       };
     }
-    
+
     return { passed: true, value: energyData.glazingRatio * 100, expected: maxGlazing * 100 };
   }
 
@@ -953,12 +950,12 @@ export class EnergyComplianceAgent extends Agent {
     drawing: DrawingData
   ): { passed: boolean; value?: number; expected?: number; finding?: Finding } {
     const maxSHGC = ENERGY_DTS.glazing.maxSHGC;
-    
+
     if (energyData.glazingSHGC === null) {
       // Not specified - could be default
       return { passed: true };
     }
-    
+
     if (energyData.glazingSHGC > maxSHGC) {
       return {
         passed: false,
@@ -973,21 +970,21 @@ export class EnergyComplianceAgent extends Agent {
         )
       };
     }
-    
+
     return { passed: true, value: energyData.glazingSHGC, expected: maxSHGC };
   }
 
   /**
    * Check ENR-008: Shading Devices
    */
-  private checkShadingDevices(energyData: EnergyAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkShadingDevices(energyData: EnergyAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return energyData.shadingDevices;
   }
 
   /**
    * Check ENR-009: Efficient Lighting
    */
-  private checkEfficientLightingPresent(energyData: EnergyAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkEfficientLightingPresent(energyData: EnergyAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return energyData.efficientLighting;
   }
 
@@ -1006,14 +1003,14 @@ export class EnergyComplianceAgent extends Agent {
   /**
    * Check ENR-011: HVAC Efficiency
    */
-  private checkHVACEfficiencyPresent(energyData: EnergyAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkHVACEfficiencyPresent(energyData: EnergyAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return energyData.hvacEfficiency;
   }
 
   /**
    * Check ENR-012: Thermostat Controls
    */
-  private checkThermostatControlsPresent(energyData: EnergyAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkThermostatControlsPresent(energyData: EnergyAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return energyData.thermostatControls;
   }
 
@@ -1032,14 +1029,14 @@ export class EnergyComplianceAgent extends Agent {
   /**
    * Check ENR-014: Geyser Insulation
    */
-  private checkGeyserInsulationPresent(energyData: EnergyAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkGeyserInsulationPresent(energyData: EnergyAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return energyData.geyserInsulation;
   }
 
   /**
    * Check ENR-015: Energy Summary
    */
-  private checkEnergySummaryPresent(energyData: EnergyAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkEnergySummaryPresent(energyData: EnergyAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return energyData.energySummary;
   }
 
@@ -1058,9 +1055,9 @@ export class EnergyComplianceAgent extends Agent {
       ruleId: rule.id,
       ruleName: rule.name,
       standard: rule.standard,
-      severity: severity === 'critical' ? Severity.CRITICAL : 
-                severity === 'high' ? Severity.HIGH : 
-                severity === 'medium' ? Severity.MEDIUM : Severity.LOW,
+      severity: severity === 'critical' ? Severity.CRITICAL :
+        severity === 'high' ? Severity.HIGH :
+          severity === 'medium' ? Severity.MEDIUM : Severity.LOW,
       title: rule.name,
       description,
       location: {
@@ -1095,34 +1092,34 @@ interface EnergyAnalysisData {
   // Documentation
   xaFormPresent: boolean;
   competentPersonDeclaration: boolean;
-  
+
   // Thermal performance
   wallRValue: number | null;
   roofRValue: number | null;
   floorRValue: number | null;
-  
+
   // Glazing
   glazingArea: number | null;
   floorArea: number;
   glazingRatio: number | null;
   glazingSHGC: number | null;
   shadingDevices: boolean;
-  
+
   // Lighting
   efficientLighting: boolean;
   lightSensors: boolean;
-  
+
   // HVAC
   hvacEfficiency: boolean;
   thermostatControls: boolean;
-  
+
   // Water heating
   solarWaterHeating: boolean;
   geyserInsulation: boolean;
-  
+
   // General
   energySummary: boolean;
-  
+
   // Raw data
   textContent: string[];
   annotations: string[];

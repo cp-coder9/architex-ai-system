@@ -9,7 +9,6 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
   Folder,
-  File,
   FileText,
   Image,
   Upload,
@@ -19,7 +18,6 @@ import {
   Search,
   Grid,
   List,
-  ChevronRight,
   MoreVertical,
   Plus,
   X,
@@ -29,7 +27,6 @@ import {
   FileSpreadsheet,
   FileCode,
   Archive,
-  Move,
 } from 'lucide-react';
 import {
   Card,
@@ -755,7 +752,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
 }) => {
   // Store hooks
   const {
-    files,
+    _files,
     folders,
     currentFolder,
     viewMode,
@@ -809,7 +806,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
     }
 
     return result;
-  }, [getFilesByFolder, currentFolder, ownerId, projectId, files, searchQuery]);
+  }, [getFilesByFolder, currentFolder, ownerId, projectId]);
 
   // Folders in current directory
   const currentFolders = useMemo(() => {

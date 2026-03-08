@@ -369,7 +369,7 @@ export class MunicipalRequirementsAgent extends Agent {
     const rule = this.municipalRules.find(r => r.id === 'MUN-001')!;
 
     const hasZoning = /zoning|zone|residential|commercial|industrial/i.test(text + annotations);
-    const zoningMatch = text.match(/zoning\s*[:=]?\s*(\w+)/i);
+    const _zoningMatch = text.match(/zoning\s*[:=]?\s*(\w+)/i);
 
     // Check if project zoning matches building type
     if (projectInfo.zoning) {
@@ -388,7 +388,7 @@ export class MunicipalRequirementsAgent extends Agent {
     return findings;
   }
 
-  private checkFloorAreaRatio(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkFloorAreaRatio(text: string, _annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.municipalRules.find(r => r.id === 'MUN-002')!;
 
@@ -408,7 +408,7 @@ export class MunicipalRequirementsAgent extends Agent {
     return findings;
   }
 
-  private checkSiteCoverage(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkSiteCoverage(text: string, _annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.municipalRules.find(r => r.id === 'MUN-003')!;
 
@@ -428,7 +428,7 @@ export class MunicipalRequirementsAgent extends Agent {
     return findings;
   }
 
-  private checkHeightRestrictions(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkHeightRestrictions(text: string, _annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.municipalRules.find(r => r.id === 'MUN-004')!;
 
@@ -448,12 +448,12 @@ export class MunicipalRequirementsAgent extends Agent {
     return findings;
   }
 
-  private checkParkingRequirements(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkParkingRequirements(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.municipalRules.find(r => r.id === 'MUN-005')!;
 
     const hasParking = /parking|bays?|car.*park/i.test(text + annotations);
-    const parkingCount = text.match(/(\d+)\s*parking|(\d+)\s*bays?/i);
+    const _parkingCount = text.match(/(\d+)\s*parking|(\d+)\s*bays?/i);
 
     if (!hasParking) {
       findings.push(this.createFinding(rule, {} as AgentContext, {
@@ -464,7 +464,7 @@ export class MunicipalRequirementsAgent extends Agent {
     return findings;
   }
 
-  private checkStormwaterManagement(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkStormwaterManagement(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.municipalRules.find(r => r.id === 'MUN-006')!;
 
@@ -479,12 +479,12 @@ export class MunicipalRequirementsAgent extends Agent {
     return findings;
   }
 
-  private checkBuildingLines(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkBuildingLines(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.municipalRules.find(r => r.id === 'MUN-007')!;
 
     const hasSetback = /setback|building.*line|building.*boundary|front.*yard|side.*yard|rear.*yard/i.test(text + annotations);
-    const setbackMatch = text.match(/setback\s*[:=]?\s*(\d+\.?\d*)\s*m/i);
+    const _setbackMatch = text.match(/setback\s*[:=]?\s*(\d+\.?\d*)\s*m/i);
 
     if (!hasSetback) {
       findings.push(this.createFinding(rule, {} as AgentContext, {
@@ -495,7 +495,7 @@ export class MunicipalRequirementsAgent extends Agent {
     return findings;
   }
 
-  private checkServitudes(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkServitudes(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.municipalRules.find(r => r.id === 'MUN-008')!;
 
@@ -510,7 +510,7 @@ export class MunicipalRequirementsAgent extends Agent {
     return findings;
   }
 
-  private checkAccessRequirements(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkAccessRequirements(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.municipalRules.find(r => r.id === 'MUN-009')!;
 
@@ -525,12 +525,12 @@ export class MunicipalRequirementsAgent extends Agent {
     return findings;
   }
 
-  private checkLandscaping(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkLandscaping(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.municipalRules.find(r => r.id === 'MUN-010')!;
 
     const hasLandscaping = /landscap|tree|garden|green.*area|planting/i.test(text + annotations);
-    const landscapeMatch = text.match(/landscap.*\s*(\d+\.?\d*)%?/i);
+    const _landscapeMatch = text.match(/landscap.*\s*(\d+\.?\d*)%?/i);
 
     if (!hasLandscaping) {
       findings.push(this.createFinding(rule, {} as AgentContext, {

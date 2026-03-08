@@ -5,12 +5,12 @@
  * as defined in AI_AGENT_ARCHITECTURE.md
  */
 
-import { AgentCheck, AgentIssue } from '@/types';
-import { FileParser, fileParser } from '@/agents/services/FileParser';
+import { AgentIssue } from '@/types';
+import { fileParser } from '@/agents/services/FileParser';
 import { DrawingType, DrawingData, ProjectInfo } from '@/types/agent';
 import { agentOrchestrator } from '@/orchestrator/AgentOrchestrator';
 import { auditLogger, AuditEventType } from '@/orchestrator/AuditLogger';
-import { getAgentLogs, getProjectAgentLogs } from '@/services/firebase/agentService';
+import { getAgentLogs } from '@/services/firebase/agentService';
 
 // Types matching the architecture document
 export interface AgentAnalysisRequest {
@@ -212,9 +212,9 @@ export async function getAnalysisResults(drawingId: string): Promise<AgentAnalys
 
     // Get the most recent compliance check entry
     const complianceEntry = auditEntries.find(e => e.eventType === AuditEventType.COMPLIANCE_CHECK);
-    
+
     // Get agent logs from Firestore for more detailed results
-    const agentLogs = await getAgentLogs(drawingId, 100);
+    const _agentLogs = await getAgentLogs(drawingId, 100);
 
     // Reconstruct results from available data
     const agentResults: AgentResult[] = [];
@@ -268,7 +268,7 @@ export async function getAnalysisResults(drawingId: string): Promise<AgentAnalys
 export async function overrideAgentDecision(request: AgentOverrideRequest): Promise<{ success: boolean; message: string }> {
   try {
     // Log the override action
-    auditLogger.log(AuditEventType.FINDING_OVERRIDE, 
+    auditLogger.log(AuditEventType.FINDING_OVERRIDE,
       `Issue ${request.issueId} overridden by ${request.overriddenBy}`,
       {
         agentId: request.agentId,
@@ -724,13 +724,13 @@ export async function getConflictResolution(): Promise<ConflictResolution[]> {
     // Currently conflicts are detected during analysis but not persisted separately
     // This would need a dedicated Firestore collection for conflict tracking
     // For now, return empty array - conflicts are logged in audit log
-    
+
     const auditEntries = auditLogger.getEntries({
       eventTypes: [AuditEventType.SYSTEM_ERROR],
     });
 
     // Filter entries that might indicate conflicts
-    const conflictEntries = auditEntries.filter(e => 
+    const conflictEntries = auditEntries.filter(e =>
       e.description.toLowerCase().includes('conflict') ||
       e.description.toLowerCase().includes('disagreement')
     );
@@ -766,14 +766,14 @@ function mapFindingTypeToIssueType(findingType: string): AgentIssue['type'] {
 
 function countFindingsBySeverity(findings: { severity: string }[]): Record<string, number> {
   const bySeverity: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0 };
-  
+
   for (const finding of findings) {
     const severity = finding.severity.toLowerCase();
     if (severity in bySeverity) {
       bySeverity[severity] = (bySeverity[severity] || 0) + 1;
     }
   }
-  
+
   return bySeverity;
 }
 

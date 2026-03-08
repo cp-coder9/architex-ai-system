@@ -23,16 +23,16 @@ import {
 } from '@/types/agent';
 import {
   FIRE_SAFETY,
-  FireLayoutCheck,
-  EscapeRouteCheck,
-  FireDoorCheck,
-  TravelCheck,
-  FireWallCheck,
-  ExtinguisherCheck,
-  EmergencyLightingCheck,
-  SmokeVentCheck,
-  FireAlarmCheck,
-  SprinklerCheck
+  _FireLayoutCheck,
+  _EscapeRouteCheck,
+  _FireDoorCheck,
+  _TravelCheck,
+  _FireWallCheck,
+  _ExtinguisherCheck,
+  _EmergencyLightingCheck,
+  _SmokeVentCheck,
+  _FireAlarmCheck,
+  _SprinklerCheck
 } from '@/config/sans10400/types';
 
 // ============================================================================
@@ -456,7 +456,7 @@ export class FireComplianceAgent extends Agent {
   /**
    * Extract fire safety data from drawing and project info
    */
-  private extractFireData(drawing: DrawingData, projectInfo: ProjectInfo): FireAnalysisData {
+  private extractFireData(drawing: DrawingData, _projectInfo: ProjectInfo): FireAnalysisData {
     const textContent = drawing.textElements.map(t => t.content.toLowerCase());
     const annotations = drawing.annotations.map(a => a.content.toLowerCase());
     
@@ -793,7 +793,7 @@ private extractFireWalls(drawing: DrawingData): FireWallData[] {
     return { rule, passed, value, expected, finding, timestamp: new Date() };
   }
 
-  private checkEscapeRoutes(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkEscapeRoutes(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.escapeRoutes.length > 0;
   }
 
@@ -826,28 +826,28 @@ private extractFireWalls(drawing: DrawingData): FireWallData[] {
     return { passed: true, value: fireData.travelDistance, expected: maxDistance };
   }
 
-  private checkExitDoorSwing(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkExitDoorSwing(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.exitDoors.length > 0;
   }
 
-  private checkExitSigns(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkExitSigns(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.exitSigns;
   }
 
-  private checkFireDoors(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFireDoors(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.fireDoors.length > 0;
   }
 
-  private checkFireDoorRatings(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFireDoorRatings(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     if (fireData.fireDoors.length === 0) return false;
     return fireData.fireDoorRatings.length > 0;
   }
 
-  private checkSelfClosing(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkSelfClosing(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.fireDoors.length > 0;
   }
 
-  private checkFireWalls(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFireWalls(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.fireWalls.length > 0;
   }
 
@@ -856,27 +856,27 @@ private extractFireWalls(drawing: DrawingData): FireWallData[] {
     return true;
   }
 
-  private checkFireStopping(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFireStopping(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.fireStopping;
   }
 
-  private checkExtinguishers(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkExtinguishers(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.extinguishers.length > 0;
   }
 
-  private checkEmergencyLighting(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkEmergencyLighting(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.emergencyLighting;
   }
 
-  private checkSmokeVents(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkSmokeVents(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.smokeVents.length > 0;
   }
 
-  private checkAssemblyPoints(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkAssemblyPoints(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.assemblyPoints.length > 0;
   }
 
-  private checkFireServiceAccess(fireData: FireAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFireServiceAccess(fireData: FireAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return fireData.fireServiceAccess;
   }
 

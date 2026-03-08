@@ -1,0 +1,27 @@
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\ProjectOversight.tsx:290:18 'getUsersByRole' is assigned a value but never used. Allowed unused vars must match /^_/u.
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\ProjectOversight.tsx:462:7 'getStatusIcon' is assigned a value but never used. Allowed unused vars must match /^_/u.
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\SystemAnalytics.tsx:405:9 'totalCosts' is assigned a value but never used. Allowed unused vars must match /^_/u.
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\SystemAnalytics.tsx:410:7 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\SystemAnalytics.tsx:410:7
+  408 |     const costs = totalHours * avgHourlyRate;
+  409 |     return ((totalRevenue - costs) / totalRevenue) * 100;
+> 410 |   }, [totalRevenue, totalHours]);
+      |       ^^^^^^^^^^^^ This dependency may be modified later
+  411 |
+  412 |   // Client Satisfaction - calculated from completed projects with positive ratings
+  413 |   const clientSatisfaction = useMemo(() => {
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\SystemAnalytics.tsx:410:21 Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\SystemAnalytics.tsx:410:21
+  408 |     const costs = totalHours * avgHourlyRate;
+  409 |     return ((totalRevenue - costs) / totalRevenue) * 100;
+> 410 |   }, [totalRevenue, totalHours]);
+      |                     ^^^^^^^^^^ This dependency may be modified later
+  411 |
+  412 |   // Client Satisfaction - calculated from completed projects with positive ratings
+  413 |   const clientSatisfaction = useMemo(() => {

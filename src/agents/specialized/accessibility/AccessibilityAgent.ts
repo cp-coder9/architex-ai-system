@@ -356,7 +356,7 @@ export class AccessibilityAgent extends Agent {
   // Rule Check Methods
   // ==========================================================================
 
-  private checkWheelchairRamps(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkWheelchairRamps(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.accessibilityRules.find(r => r.id === 'ACC-001')!;
 
@@ -371,7 +371,7 @@ export class AccessibilityAgent extends Agent {
     return findings;
   }
 
-  private checkRampGradients(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkRampGradients(text: string, _annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.accessibilityRules.find(r => r.id === 'ACC-007')!;
 
@@ -383,7 +383,7 @@ export class AccessibilityAgent extends Agent {
           suggestion: 'Ramp gradient must be indicated and must not exceed 1:12 (8.33%)'
         }));
       } else {
-        const ratio = gradientMatch[1] ? parseInt(gradientMatch[1]) : parseFloat(gradientMatch[2]) / 100 * 12;
+        const _ratio = gradientMatch[1] ? parseInt(gradientMatch[1]) : parseFloat(gradientMatch[2]) / 100 * 12;
         if (gradientMatch[1] && parseInt(gradientMatch[1]) < 12) {
           findings.push(this.createFinding(rule, {} as AgentContext, {
             suggestion: `Ramp gradient 1:${gradientMatch[1]} exceeds maximum allowed (1:12)`
@@ -395,7 +395,7 @@ export class AccessibilityAgent extends Agent {
     return findings;
   }
 
-  private checkHandrails(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkHandrails(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.accessibilityRules.find(r => r.id === 'ACC-008')!;
 
@@ -410,7 +410,7 @@ export class AccessibilityAgent extends Agent {
     return findings;
   }
 
-  private checkDoorWidths(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkDoorWidths(text: string, _annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.accessibilityRules.find(r => r.id === 'ACC-002')!;
 
@@ -427,7 +427,7 @@ export class AccessibilityAgent extends Agent {
     return findings;
   }
 
-  private checkGrabRails(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkGrabRails(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.accessibilityRules.find(r => r.id === 'ACC-003')!;
 
@@ -442,7 +442,7 @@ export class AccessibilityAgent extends Agent {
     return findings;
   }
 
-  private checkWCCubicles(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkWCCubicles(text: string, _annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.accessibilityRules.find(r => r.id === 'ACC-009')!;
 
@@ -459,7 +459,7 @@ export class AccessibilityAgent extends Agent {
     return findings;
   }
 
-  private checkAccessibleParking(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkAccessibleParking(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.accessibilityRules.find(r => r.id === 'ACC-005')!;
 
@@ -490,7 +490,7 @@ export class AccessibilityAgent extends Agent {
     return findings;
   }
 
-  private checkTactileIndicators(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkTactileIndicators(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.accessibilityRules.find(r => r.id === 'ACC-004')!;
 
@@ -505,7 +505,7 @@ export class AccessibilityAgent extends Agent {
     return findings;
   }
 
-  private checkVisualIndicators(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkVisualIndicators(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.accessibilityRules.find(r => r.id === 'ACC-010')!;
 

@@ -268,7 +268,7 @@ export class DimensionValidatorAgent extends Agent {
   /**
    * Analyze dimensions on a drawing
    */
-  async analyze(drawing: DrawingData, projectInfo: ProjectInfo): Promise<AgentResult> {
+  async analyze(drawing: DrawingData, _projectInfo: ProjectInfo): Promise<AgentResult> {
     const startTime = Date.now();
     const findings: Finding[] = [];
     const passedRules: string[] = [];
@@ -283,7 +283,7 @@ export class DimensionValidatorAgent extends Agent {
       // Run each compliance check
       for (const rule of this.dimensionRules) {
         const result = await this.evaluateDimensionRule(rule, dimensionData, drawing);
-        
+
         if (result.passed) {
           passedRules.push(rule.id);
         } else {
@@ -354,24 +354,24 @@ export class DimensionValidatorAgent extends Agent {
    */
   private extractDimensionData(drawing: DrawingData): DimensionAnalysisData {
     const dimensions = drawing.dimensions;
-    
+
     // Count dimension types
     const linearCount = dimensions.filter(d => d.type === 'linear').length;
     const angularCount = dimensions.filter(d => d.type === 'angular').length;
     const radialCount = dimensions.filter(d => d.type === 'radial' || d.type === 'diameter').length;
-    
+
     // Extract chain dimensions (consecutive dimensions with same offset)
     const chainDimensions = this.extractChainDimensions(dimensions);
-    
+
     // Extract dimension text sizes
     const dimensionTextSizes = this.extractDimensionTextSizes(drawing);
-    
+
     // Check for tolerance indicators
     const hasTolerances = this.checkTolerancesPresent(drawing);
-    
+
     // Check for reference dimensions
     const hasReferenceDimensions = this.checkReferenceDimensions(drawing);
-    
+
     // Check for datum/level references
     const hasDatumReference = this.checkDatumReference(drawing);
 
@@ -398,37 +398,37 @@ export class DimensionValidatorAgent extends Agent {
   private extractChainDimensions(dimensions: DrawingData['dimensions']): ChainDimension[] {
     const chains: ChainDimension[] = [];
     const processed = new Set<string>();
-    
+
     for (const dim of dimensions) {
       if (processed.has(dim.id)) continue;
-      
+
       // Find dimensions with similar orientation and close proximity
       const chainMembers = dimensions.filter(d => {
         if (d.id === dim.id || processed.has(d.id)) return false;
-        
+
         // Check if dimensions are parallel (same orientation)
         const angle1 = this.calculateDimensionAngle(dim);
         const angle2 = this.calculateDimensionAngle(d);
         const angleDiff = Math.abs(angle1 - angle2);
-        
+
         // Check if dimensions are close to each other
         const distance = this.calculateDimensionDistance(dim, d);
-        
+
         return angleDiff < 5 && distance < 50; // Similar orientation and close
       });
-      
+
       if (chainMembers.length > 0) {
         chains.push({
           id: `chain-${dim.id}`,
           dimensions: [dim, ...chainMembers],
           totalValue: chainMembers.reduce((sum, d) => sum + d.value, 0) + dim.value
         });
-        
+
         processed.add(dim.id);
         chainMembers.forEach(d => processed.add(d.id));
       }
     }
-    
+
     return chains;
   }
 
@@ -456,7 +456,7 @@ export class DimensionValidatorAgent extends Agent {
       x: (dim2.startPoint.x + dim2.endPoint.x) / 2,
       y: (dim2.startPoint.y + dim2.endPoint.y) / 2
     };
-    
+
     return Math.sqrt(
       Math.pow(mid2.x - mid1.x, 2) + Math.pow(mid2.y - mid1.y, 2)
     );
@@ -467,21 +467,21 @@ export class DimensionValidatorAgent extends Agent {
    */
   private extractDimensionTextSizes(drawing: DrawingData): number[] {
     const sizes: number[] = [];
-    
+
     // Look for dimension annotations with text
     for (const annotation of drawing.annotations) {
       if (annotation.type === 'dimension' && annotation.style?.textHeight) {
         sizes.push(Number(annotation.style.textHeight));
       }
     }
-    
+
     // Look for text elements that might be dimensions
     for (const text of drawing.textElements) {
       if (text.height) {
         sizes.push(text.height);
       }
     }
-    
+
     return sizes;
   }
 
@@ -492,10 +492,10 @@ export class DimensionValidatorAgent extends Agent {
     const textContent = drawing.textElements.map(t => t.content.toLowerCase());
     const annotationContent = drawing.annotations.map(a => a.content.toLowerCase());
     const allText = [...textContent, ...annotationContent];
-    
-    return allText.some(text => 
-      text.includes('±') || 
-      text.includes('+/-') || 
+
+    return allText.some(text =>
+      text.includes('±') ||
+      text.includes('+/-') ||
       text.includes('tolerance') ||
       text.includes('±5mm') ||
       text.includes('±3mm')
@@ -509,8 +509,8 @@ export class DimensionValidatorAgent extends Agent {
     const textContent = drawing.textElements.map(t => t.content.toLowerCase());
     const annotationContent = drawing.annotations.map(a => a.content.toLowerCase());
     const allText = [...textContent, ...annotationContent];
-    
-    return allText.some(text => 
+
+    return allText.some(text =>
       text.includes('ref') ||
       text.includes('reference') ||
       text.includes('( )') ||
@@ -525,10 +525,10 @@ export class DimensionValidatorAgent extends Agent {
     const textContent = drawing.textElements.map(t => t.content);
     const annotationContent = drawing.annotations.map(a => a.content);
     const allText = [...textContent, ...annotationContent];
-    
+
     // Look for level markers like ±0.000, +X.XXX, etc.
-    return allText.some(text => 
-      /^[\+\-±]\d+\.\d{3}$/.test(text.trim()) ||
+    return allText.some(text =>
+      /^[+±-]\d+\.\d{3}$/.test(text.trim()) ||
       text.includes('datum') ||
       text.includes('RL') ||
       text.includes('BM')
@@ -556,43 +556,43 @@ export class DimensionValidatorAgent extends Agent {
       case 'DIM-001': // All Dimensions Shown
         passed = this.checkAllDimensionsShown(dimensionData, rule, drawing);
         break;
-        
+
       case 'DIM-002': // Dimensions Consistent
         passed = this.checkDimensionsConsistent(dimensionData, rule, drawing);
         break;
-        
+
       case 'DIM-003': // Tolerance Levels
         passed = this.checkToleranceLevels(dimensionData, rule, drawing);
         break;
-        
+
       case 'DIM-004': // Chain Dimensions
         ({ passed, value, expected, finding } = this.checkChainDimensions(dimensionData, rule, drawing));
         break;
-        
+
       case 'DIM-005': // Reference Dimensions
         passed = this.checkReferenceDimensionsPresent(dimensionData, rule, drawing);
         break;
-        
+
       case 'DIM-006': // Dimension Text Size
         ({ passed, value, expected, finding } = this.checkDimensionTextSize(dimensionData, rule, drawing));
         break;
-        
+
       case 'DIM-007': // Dimension Line Spacing
         passed = this.checkDimensionSpacing(dimensionData, rule, drawing);
         break;
-        
+
       case 'DIM-008': // Extension Lines
         passed = this.checkExtensionLines(dimensionData, rule, drawing);
         break;
-        
+
       case 'DIM-009': // Datum Dimensions
         passed = this.checkDatumDimensions(dimensionData, rule, drawing);
         break;
-        
+
       case 'DIM-010': // Levels Referenced to Datum
         passed = this.checkLevelsReferenced(dimensionData, rule, drawing);
         break;
-        
+
       default:
         passed = false;
     }
@@ -619,19 +619,19 @@ export class DimensionValidatorAgent extends Agent {
     if (dimensionData.totalDimensions === 0) {
       return false;
     }
-    
+
     // Check if there are text elements that might indicate missing dimensions
     const textContent = drawing.textElements.map(t => t.content.toLowerCase());
-    
+
     // Look for room/area indicators that might need dimensions
     const roomKeywords = ['bedroom', 'kitchen', 'bathroom', 'living', 'dining', 'room'];
     const hasRooms = textContent.some(text => roomKeywords.some(kw => text.includes(kw)));
-    
+
     // If there are rooms but very few dimensions, warn
     if (hasRooms && dimensionData.totalDimensions < 3) {
       return false;
     }
-    
+
     return dimensionData.totalDimensions > 0;
   }
 
@@ -640,25 +640,25 @@ export class DimensionValidatorAgent extends Agent {
    */
   private checkDimensionsConsistent(
     dimensionData: DimensionAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // This would require comparing multiple views which isn't available in single drawing
     // For now, check that dimensions are reasonable
     if (dimensionData.dimensions.length < 2) {
       return true; // Can't check consistency with single dimension
     }
-    
+
     // Check for extreme values that might indicate errors
     const values = dimensionData.dimensions.map(d => d.value);
     const maxValue = Math.max(...values);
     const minValue = Math.min(...values.filter(v => v > 0));
-    
+
     // If there's a 100x difference, might be inconsistent
     if (minValue > 0 && maxValue / minValue > 100) {
       return false;
     }
-    
+
     return true;
   }
 
@@ -667,8 +667,8 @@ export class DimensionValidatorAgent extends Agent {
    */
   private checkToleranceLevels(
     dimensionData: DimensionAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // Check if tolerances are indicated on the drawing
     return dimensionData.hasTolerances;
@@ -679,20 +679,20 @@ export class DimensionValidatorAgent extends Agent {
    */
   private checkChainDimensions(
     dimensionData: DimensionAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): { passed: boolean; value?: number; expected?: number; finding?: Finding } {
     if (dimensionData.chainCount === 0) {
       return { passed: true }; // No chain dimensions to check
     }
-    
+
     // Check chain dimensions for accuracy
     for (const chain of dimensionData.chainDimensions) {
       if (chain.dimensions.length > 1) {
         // Verify the sum is reasonable
-        const tolerance = 3; // ±3mm as per SANS 10160
+        const _tolerance = 3; // ±3mm as per SANS 10160
         const sum = chain.dimensions.reduce((acc, d) => acc + d.value, 0);
-        
+
         // Note: In practice, we'd compare to an overall dimension
         // For now, just check if the chain is complete
         if (chain.dimensions.length >= 2) {
@@ -704,7 +704,7 @@ export class DimensionValidatorAgent extends Agent {
         }
       }
     }
-    
+
     return { passed: true };
   }
 
@@ -712,9 +712,9 @@ export class DimensionValidatorAgent extends Agent {
    * DIM-005: Reference Dimensions Indicated
    */
   private checkReferenceDimensionsPresent(
-    dimensionData: DimensionAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _dimensionData: DimensionAnalysisData,
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // This is optional (LOW severity), so we just check if reference dimensions are present
     // If none exist, it's not a failure
@@ -730,14 +730,14 @@ export class DimensionValidatorAgent extends Agent {
     drawing: DrawingData
   ): { passed: boolean; value?: number; expected?: number; finding?: Finding } {
     const minSize = 2.5; // mm minimum as per SANS
-    
+
     if (dimensionData.dimensionTextSizes.length === 0) {
       // No explicit text sizes found - assume compliant (text exists)
       return { passed: true };
     }
-    
+
     const minFound = Math.min(...dimensionData.dimensionTextSizes);
-    
+
     if (minFound < minSize) {
       return {
         passed: false,
@@ -752,7 +752,7 @@ export class DimensionValidatorAgent extends Agent {
         )
       };
     }
-    
+
     return { passed: true, value: minFound, expected: minSize };
   }
 
@@ -760,9 +760,9 @@ export class DimensionValidatorAgent extends Agent {
    * DIM-007: Dimension Line Spacing
    */
   private checkDimensionSpacing(
-    dimensionData: DimensionAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _dimensionData: DimensionAnalysisData,
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // This is a visual check - would require more complex analysis
     // For now, assume compliant
@@ -774,8 +774,8 @@ export class DimensionValidatorAgent extends Agent {
    */
   private checkExtensionLines(
     dimensionData: DimensionAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // This is a visual check - would require CAD parsing
     // For now, assume compliant if dimensions exist
@@ -786,9 +786,9 @@ export class DimensionValidatorAgent extends Agent {
    * DIM-009: Datum Dimensions
    */
   private checkDatumDimensions(
-    dimensionData: DimensionAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _dimensionData: DimensionAnalysisData,
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // For complex drawings, datum dimensions are preferred
     // Not required for simple drawings
@@ -805,15 +805,15 @@ export class DimensionValidatorAgent extends Agent {
   ): boolean {
     // Check for level markers
     const textContent = drawing.textElements.map(t => t.content);
-    const hasLevels = textContent.some(text => 
+    const hasLevels = textContent.some(text =>
       /\d+\.\d{3}/.test(text) && (text.includes('+') || text.includes('-') || text.includes('±'))
     );
-    
+
     // If there are levels, they should reference a datum
     if (hasLevels) {
       return dimensionData.hasDatumReference;
     }
-    
+
     return true; // No levels to check
   }
 
@@ -832,9 +832,9 @@ export class DimensionValidatorAgent extends Agent {
       ruleId: rule.id,
       ruleName: rule.name,
       standard: rule.standard,
-      severity: severity === 'critical' ? Severity.CRITICAL : 
-                severity === 'high' ? Severity.HIGH : 
-                severity === 'medium' ? Severity.MEDIUM : Severity.LOW,
+      severity: severity === 'critical' ? Severity.CRITICAL :
+        severity === 'high' ? Severity.HIGH :
+          severity === 'medium' ? Severity.MEDIUM : Severity.LOW,
       title: rule.name,
       description,
       location: {

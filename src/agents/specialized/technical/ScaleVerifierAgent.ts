@@ -230,7 +230,7 @@ export class ScaleVerifierAgent extends Agent {
   /**
    * Analyze scale on a drawing
    */
-  async analyze(drawing: DrawingData, projectInfo: ProjectInfo): Promise<AgentResult> {
+  async analyze(drawing: DrawingData, _projectInfo: ProjectInfo): Promise<AgentResult> {
     const startTime = Date.now();
     const findings: Finding[] = [];
     const passedRules: string[] = [];
@@ -245,7 +245,7 @@ export class ScaleVerifierAgent extends Agent {
       // Run each compliance check
       for (const rule of this.scaleRules) {
         const result = await this.evaluateScaleRule(rule, scaleData, drawing);
-        
+
         if (result.passed) {
           passedRules.push(rule.id);
         } else {
@@ -317,16 +317,16 @@ export class ScaleVerifierAgent extends Agent {
   private extractScaleData(drawing: DrawingData): ScaleAnalysisData {
     // Extract scale from title block
     const titleBlockScale = this.extractTitleBlockScale(drawing);
-    
+
     // Extract scale bar
     const scaleBar = this.extractScaleBar(drawing);
-    
+
     // Check for north arrow
     const northArrow = this.checkNorthArrow(drawing);
-    
+
     // Check for metric units
     const usesMetric = this.checkMetricUnits(drawing);
-    
+
     // Determine drawing type for scale validation
     const drawingType = drawing.type;
 
@@ -352,15 +352,15 @@ export class ScaleVerifierAgent extends Agent {
     const textContent = drawing.textElements.map(t => t.content);
     const annotationContent = drawing.annotations.map(a => a.content);
     const allText = [...textContent, ...annotationContent];
-    
+
     // Look for scale patterns like "1:100", "1:50", "1:200", etc.
     const scalePatterns = [
-      /1\s*[:\/]\s*(\d+)/i,
-      /scale\s*[:\s]*1\s*[:\/]\s*(\d+)/i,
+      /1\s*[:/]\s*(\d+)/i,
+      /scale\s*[:\s]*1\s*[:/]\s*(\d+)/i,
       /^(\d+)\s*:\s*1$/i,
-      /SCALE\s*1\s*[:\/]\s*(\d+)/i
+      /SCALE\s*1\s*[:/]\s*(\d+)/i
     ];
-    
+
     for (const text of allText) {
       for (const pattern of scalePatterns) {
         const match = text.match(pattern);
@@ -369,7 +369,7 @@ export class ScaleVerifierAgent extends Agent {
         }
       }
     }
-    
+
     return null;
   }
 
@@ -378,12 +378,12 @@ export class ScaleVerifierAgent extends Agent {
    */
   private extractScaleBar(drawing: DrawingData): { present: boolean; length: number; units: string | null } {
     // Look for scale bar in symbols
-    const scaleBarSymbols = drawing.symbols.filter(s => 
+    const scaleBarSymbols = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('scale') ||
       s.name.toLowerCase().includes('scale bar') ||
       s.category.toLowerCase().includes('scale')
     );
-    
+
     if (scaleBarSymbols.length > 0) {
       const symbol = scaleBarSymbols[0];
       return {
@@ -392,14 +392,14 @@ export class ScaleVerifierAgent extends Agent {
         units: this.extractScaleFromSymbol(symbol)
       };
     }
-    
+
     // Look for scale bar in annotations
     const annotationContent = drawing.annotations.map(a => a.content.toLowerCase());
-    const hasScaleBar = annotationContent.some(text => 
+    const hasScaleBar = annotationContent.some(text =>
       text.includes('scale bar') ||
       text.includes('graphical scale')
     );
-    
+
     if (hasScaleBar) {
       return {
         present: true,
@@ -407,7 +407,7 @@ export class ScaleVerifierAgent extends Agent {
         units: 'm'
       };
     }
-    
+
     return {
       present: false,
       length: 0,
@@ -420,13 +420,13 @@ export class ScaleVerifierAgent extends Agent {
    */
   private extractScaleFromSymbol(symbol: DrawingData['symbols'][0]): string {
     const name = symbol.name.toLowerCase();
-    
+
     // Look for scale indicators in symbol name
-    const scaleMatch = name.match(/1\s*[:\/]\s*(\d+)/);
+    const scaleMatch = name.match(/1\s*[:/]\s*(\d+)/);
     if (scaleMatch) {
       return `1:${scaleMatch[1]}`;
     }
-    
+
     // Default to meters for scale bar
     return 'm';
   }
@@ -436,19 +436,19 @@ export class ScaleVerifierAgent extends Agent {
    */
   private checkNorthArrow(drawing: DrawingData): boolean {
     // Look for north arrow symbols
-    const northSymbols = drawing.symbols.filter(s => 
+    const northSymbols = drawing.symbols.filter(s =>
       s.name.toLowerCase().includes('north') ||
       s.name.toLowerCase().includes('n') ||
       s.category.toLowerCase().includes('north')
     );
-    
+
     if (northSymbols.length > 0) {
       return true;
     }
-    
+
     // Look for north arrow in annotations
     const annotationContent = drawing.annotations.map(a => a.content.toLowerCase());
-    return annotationContent.some(text => 
+    return annotationContent.some(text =>
       text.includes('north') ||
       text.includes('true north') ||
       text.includes('magnetic north')
@@ -462,7 +462,7 @@ export class ScaleVerifierAgent extends Agent {
     const textContent = drawing.textElements.map(t => t.content.toLowerCase());
     const annotationContent = drawing.annotations.map(a => a.content.toLowerCase());
     const allText = [...textContent, ...annotationContent];
-    
+
     // Look for metric unit indicators
     const metricPatterns = [
       /\d+\s*mm\b/,
@@ -472,7 +472,7 @@ export class ScaleVerifierAgent extends Agent {
       /centimeter/,
       /meter/
     ];
-    
+
     return allText.some(text => metricPatterns.some(pattern => pattern.test(text)));
   }
 
@@ -497,35 +497,35 @@ export class ScaleVerifierAgent extends Agent {
       case 'SCL-001': // Scale Bar Present
         passed = this.checkScaleBarPresent(scaleData, rule, drawing);
         break;
-        
+
       case 'SCL-002': // Scale in Title Block
         passed = this.checkTitleBlockScale(scaleData, rule, drawing);
         break;
-        
+
       case 'SCL-003': // Consistent Scale
         passed = this.checkScaleConsistent(scaleData, rule, drawing);
         break;
-        
+
       case 'SCL-004': // Appropriate Scale
         passed = this.checkAppropriateScale(scaleData, rule, drawing);
         break;
-        
+
       case 'SCL-005': // Scale Bar Size
         ({ passed, value, expected, finding } = this.checkScaleBarSize(scaleData, rule, drawing));
         break;
-        
+
       case 'SCL-006': // North Arrow
         passed = this.checkNorthArrowPresent(scaleData, rule, drawing);
         break;
-        
+
       case 'SCL-007': // Scale Label Visibility
         passed = this.checkScaleLabelVisibility(scaleData, rule, drawing);
         break;
-        
+
       case 'SCL-008': // Metric Units
         passed = this.checkMetricUnitsUsed(scaleData, rule, drawing);
         break;
-        
+
       default:
         passed = false;
     }
@@ -545,8 +545,8 @@ export class ScaleVerifierAgent extends Agent {
    */
   private checkScaleBarPresent(
     scaleData: ScaleAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     return scaleData.scaleBarPresent;
   }
@@ -556,8 +556,8 @@ export class ScaleVerifierAgent extends Agent {
    */
   private checkTitleBlockScale(
     scaleData: ScaleAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     return scaleData.titleBlockScale !== null;
   }
@@ -566,9 +566,9 @@ export class ScaleVerifierAgent extends Agent {
    * SCL-003: Scale Consistent
    */
   private checkScaleConsistent(
-    scaleData: ScaleAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _scaleData: ScaleAnalysisData,
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // This would require checking multiple sheets
     // For single drawing, assume consistent
@@ -580,21 +580,21 @@ export class ScaleVerifierAgent extends Agent {
    */
   private checkAppropriateScale(
     scaleData: ScaleAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     if (!scaleData.titleBlockScale) {
       return true; // Can't verify if no scale
     }
-    
+
     // Extract the scale number
     const scaleMatch = scaleData.titleBlockScale.match(/1\s*:\s*(\d+)/);
     if (!scaleMatch) return true;
-    
+
     const scale = parseInt(scaleMatch[1], 10);
     const drawingTypeKey = scaleData.drawingType.toLowerCase().replace('_', '_');
     const appropriateScales = APPROPRIATE_SCALES[drawingTypeKey] || APPROPRIATE_SCALES.floor_plan;
-    
+
     return appropriateScales.includes(scale);
   }
 
@@ -607,7 +607,7 @@ export class ScaleVerifierAgent extends Agent {
     drawing: DrawingData
   ): { passed: boolean; value?: number; expected?: number; finding?: Finding } {
     const minLength = 100; // mm
-    
+
     if (!scaleData.scaleBarPresent) {
       return {
         passed: false,
@@ -620,7 +620,7 @@ export class ScaleVerifierAgent extends Agent {
         )
       };
     }
-    
+
     if (scaleData.scaleBarLength < minLength) {
       return {
         passed: false,
@@ -635,7 +635,7 @@ export class ScaleVerifierAgent extends Agent {
         )
       };
     }
-    
+
     return { passed: true, value: scaleData.scaleBarLength, expected: minLength };
   }
 
@@ -644,19 +644,19 @@ export class ScaleVerifierAgent extends Agent {
    */
   private checkNorthArrowPresent(
     scaleData: ScaleAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // Only required for site plans
     const requiresNorthArrow = [
       DrawingType.SITE_PLAN,
       DrawingType.ROOF_PLAN
     ].includes(scaleData.drawingType);
-    
+
     if (requiresNorthArrow) {
       return scaleData.northArrowPresent;
     }
-    
+
     return true;
   }
 
@@ -665,8 +665,8 @@ export class ScaleVerifierAgent extends Agent {
    */
   private checkScaleLabelVisibility(
     scaleData: ScaleAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     // Check if scale text is present
     return scaleData.titleBlockScale !== null || scaleData.scaleBarPresent;
@@ -677,8 +677,8 @@ export class ScaleVerifierAgent extends Agent {
    */
   private checkMetricUnitsUsed(
     scaleData: ScaleAnalysisData,
-    rule: ComplianceRule,
-    drawing: DrawingData
+    _rule: ComplianceRule,
+    _drawing: DrawingData
   ): boolean {
     return scaleData.usesMetricUnits;
   }
@@ -698,9 +698,9 @@ export class ScaleVerifierAgent extends Agent {
       ruleId: rule.id,
       ruleName: rule.name,
       standard: rule.standard,
-      severity: severity === 'critical' ? Severity.CRITICAL : 
-                severity === 'high' ? Severity.HIGH : 
-                severity === 'medium' ? Severity.MEDIUM : Severity.LOW,
+      severity: severity === 'critical' ? Severity.CRITICAL :
+        severity === 'high' ? Severity.HIGH :
+          severity === 'medium' ? Severity.MEDIUM : Severity.LOW,
       title: rule.name,
       description,
       location: {

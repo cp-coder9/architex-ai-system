@@ -57,7 +57,7 @@ export const FirebaseConnectionStatus: React.FC<FirebaseConnectionStatusProps> =
   const [connectionState, setConnectionState] = useState<ConnectionState>('checking');
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [config, setConfig] = useState<ReturnType<typeof checkFirebaseConfig> | null>(null);
+  const [config] = useState<ReturnType<typeof checkFirebaseConfig> | null>(() => checkFirebaseConfig());
 
   const checkConnection = useCallback(async () => {
     setConnectionState('checking');
@@ -78,8 +78,12 @@ export const FirebaseConnectionStatus: React.FC<FirebaseConnectionStatusProps> =
 
   // Initial check
   useEffect(() => {
-    setConfig(checkFirebaseConfig());
-    checkConnection();
+    // We use setTimeout to defer the check to avoid 
+    // synchronous setState within the effect body
+    const timer = setTimeout(() => {
+      checkConnection();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [checkConnection]);
 
   // Auto-refresh interval

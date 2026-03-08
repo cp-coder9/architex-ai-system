@@ -62,7 +62,7 @@ export default {
 async function handleUpload(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const key = url.searchParams.get('key') || '';
-  
+
   if (!key) {
     return new Response(JSON.stringify({ error: 'Missing key parameter' }), {
       status: 400,
@@ -90,7 +90,7 @@ async function handleUpload(request: Request, env: Env): Promise<Response> {
   });
 }
 
-async function handlePresignedUrl(request: Request, env: Env): Promise<Response> {
+async function handlePresignedUrl(request: Request, _env: Env): Promise<Response> {
   const url = new URL(request.url);
   const key = url.searchParams.get('key');
   const expiration = parseInt(url.searchParams.get('expiration') || '3600');
@@ -185,7 +185,7 @@ async function handleMetadata(request: Request, env: Env): Promise<Response> {
   }
 
   const object = await env.R2_BUCKET.get(key);
-  
+
   if (!object) {
     return new Response(JSON.stringify({ error: 'File not found' }), {
       status: 404,

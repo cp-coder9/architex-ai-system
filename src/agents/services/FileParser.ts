@@ -117,32 +117,35 @@ export class FileParser {
     let detectedElements: DetectedElement[] = [];
 
     switch (fileType) {
-      case FileType.PDF:
+      case FileType.PDF: {
         const pdfResult = await this.parsePDF(file, opts);
         textElements = pdfResult.textElements;
         dimensions = pdfResult.dimensions;
         annotations = pdfResult.annotations;
         layers = pdfResult.layers;
         break;
+      }
 
       case FileType.DWG:
-      case FileType.DXF:
+      case FileType.DXF: {
         const cadResult = await this.parseCAD(file, fileType, opts);
         textElements = cadResult.textElements;
         dimensions = cadResult.dimensions;
         symbols = cadResult.symbols;
         layers = cadResult.layers;
         break;
+      }
 
       case FileType.PNG:
       case FileType.JPG:
       case FileType.JPEG:
       case FileType.TIFF:
-      case FileType.TIF:
+      case FileType.TIF: {
         const imageResult = await this.parseImage(file, fileType, opts);
         textElements = imageResult.textElements;
         detectedElements = imageResult.detectedElements;
         break;
+      }
 
       default:
         throw new Error(`Unsupported file type: ${fileType}`);
@@ -183,7 +186,7 @@ export class FileParser {
   private detectFileType(file: File | Blob): FileType {
     const name = file instanceof File ? file.name : 'unknown';
     const extension = name.split('.').pop()?.toLowerCase();
-    
+
     switch (extension) {
       case 'pdf':
         return FileType.PDF;
@@ -219,7 +222,7 @@ export class FileParser {
     // For PDF files, extract additional metadata
     if (fileType === FileType.PDF) {
       try {
-        const arrayBuffer = await file.arrayBuffer();
+        await file.arrayBuffer();
         // Basic PDF info from array buffer
         // In a real implementation, would use pdf.js
         metadata.pageCount = 1; // Default
@@ -245,7 +248,7 @@ export class FileParser {
   }> {
     // In a real implementation, this would use pdf.js
     // For now, return placeholder data based on text extraction
-    
+
     const textElements: TextElement[] = [];
     const dimensions: ExtractedDimension[] = [];
     const annotations: AnnotationInfo[] = [];
@@ -290,7 +293,7 @@ export class FileParser {
   }> {
     // In a real implementation, this would use a CAD library
     // such as dxf-parser or opendesign
-    
+
     const textElements: TextElement[] = [];
     const dimensions: ExtractedDimension[] = [];
     const symbols: SymbolInfo[] = [];
@@ -334,7 +337,7 @@ export class FileParser {
   }> {
     // In a real implementation, this would use OCR (tesseract.js)
     // and image analysis (opencv.js or similar
-    
+
     const textElements: TextElement[] = [];
     const detectedElements: DetectedElement[] = [];
 
@@ -427,7 +430,7 @@ export class FileParser {
     const allowedExtensions = ['pdf', 'dwg', 'dxf', 'png', 'jpg', 'jpeg', 'tiff', 'tif'];
     const name = file instanceof File ? file.name : 'unknown';
     const extension = name.split('.').pop()?.toLowerCase();
-    
+
     if (!extension || !allowedExtensions.includes(extension)) {
       errors.push(`File type not supported. Allowed: ${allowedExtensions.join(', ')}`);
     }

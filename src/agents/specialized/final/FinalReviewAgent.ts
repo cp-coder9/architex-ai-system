@@ -25,8 +25,8 @@ import {
   ProjectInfo,
   Finding,
   Severity,
-  DrawingType,
-  AgentResult as PreviousAgentResult
+  _DrawingType,
+  AgentResult as _PreviousAgentResult
 } from '@/types/agent';
 
 export class FinalReviewAgent extends Agent {
@@ -188,7 +188,7 @@ export class FinalReviewAgent extends Agent {
   /**
    * Analyze drawings for final review
    */
-  async analyze(drawing: DrawingData, projectInfo: ProjectInfo): Promise<AgentResult> {
+  async analyze(drawing: DrawingData, _projectInfo: ProjectInfo): Promise<AgentResult> {
     const startTime = Date.now();
     const findings: Finding[] = [];
     const passedRules: string[] = [];
@@ -361,7 +361,7 @@ export class FinalReviewAgent extends Agent {
     return findings;
   }
 
-  private checkCrossReferences(text: string, annotations: string, drawing: DrawingData): Finding[] {
+  private checkCrossReferences(text: string, annotations: string, _drawing: DrawingData): Finding[] {
     const findings: Finding[] = [];
     const rule = this.finalReviewRules.find(r => r.id === 'FIN-002')!;
 
@@ -409,7 +409,7 @@ export class FinalReviewAgent extends Agent {
     return findings;
   }
 
-  private checkTitleBlockContent(text: string, annotations: string): Finding[] {
+  private checkTitleBlockContent(text: string, _annotations: string): Finding[] {
     const findings: Finding[] = [];
     const rule = this.finalReviewRules.find(r => r.id === 'FIN-005')!;
 

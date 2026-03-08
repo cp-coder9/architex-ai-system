@@ -20,10 +20,10 @@ import {
   DrawingType,
   calculateComplianceScore,
   ExtractedDimension,
-  TextElement,
+  _TextElement,
   SymbolInfo,
   LayerInfo,
-  AnnotationInfo
+  _AnnotationInfo
 } from '@/types/agent';
 import { ENERGY_DTS } from '@/config/sans10400/types';
 
@@ -372,7 +372,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * Extract elevation data from drawing and project info
    */
-  private extractElevationData(drawing: DrawingData, projectInfo: ProjectInfo): ElevationAnalysisData {
+  private extractElevationData(drawing: DrawingData, _projectInfo: ProjectInfo): ElevationAnalysisData {
     // Extract text elements for annotations
     const textContent = drawing.textElements.map(t => t.content.toLowerCase());
     const annotations = drawing.annotations.map(a => a.content.toLowerCase());
@@ -450,7 +450,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * Extract ground lines from drawing
    */
-  private extractGroundLines(drawing: DrawingData, textContent: string[]): GroundLineData[] {
+  private extractGroundLines(drawing: DrawingData, _textContent: string[]): GroundLineData[] {
     const groundLines: GroundLineData[] = [];
     
     // Look for ground line indicators in text
@@ -733,7 +733,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * Extract roof pitch
    */
-  private extractRoofPitch(drawing: DrawingData, textContent: string[]): number | null {
+  private extractRoofPitch(drawing: DrawingData, _textContent: string[]): number | null {
     // Look for pitch in text
     const pitchPatterns = [
       /(\d+)\s*°/i,  // e.g., 30°
@@ -760,8 +760,8 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * Extract roof material
    */
-  private extractRoofMaterial(drawing: DrawingData, textContent: string[]): string | null {
-    const materialPatterns = [
+  private extractRoofMaterial(drawing: DrawingData, _textContent: string[]): string | null {
+    const _materialPatterns = [
       /roof\s*material\s*[:=]?\s*(\w+)/i,
       /roofing\s*[:=]?\s*(\w+)/i,
       /(\w+)\s*roof/i
@@ -786,7 +786,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * Extract external finishes
    */
-  private extractExternalFinishes(drawing: DrawingData, textContent: string[]): ExternalFinishData[] {
+  private extractExternalFinishes(drawing: DrawingData, _textContent: string[]): ExternalFinishData[] {
     const finishes: ExternalFinishData[] = [];
     
     const finishPatterns = [
@@ -843,7 +843,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * Extract fire ratings
    */
-  private extractFireRatings(drawing: DrawingData, textContent: string[]): FireRatingData[] {
+  private extractFireRatings(drawing: DrawingData, _textContent: string[]): FireRatingData[] {
     const ratings: FireRatingData[] = [];
     
     const ratingPatterns = [
@@ -855,7 +855,7 @@ export class ElevationComplianceAgent extends Agent {
     ];
     
     for (const text of drawing.textElements) {
-      const contentLower = text.content.toLowerCase();
+      const _contentLower = text.content.toLowerCase();
       
       for (const pattern of ratingPatterns) {
         const match = text.content.match(pattern);
@@ -881,7 +881,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * Extract fire separation
    */
-  private extractFireSeparation(drawing: DrawingData, textContent: string[]): number | null {
+  private extractFireSeparation(drawing: DrawingData, _textContent: string[]): number | null {
     const separationPatterns = [
       /fire\s*separation\s*[:=]?\s*(\d+)/i,
       /separation\s*[:=]?\s*(\d+)\s*mm/i,
@@ -907,7 +907,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * Extract shading
    */
-  private extractShading(drawing: DrawingData, textContent: string[]): ShadingData {
+  private extractShading(drawing: DrawingData, _textContent: string[]): ShadingData {
     const shading: ShadingData = {
       overhangs: false,
       verticalBlades: false,
@@ -958,7 +958,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * Extract insulation
    */
-  private extractInsulation(drawing: DrawingData, textContent: string[]): boolean {
+  private extractInsulation(drawing: DrawingData, _textContent: string[]): boolean {
     const insulationPatterns = [
       /insulation/i,
       /insulated/i,
@@ -993,7 +993,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * Extract insulation R-value
    */
-  private extractInsulationRValue(drawing: DrawingData, textContent: string[]): number | null {
+  private extractInsulationRValue(drawing: DrawingData, _textContent: string[]): number | null {
     const rValuePatterns = [
       /r\s*value\s*[:=]?\s*(\d+\.?\d*)/i,
       /r\s*[:=]?\s*(\d+\.?\d*)/i,
@@ -1019,8 +1019,8 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * Extract drainage direction
    */
-  private extractDrainageDirection(drawing: DrawingData, textContent: string[]): string | null {
-    const drainagePatterns = [
+  private extractDrainageDirection(drawing: DrawingData, _textContent: string[]): string | null {
+    const _drainagePatterns = [
       /drainage\s*direction/i,
       /drain\s*away/i,
       /slope\s*(\w+)/i,
@@ -1190,7 +1190,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * ELV-001: Ground Line Shown (Natural and Finished)
    */
-  private checkGroundLinesPresent(elevationData: ElevationAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkGroundLinesPresent(elevationData: ElevationAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const groundLines = elevationData.groundLines;
     
     if (groundLines.length === 0) return false;
@@ -1205,7 +1205,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * ELV-002: Building Height Dimensioned
    */
-  private checkBuildingHeightDimensioned(elevationData: ElevationAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkBuildingHeightDimensioned(elevationData: ElevationAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return elevationData.buildingHeight !== null && elevationData.buildingHeight > 0;
   }
 
@@ -1216,7 +1216,7 @@ export class ElevationComplianceAgent extends Agent {
     elevationData: ElevationAnalysisData,
     rule: ComplianceRule,
     drawing: DrawingData,
-    projectInfo: ProjectInfo
+    _projectInfo: ProjectInfo
   ): { passed: boolean; value?: number; expected?: number; finding?: Finding } {
     const height = elevationData.buildingHeight;
     
@@ -1296,7 +1296,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * ELV-005: Fire Rating Indicated for Elements
    */
-  private checkFireRatingsIndicated(elevationData: ElevationAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkFireRatingsIndicated(elevationData: ElevationAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     // If fire ratings are shown or fire separation is adequate, it's compliant
     return elevationData.fireRatings.length > 0 || elevationData.fireSeparation !== null;
   }
@@ -1333,7 +1333,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * ELV-007: External Shading Indicated
    */
-  private checkExternalShading(elevationData: ElevationAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkExternalShading(elevationData: ElevationAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const shading = elevationData.shading;
     
     return shading.overhangs || shading.pergola || shading.verticalBlades || shading.screens || shading.trees;
@@ -1386,7 +1386,7 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * ELV-009: Roof Pitch and Material Shown
    */
-  private checkRoofPitchAndMaterial(elevationData: ElevationAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkRoofPitchAndMaterial(elevationData: ElevationAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     const hasPitch = elevationData.roofPitch !== null;
     const hasMaterial = elevationData.roofMaterial !== null;
     
@@ -1396,14 +1396,14 @@ export class ElevationComplianceAgent extends Agent {
   /**
    * ELV-010: External Finishes Specified
    */
-  private checkExternalFinishesSpecified(elevationData: ElevationAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkExternalFinishesSpecified(elevationData: ElevationAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return elevationData.externalFinishes.length > 0;
   }
 
   /**
    * ELV-011: Drainage Direction Indicated
    */
-  private checkDrainageDirection(elevationData: ElevationAnalysisData, rule: ComplianceRule, drawing: DrawingData): boolean {
+  private checkDrainageDirection(elevationData: ElevationAnalysisData, _rule: ComplianceRule, _drawing: DrawingData): boolean {
     return elevationData.drainageDirection !== null;
   }
 

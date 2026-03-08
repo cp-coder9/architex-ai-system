@@ -33,14 +33,14 @@ const TASKS_COLLECTION = 'tasks';
 const TASK_APPLICATIONS_COLLECTION = 'taskApplications';
 
 // Helper functions
-function timestampToDate(timestamp: Timestamp | Date | undefined): Date {
+function _timestampToDate(timestamp: Timestamp | Date | undefined): Date {
   if (timestamp instanceof Timestamp) {
     return timestamp.toDate();
   }
   return timestamp || new Date();
 }
 
-function serializeData(data: Record<string, unknown>): Record<string, unknown> {
+function _serializeData(data: Record<string, unknown>): Record<string, unknown> {
   const serialized: Record<string, unknown> = {};
 
   Object.entries(data).forEach(([key, value]) => {

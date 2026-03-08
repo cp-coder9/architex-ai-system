@@ -1,4 +1,8 @@
 
+> my-app@0.0.0 lint
+> eslint .
+
+
 E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\accessibility\AccessibilityAgent.ts
   359:67  error  'drawing' is defined but never used. Allowed unused args must match /^_/u         @typescript-eslint/no-unused-vars
   374:44  error  'annotations' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars

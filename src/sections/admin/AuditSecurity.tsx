@@ -231,7 +231,7 @@ function SecurityEventsTable({ events }: { events: SecurityEvent[] }) {
 export function AuditSecurity() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // isLoading removed as it was unused
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -242,11 +242,8 @@ export function AuditSecurity() {
   // Fetch audit logs from Firestore
   useEffect(() => {
     if (!db) {
-      setIsLoading(false);
       return;
     }
-
-    setIsLoading(true);
 
     // Subscribe to audit logs
     const auditQuery = query(
@@ -266,11 +263,9 @@ export function AuditSecurity() {
           };
         }) as AuditLog[];
         setAuditLogs(logs);
-        setIsLoading(false);
       },
       (error) => {
         console.error('Error fetching audit logs:', error);
-        setIsLoading(false);
       }
     );
 
@@ -325,14 +320,16 @@ export function AuditSecurity() {
           case 'today':
             matchesDate = logDate.toDateString() === now.toDateString();
             break;
-          case 'week':
+          case 'week': {
             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             matchesDate = logDate >= weekAgo;
             break;
-          case 'month':
+          }
+          case 'month': {
             const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
             matchesDate = logDate >= monthAgo;
             break;
+          }
         }
       }
 
@@ -358,14 +355,16 @@ export function AuditSecurity() {
           case 'today':
             matchesDate = eventDate.toDateString() === now.toDateString();
             break;
-          case 'week':
+          case 'week': {
             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             matchesDate = eventDate >= weekAgo;
             break;
-          case 'month':
+          }
+          case 'month': {
             const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
             matchesDate = eventDate >= monthAgo;
             break;
+          }
         }
       }
 

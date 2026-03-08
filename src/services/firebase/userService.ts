@@ -29,7 +29,7 @@ import { User, UserRole, Client, Freelancer, Admin } from '@/types';
 const USERS_COLLECTION = 'users';
 
 // Type guard to check if user is configured
-function isFirebaseConfigured(): boolean {
+function _isFirebaseConfigured(): boolean {
   return !!db;
 }
 

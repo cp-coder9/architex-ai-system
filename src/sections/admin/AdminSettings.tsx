@@ -11,17 +11,14 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { auth } from '@/services/firebase';
-import { Settings as SettingsType } from '@/types';
+
 import {
-  Settings as SettingsIcon,
+  Settings as _SettingsIcon,
   User,
-  Bell,
   Shield,
   Mail,
   Moon,
   Globe,
-  Clock,
   Camera,
   Save,
   Lock,

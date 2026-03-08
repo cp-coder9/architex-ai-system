@@ -1,0 +1,736 @@
+
+> my-app@0.0.0 lint
+> eslint .
+
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\api\r2-worker.ts
+  93:53  error  'env' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\base\Agent.ts
+  303:13  error  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\services\FileParser.ts
+  121:9   error  Unexpected lexical declaration in case block      no-case-declarations
+  130:9   error  Unexpected lexical declaration in case block      no-case-declarations
+  142:9   error  Unexpected lexical declaration in case block      no-case-declarations
+  222:15  error  'arrayBuffer' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\accessibility\AccessibilityAgent.ts
+  359:67  error  'drawing' is defined but never used         @typescript-eslint/no-unused-vars
+  374:44  error  'annotations' is defined but never used     @typescript-eslint/no-unused-vars
+  374:65  error  'drawing' is defined but never used         @typescript-eslint/no-unused-vars
+  386:15  error  'ratio' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  398:61  error  'drawing' is defined but never used         @typescript-eslint/no-unused-vars
+  413:41  error  'annotations' is defined but never used     @typescript-eslint/no-unused-vars
+  413:62  error  'drawing' is defined but never used         @typescript-eslint/no-unused-vars
+  430:61  error  'drawing' is defined but never used         @typescript-eslint/no-unused-vars
+  445:41  error  'annotations' is defined but never used     @typescript-eslint/no-unused-vars
+  445:62  error  'drawing' is defined but never used         @typescript-eslint/no-unused-vars
+  462:69  error  'drawing' is defined but never used         @typescript-eslint/no-unused-vars
+  493:69  error  'drawing' is defined but never used         @typescript-eslint/no-unused-vars
+  508:68  error  'drawing' is defined but never used         @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\drainage\DrainageComplianceAgent.ts
+    24:3    error  'DrainageCheck' is defined but never used    @typescript-eslint/no-unused-vars
+    25:3    error  'PipeCheck' is defined but never used        @typescript-eslint/no-unused-vars
+    26:3    error  'GulleyCheck' is defined but never used      @typescript-eslint/no-unused-vars
+    27:3    error  'ManholeCheck' is defined but never used     @typescript-eslint/no-unused-vars
+    28:3    error  'ConnectionCheck' is defined but never used  @typescript-eslint/no-unused-vars
+    29:3    error  'PipeSizeCheck' is defined but never used    @typescript-eslint/no-unused-vars
+    30:3    error  'GradientCheck' is defined but never used    @typescript-eslint/no-unused-vars
+    31:3    error  'VentCheck' is defined but never used        @typescript-eslint/no-unused-vars
+    32:3    error  'SupplyCheck' is defined but never used      @typescript-eslint/no-unused-vars
+   428:53   error  'projectInfo' is defined but never used      @typescript-eslint/no-unused-vars
+   529:18   error  Unnecessary escape character: \/             no-useless-escape
+   995:69   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+   995:91   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1007:69   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1007:91   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1017:66   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1017:88   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1024:68   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1024:90   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1032:65   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1032:87   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1040:69   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1040:91   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1047:58   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1047:80   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1054:72   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1054:94   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1061:78   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1061:100  error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1069:61   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1069:83   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1077:62   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1077:84   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1084:71   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1084:93   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1091:62   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1091:84   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1098:68   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1098:90   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1110:68   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1110:90   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+  1117:67   error  'rule' is defined but never used             @typescript-eslint/no-unused-vars
+  1117:89   error  'drawing' is defined but never used          @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\elevation\ElevationComplianceAgent.ts
+    23:3    error  'TextElement' is defined but never used                @typescript-eslint/no-unused-vars
+    26:3    error  'AnnotationInfo' is defined but never used             @typescript-eslint/no-unused-vars
+   375:54   error  'projectInfo' is defined but never used                @typescript-eslint/no-unused-vars
+   453:52   error  'textContent' is defined but never used                @typescript-eslint/no-unused-vars
+   736:50   error  'textContent' is defined but never used                @typescript-eslint/no-unused-vars
+   763:53   error  'textContent' is defined but never used                @typescript-eslint/no-unused-vars
+   764:11   error  'materialPatterns' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   789:57   error  'textContent' is defined but never used                @typescript-eslint/no-unused-vars
+   846:52   error  'textContent' is defined but never used                @typescript-eslint/no-unused-vars
+   858:13   error  'contentLower' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   884:55   error  'textContent' is defined but never used                @typescript-eslint/no-unused-vars
+   910:48   error  'textContent' is defined but never used                @typescript-eslint/no-unused-vars
+   961:51   error  'textContent' is defined but never used                @typescript-eslint/no-unused-vars
+   996:57   error  'textContent' is defined but never used                @typescript-eslint/no-unused-vars
+  1022:58   error  'textContent' is defined but never used                @typescript-eslint/no-unused-vars
+  1023:11   error  'drainagePatterns' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  1193:73   error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1193:95   error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1208:80   error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1208:102  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1219:5    error  'projectInfo' is defined but never used                @typescript-eslint/no-unused-vars
+  1299:75   error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1299:97   error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1336:70   error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1336:92   error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1389:75   error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1389:97   error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1399:80   error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1399:102  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1406:72   error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1406:94   error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\energy\EnergyComplianceAgent.ts
+    26:3   error  'EnergyCheck' is defined but never used            @typescript-eslint/no-unused-vars
+    27:3   error  'DTSCheck' is defined but never used               @typescript-eslint/no-unused-vars
+    28:3   error  'ThermalCheck' is defined but never used           @typescript-eslint/no-unused-vars
+    29:3   error  'GlazingLimitCheck' is defined but never used      @typescript-eslint/no-unused-vars
+    30:3   error  'EnergyInsulationCheck' is defined but never used  @typescript-eslint/no-unused-vars
+    31:3   error  'EnergyLightingCheck' is defined but never used    @typescript-eslint/no-unused-vars
+    32:3   error  'OrientationCheck' is defined but never used       @typescript-eslint/no-unused-vars
+   780:62  error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+   780:84  error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+   787:75  error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+   787:97  error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+   983:63  error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+   983:85  error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+   990:73  error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+   990:95  error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+  1009:70  error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  1009:92  error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+  1016:74  error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  1016:96  error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+  1035:72  error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  1035:94  error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+  1042:69  error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  1042:91  error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\final\FinalReviewAgent.ts
+   28:3   error  'DrawingType' is defined but never used          @typescript-eslint/no-unused-vars
+   29:18  error  'PreviousAgentResult' is defined but never used  @typescript-eslint/no-unused-vars
+  191:39  error  'projectInfo' is defined but never used          @typescript-eslint/no-unused-vars
+  364:67  error  'drawing' is defined but never used              @typescript-eslint/no-unused-vars
+  412:48  error  'annotations' is defined but never used          @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\fire\FireComplianceAgent.ts
+   26:3   error  'FireLayoutCheck' is defined but never used         @typescript-eslint/no-unused-vars
+   27:3   error  'EscapeRouteCheck' is defined but never used        @typescript-eslint/no-unused-vars
+   28:3   error  'FireDoorCheck' is defined but never used           @typescript-eslint/no-unused-vars
+   29:3   error  'TravelCheck' is defined but never used             @typescript-eslint/no-unused-vars
+   30:3   error  'FireWallCheck' is defined but never used           @typescript-eslint/no-unused-vars
+   31:3   error  'ExtinguisherCheck' is defined but never used       @typescript-eslint/no-unused-vars
+   32:3   error  'EmergencyLightingCheck' is defined but never used  @typescript-eslint/no-unused-vars
+   33:3   error  'SmokeVentCheck' is defined but never used          @typescript-eslint/no-unused-vars
+   34:3   error  'FireAlarmCheck' is defined but never used          @typescript-eslint/no-unused-vars
+   35:3   error  'SprinklerCheck' is defined but never used          @typescript-eslint/no-unused-vars
+  459:49  error  'projectInfo' is defined but never used             @typescript-eslint/no-unused-vars
+  796:57  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  796:79  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  829:58  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  829:80  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  833:54  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  833:76  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  837:54  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  837:76  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  841:60  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  841:82  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  846:56  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  846:78  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  850:54  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  850:76  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  859:57  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  859:79  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  863:58  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  863:80  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  867:62  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  867:84  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  871:55  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  871:77  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  875:59  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  875:81  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+  879:62  error  'rule' is defined but never used                    @typescript-eslint/no-unused-vars
+  879:84  error  'drawing' is defined but never used                 @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\floorplan\FloorPlanComplianceAgent.ts
+    24:3   error  'ROOM_REQUIREMENTS' is defined but never used          @typescript-eslint/no-unused-vars
+    25:3   error  'FloorPlanCheck' is defined but never used             @typescript-eslint/no-unused-vars
+    26:3   error  'DoorCheck' is defined but never used                  @typescript-eslint/no-unused-vars
+    27:3   error  'WindowCheck' is defined but never used                @typescript-eslint/no-unused-vars
+    28:3   error  'SanitaryCheck' is defined but never used              @typescript-eslint/no-unused-vars
+    29:3   error  'VentilationCheck' is defined but never used           @typescript-eslint/no-unused-vars
+    30:3   error  'LightingCheck' is defined but never used              @typescript-eslint/no-unused-vars
+    31:3   error  'FireExitCheck' is defined but never used              @typescript-eslint/no-unused-vars
+    32:3   error  'CeilingHeightRoom' is defined but never used          @typescript-eslint/no-unused-vars
+    33:3   error  'RoomAreaCheck' is defined but never used              @typescript-eslint/no-unused-vars
+   569:50  error  'projectInfo' is defined but never used                @typescript-eslint/no-unused-vars
+   635:11  error  'allText' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  1502:68  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1502:90  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1511:60  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1511:82  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1528:64  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1528:86  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1537:62  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1537:84  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1544:58  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1544:80  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1555:60  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1555:82  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1604:76  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1604:98  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1619:63  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1619:85  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1715:58  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1715:80  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1730:63  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1730:85  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1774:64  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1774:86  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1777:11  error  'hasMultipleExits' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  1843:66  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1843:88  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1862:60  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1862:82  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1878:65  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1878:87  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1889:65  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1889:87  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+  1967:64  error  'rule' is defined but never used                       @typescript-eslint/no-unused-vars
+  1967:86  error  'drawing' is defined but never used                    @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\municipal\MunicipalRequirementsAgent.ts
+  372:11  error  'zoningMatch' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  391:45  error  'annotations' is defined but never used              @typescript-eslint/no-unused-vars
+  391:66  error  'drawing' is defined but never used                  @typescript-eslint/no-unused-vars
+  411:43  error  'annotations' is defined but never used              @typescript-eslint/no-unused-vars
+  411:64  error  'drawing' is defined but never used                  @typescript-eslint/no-unused-vars
+  431:49  error  'annotations' is defined but never used              @typescript-eslint/no-unused-vars
+  431:70  error  'drawing' is defined but never used                  @typescript-eslint/no-unused-vars
+  451:71  error  'drawing' is defined but never used                  @typescript-eslint/no-unused-vars
+  456:11  error  'parkingCount' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  467:72  error  'drawing' is defined but never used                  @typescript-eslint/no-unused-vars
+  482:65  error  'drawing' is defined but never used                  @typescript-eslint/no-unused-vars
+  487:11  error  'setbackMatch' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  498:62  error  'drawing' is defined but never used                  @typescript-eslint/no-unused-vars
+  513:70  error  'drawing' is defined but never used                  @typescript-eslint/no-unused-vars
+  528:63  error  'drawing' is defined but never used                  @typescript-eslint/no-unused-vars
+  533:11  error  'landscapeMatch' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\section\SectionComplianceAgent.ts
+    23:3   error  'TextElement' is defined but never used               @typescript-eslint/no-unused-vars
+    26:3   error  'AnnotationInfo' is defined but never used            @typescript-eslint/no-unused-vars
+   385:52  error  'projectInfo' is defined but never used               @typescript-eslint/no-unused-vars
+   388:11  error  'annotations' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   495:55  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+   514:52  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+   518:11  error  'finishMaterials' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   544:54  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+   569:53  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+   597:54  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+   636:52  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+   684:53  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+   709:51  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+   745:58  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+   878:44  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+   909:49  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+   935:52  error  'textContent' is defined but never used               @typescript-eslint/no-unused-vars
+  1048:5   error  'projectInfo' is defined but never used               @typescript-eslint/no-unused-vars
+  1129:75  error  'rule' is defined but never used                      @typescript-eslint/no-unused-vars
+  1129:97  error  'drawing' is defined but never used                   @typescript-eslint/no-unused-vars
+  1136:67  error  'rule' is defined but never used                      @typescript-eslint/no-unused-vars
+  1136:89  error  'drawing' is defined but never used                   @typescript-eslint/no-unused-vars
+  1143:72  error  'rule' is defined but never used                      @typescript-eslint/no-unused-vars
+  1143:94  error  'drawing' is defined but never used                   @typescript-eslint/no-unused-vars
+  1150:72  error  'rule' is defined but never used                      @typescript-eslint/no-unused-vars
+  1150:94  error  'drawing' is defined but never used                   @typescript-eslint/no-unused-vars
+  1157:74  error  'rule' is defined but never used                      @typescript-eslint/no-unused-vars
+  1157:96  error  'drawing' is defined but never used                   @typescript-eslint/no-unused-vars
+  1164:68  error  'rule' is defined but never used                      @typescript-eslint/no-unused-vars
+  1164:90  error  'drawing' is defined but never used                   @typescript-eslint/no-unused-vars
+  1171:77  error  'rule' is defined but never used                      @typescript-eslint/no-unused-vars
+  1171:99  error  'drawing' is defined but never used                   @typescript-eslint/no-unused-vars
+  1276:71  error  'rule' is defined but never used                      @typescript-eslint/no-unused-vars
+  1276:93  error  'drawing' is defined but never used                   @typescript-eslint/no-unused-vars
+  1283:59  error  'rule' is defined but never used                      @typescript-eslint/no-unused-vars
+  1283:81  error  'drawing' is defined but never used                   @typescript-eslint/no-unused-vars
+  1290:72  error  'rule' is defined but never used                      @typescript-eslint/no-unused-vars
+  1290:94  error  'drawing' is defined but never used                   @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\siteplan\SitePlanComplianceAgent.ts
+   25:3   error  'SitePlanCheck' is defined but never used        @typescript-eslint/no-unused-vars
+   26:3   error  'CoverageCalculation' is defined but never used  @typescript-eslint/no-unused-vars
+   27:3   error  'DimensionCheck' is defined but never used       @typescript-eslint/no-unused-vars
+   28:3   error  'BuildingLineCheck' is defined but never used    @typescript-eslint/no-unused-vars
+   29:3   error  'ZoningCheck' is defined but never used          @typescript-eslint/no-unused-vars
+   30:3   error  'ServitudeCheck' is defined but never used       @typescript-eslint/no-unused-vars
+  624:13  error  'content' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  882:66  error  'rule' is defined but never used                 @typescript-eslint/no-unused-vars
+  882:88  error  'drawing' is defined but never used              @typescript-eslint/no-unused-vars
+  897:60  error  'rule' is defined but never used                 @typescript-eslint/no-unused-vars
+  897:82  error  'drawing' is defined but never used              @typescript-eslint/no-unused-vars
+  945:55  error  'rule' is defined but never used                 @typescript-eslint/no-unused-vars
+  945:77  error  'drawing' is defined but never used              @typescript-eslint/no-unused-vars
+  952:58  error  'rule' is defined but never used                 @typescript-eslint/no-unused-vars
+  952:80  error  'drawing' is defined but never used              @typescript-eslint/no-unused-vars
+  962:60  error  'rule' is defined but never used                 @typescript-eslint/no-unused-vars
+  962:82  error  'drawing' is defined but never used              @typescript-eslint/no-unused-vars
+  969:68  error  'rule' is defined but never used                 @typescript-eslint/no-unused-vars
+  969:90  error  'drawing' is defined but never used              @typescript-eslint/no-unused-vars
+  981:63  error  'rule' is defined but never used                 @typescript-eslint/no-unused-vars
+  981:85  error  'drawing' is defined but never used              @typescript-eslint/no-unused-vars
+  988:57  error  'rule' is defined but never used                 @typescript-eslint/no-unused-vars
+  988:79  error  'drawing' is defined but never used              @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\structural\StructuralComplianceAgent.ts
+  239:39  error  'projectInfo' is defined but never used           @typescript-eslint/no-unused-vars
+  404:41  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+  424:40  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+  439:40  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+  454:44  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+  474:51  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+  479:11  error  'hasBarSizes' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  490:51  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+  510:41  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+  525:48  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+  540:44  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+  558:43  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+  573:47  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+  588:53  error  'drawing' is defined but never used               @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\technical\DimensionValidatorAgent.ts
+  271:39  error  'projectInfo' is defined but never used         @typescript-eslint/no-unused-vars
+  531:10  error  Unnecessary escape character: \+                no-useless-escape
+  643:5   error  'rule' is defined but never used                @typescript-eslint/no-unused-vars
+  644:5   error  'drawing' is defined but never used             @typescript-eslint/no-unused-vars
+  670:5   error  'rule' is defined but never used                @typescript-eslint/no-unused-vars
+  671:5   error  'drawing' is defined but never used             @typescript-eslint/no-unused-vars
+  682:5   error  'rule' is defined but never used                @typescript-eslint/no-unused-vars
+  683:5   error  'drawing' is defined but never used             @typescript-eslint/no-unused-vars
+  693:15  error  'tolerance' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  715:5   error  'dimensionData' is defined but never used       @typescript-eslint/no-unused-vars
+  716:5   error  'rule' is defined but never used                @typescript-eslint/no-unused-vars
+  717:5   error  'drawing' is defined but never used             @typescript-eslint/no-unused-vars
+  763:5   error  'dimensionData' is defined but never used       @typescript-eslint/no-unused-vars
+  764:5   error  'rule' is defined but never used                @typescript-eslint/no-unused-vars
+  765:5   error  'drawing' is defined but never used             @typescript-eslint/no-unused-vars
+  777:5   error  'rule' is defined but never used                @typescript-eslint/no-unused-vars
+  778:5   error  'drawing' is defined but never used             @typescript-eslint/no-unused-vars
+  789:5   error  'dimensionData' is defined but never used       @typescript-eslint/no-unused-vars
+  790:5   error  'rule' is defined but never used                @typescript-eslint/no-unused-vars
+  791:5   error  'drawing' is defined but never used             @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\technical\LayerAnalyzerAgent.ts
+  221:39  error  'projectInfo' is defined but never used            @typescript-eslint/no-unused-vars
+  527:5   error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  528:5   error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+  530:24  error  'nonCompliant' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  542:5   error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  543:5   error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+  554:5   error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  555:5   error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+  567:5   error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  568:5   error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+  577:5   error  'layerData' is defined but never used              @typescript-eslint/no-unused-vars
+  578:5   error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  579:5   error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+  591:5   error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  592:5   error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+  604:5   error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  605:5   error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+  614:5   error  'layerData' is defined but never used              @typescript-eslint/no-unused-vars
+  615:5   error  'rule' is defined but never used                   @typescript-eslint/no-unused-vars
+  616:5   error  'drawing' is defined but never used                @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\technical\ScaleVerifierAgent.ts
+  233:39  error  'projectInfo' is defined but never used  @typescript-eslint/no-unused-vars
+  358:14  error  Unnecessary escape character: \/         no-useless-escape
+  359:28  error  Unnecessary escape character: \/         no-useless-escape
+  361:22  error  Unnecessary escape character: \/         no-useless-escape
+  425:42  error  Unnecessary escape character: \/         no-useless-escape
+  548:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  549:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  559:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  560:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  569:5   error  'scaleData' is defined but never used    @typescript-eslint/no-unused-vars
+  570:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  571:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  583:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  584:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  647:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  648:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  668:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  669:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  680:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  681:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\technical\SymbolRecognizerAgent.ts
+  224:39  error  'projectInfo' is defined but never used  @typescript-eslint/no-unused-vars
+  530:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  531:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  550:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  551:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  566:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  567:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  582:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  583:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  594:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  595:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  605:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  606:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  616:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  617:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  634:5   error  'rule' is defined but never used         @typescript-eslint/no-unused-vars
+  635:5   error  'drawing' is defined but never used      @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\agents\specialized\technical\TextClarityCheckerAgent.ts
+  240:39  error  '_projectInfo' is defined but never used  @typescript-eslint/no-unused-vars
+  631:5   error  '_rule' is defined but never used         @typescript-eslint/no-unused-vars
+  632:5   error  '_drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  642:5   error  '_rule' is defined but never used         @typescript-eslint/no-unused-vars
+  643:5   error  '_drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  696:5   error  '_textData' is defined but never used     @typescript-eslint/no-unused-vars
+  697:5   error  '_rule' is defined but never used         @typescript-eslint/no-unused-vars
+  698:5   error  '_drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  709:5   error  '_textData' is defined but never used     @typescript-eslint/no-unused-vars
+  710:5   error  '_rule' is defined but never used         @typescript-eslint/no-unused-vars
+  711:5   error  '_drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  722:5   error  '_rule' is defined but never used         @typescript-eslint/no-unused-vars
+  723:5   error  '_drawing' is defined but never used      @typescript-eslint/no-unused-vars
+  739:5   error  '_rule' is defined but never used         @typescript-eslint/no-unused-vars
+  740:5   error  '_drawing' is defined but never used      @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\ErrorBoundary.tsx
+  219:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\FileManager.tsx
+  755:5  error  'files' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\dev\FirebaseConnectionStatus.tsx
+  81:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\dev\FirebaseConnectionStatus.tsx:81:5
+  79 |   // Initial check
+  80 |   useEffect(() => {
+> 81 |     checkConnection();
+     |     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  82 |   }, [checkConnection]);
+  83 |
+  84 |   // Auto-refresh interval  react-hooks/set-state-in-effect
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\ui\badge.tsx
+  46:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\ui\button-group.tsx
+  82:3  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\ui\button.tsx
+  62:18  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\ui\form.tsx
+  159:3  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\ui\navigation-menu.tsx
+  167:3  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\ui\sidebar.tsx
+  726:3  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\components\ui\toggle.tsx
+  45:18  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\lib\agentApi.ts
+   13:24  error  'getProjectAgentLogs' is defined but never used  @typescript-eslint/no-unused-vars
+  217:11  error  'agentLogs' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\main.tsx
+  11:10  error  Fast refresh only works when a file has exports. Move your component(s) to a separate file  react-refresh/only-export-components
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\orchestrator\AgentOrchestrator.ts
+   11:3   error  'AgentConfig' is defined but never used        @typescript-eslint/no-unused-vars
+  482:5   error  'projectInfo' is defined but never used        @typescript-eslint/no-unused-vars
+  510:11  error  'findings' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\orchestrator\ReportingService.ts
+  228:30  error  'categories' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\screens\LoginScreen.tsx
+  2:23  error  'useLocation' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\AdminFiles.tsx
+  12:10  error  'Badge' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\AdminMessages.tsx
+   26:3   error    'Clock' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   96:9   error    'notifications' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  147:28  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This value was memoized in source but not in compilation output.
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\AdminMessages.tsx:147:28
+  145 |
+  146 |   // Filter projects based on search
+> 147 |   const filteredProjects = useMemo(() => {
+      |                            ^^^^^^^^^^^^^^^
+> 148 |     if (!chatSearchQuery.trim()) return projectsWithChats;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 149 |
+      ΓÇª
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 160 |     });
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 161 |   }, [projectsWithChats, chatSearchQuery]);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Could not preserve existing memoization
+  162 |
+  163 |   // Get messages for selected project
+  164 |   const projectMessages = useMemo(() => {  react-hooks/preserve-manual-memoization
+  161:6   warning  React Hook useMemo has a missing dependency: 'getUserInfo'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  321:31  error    'freelancer' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\AdminSettings.tsx
+  14:10  error  'auth' is defined but never used          @typescript-eslint/no-unused-vars
+  15:22  error  'SettingsType' is defined but never used  @typescript-eslint/no-unused-vars
+  17:15  error  'SettingsIcon' is defined but never used  @typescript-eslint/no-unused-vars
+  19:3   error  'Bell' is defined but never used          @typescript-eslint/no-unused-vars
+  24:3   error  'Clock' is defined but never used         @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\AgentMonitor.tsx
+   19:3   error  'XCircle' is defined but never used       @typescript-eslint/no-unused-vars
+   28:3   error  'RotateCcw' is defined but never used     @typescript-eslint/no-unused-vars
+  669:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  754:32  error  'reason' is defined but never used        @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\FreelancerMarketplace.tsx
+    3:24  error  'useAuthStore' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  661:24  error  'setSelectedTask' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  904:26  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\FreelancerMarketplace.tsx:904:26
+  902 |                     tasks={filteredTasks}
+  903 |                     onViewApplications={handleViewApplications}
+> 904 |                     now={Date.now()}
+      |                          ^^^^^^^^^^ Cannot call impure function
+  905 |                   />
+  906 |                 )}
+  907 |               </ScrollArea>  react-hooks/purity
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\InvoiceManagement.tsx
+  32:3  error  'DollarSign' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\NewProjectDialog.tsx
+   87:34  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\NewProjectDialog.tsx:87:34
+  85 |   });
+  86 |   
+> 87 |   const selectedLeadFreelancer = watch('leadFreelancerId');
+     |                                  ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  88 |   const selectedTeamMembers = watch('teamMemberIds') || [];
+  89 |   
+  90 |   // Generate reference number on mount and when dialog opens  react-hooks/incompatible-library
+   97:6   warning  React Hook useEffect has a missing dependency: 'reset'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-hooks/exhaustive-deps
+  152:14  error    'error' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\ProjectOversight.tsx
+    1:29  error    'useEffect' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   83:14  error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\ProjectOversight.tsx:83:14
+  81 |           </div>
+  82 |           <Badge className={`${getStatusColor(project.status)} text-white text-xs`}>
+> 83 |             <StatusIcon className="w-3 h-3 mr-1" />
+     |              ^^^^^^^^^^ This component is created during render
+  84 |             {project.status}
+  85 |           </Badge>
+  86 |         </div>
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\ProjectOversight.tsx:62:22
+  60 |   const allDrawings = useProjectStore(state => state.drawings);
+  61 |   const projectDrawings = useMemo(() => allDrawings.filter(d => d.projectId === project.id), [allDrawings, project.id]);
+> 62 |   const StatusIcon = getStatusIcon(project.status);
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ The component is created during render here
+  63 |   const progress = project.hoursAllocated > 0 ? Math.round((project.hoursUsed / project.hoursAllocated) * 100) : 0;
+  64 |
+  65 |   return (  react-hooks/static-components
+  295:59  warning  React Hook useMemo has an unnecessary dependency: 'users'. Either exclude it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  343:14  error    '_error' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\ProjectRequests.tsx
+  47:3  error  'Calendar' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\SystemAnalytics.tsx
+  157:10  error    'SimpleBarChart' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  276:5   warning  React Hook useMemo has a missing dependency: 'daysMap'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react-hooks/exhaustive-deps
+  281:5   warning  React Hook useMemo has a missing dependency: 'daysMap'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react-hooks/exhaustive-deps
+  347:9   error    'avgHoursPerProject' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  429:9   error    'teamProductivity' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  517:7   error    Error: Cannot reassign variable after render completes
+
+Reassigning `cumulative` after render has completed can cause inconsistent behavior on subsequent renders. Consider using state instead.
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\SystemAnalytics.tsx:517:7
+  515 |     let cumulative = 0;
+  516 |     return sortedProjects.map(p => {
+> 517 |       cumulative += 1;
+      |       ^^^^^^^^^^ Cannot reassign `cumulative` after render completes
+  518 |       const date = typeof p.createdAt === 'string' ? parseISO(p.createdAt) : new Date(p.createdAt);
+  519 |       return {
+  520 |         label: format(date, 'MMM dd'),  react-hooks/immutability
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\UserManagement.tsx
+   11:10  error    'Tabs' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   11:16  error    'TabsContent' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   11:29  error    'TabsList' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   11:39  error    'TabsTrigger' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  299:9   error    'isLoading' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  305:9   error    'getUsersByRole' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  318:25  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `getUserStats`, but the source dependencies were [users]. Inferred different dependency than source.
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\admin\UserManagement.tsx:318:25
+  316 |
+  317 |   // Memoize stats to prevent infinite re-renders
+> 318 |   const stats = useMemo(() => getUserStats(), [users]);
+      |                         ^^^^^^^^^^^^^^^^^^^^ Could not preserve existing manual memoization
+  319 |
+  320 |   // Data is initialized by StoreInitializer at the app root
+  321 |   // No local initialize/cleanup needed here to avoid redundant listeners  react-hooks/preserve-manual-memoization
+  318:47  warning  React Hook useMemo has a missing dependency: 'getUserStats'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\client\ClientOverview.tsx
+  40:3  error  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\client\ClientSettings.tsx
+  14:10  error  'auth' is defined but never used          @typescript-eslint/no-unused-vars
+  15:22  error  'SettingsType' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\client\MyInvoices.tsx
+  122:14  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  239:14  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\client\MyProjects.tsx
+   34:9   error  'timeEntries' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   85:51  error  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  110:41  error  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\freelancer\DrawingSubmission.tsx
+  385:14  error  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\freelancer\FreelancerSettings.tsx
+  15:10  error  'auth' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\sections\freelancer\MyWork.tsx
+  341:6   warning  React Hook useMemo has an unnecessary dependency: 'marketplaceTasks'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+  359:79  error    Unexpected any. Specify a different type                                                                                @typescript-eslint/no-explicit-any
+  362:71  error    Unexpected any. Specify a different type                                                                                @typescript-eslint/no-explicit-any
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\services\firebase\auditService.ts
+  14:3  error  'setDoc' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\services\firebase\firebaseTester.ts
+  29:3   error  'enableNetwork' is defined but never used                   @typescript-eslint/no-unused-vars
+  30:3   error  'disableNetwork' is defined but never used                  @typescript-eslint/no-unused-vars
+  31:8   error  'Firestore' is defined but never used                       @typescript-eslint/no-unused-vars
+  34:3   error  'signInWithEmailAndPassword' is defined but never used      @typescript-eslint/no-unused-vars
+  35:3   error  'createUserWithEmailAndPassword' is defined but never used  @typescript-eslint/no-unused-vars
+  36:3   error  'signOut' is defined but never used                         @typescript-eslint/no-unused-vars
+  37:3   error  'onAuthStateChanged' is defined but never used              @typescript-eslint/no-unused-vars
+  38:8   error  'Auth' is defined but never used                            @typescript-eslint/no-unused-vars
+  42:10  error  'getAuthErrorMessage' is defined but never used             @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\services\firebase\hourTrackingService.ts
+  17:3  error  'deleteDoc' is defined but never used        @typescript-eslint/no-unused-vars
+  22:3  error  'limit' is defined but never used            @typescript-eslint/no-unused-vars
+  24:3  error  'addDoc' is defined but never used           @typescript-eslint/no-unused-vars
+  25:3  error  'Timestamp' is defined but never used        @typescript-eslint/no-unused-vars
+  26:3  error  'serverTimestamp' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\services\firebase\notificationService.ts
+  28:3  error  'DocumentSnapshot' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\services\firebase\proofService.ts
+  22:3  error  'Timestamp' is defined but never used        @typescript-eslint/no-unused-vars
+  23:3  error  'serverTimestamp' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\services\firebase\seedUsers.ts
+  108:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\services\firebase\taskService.ts
+  36:10  error  'timestampToDate' is defined but never used  @typescript-eslint/no-unused-vars
+  43:10  error  'serializeData' is defined but never used    @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\services\firebase\userService.ts
+  32:10  error  'isFirebaseConfigured' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\services\r2StorageService.ts
+  272:12  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\store\fileStore.ts
+  14:3   error  'listFilesInFolder' is defined but never used     @typescript-eslint/no-unused-vars
+  18:3   error  'uploadProjectFile' is defined but never used     @typescript-eslint/no-unused-vars
+  20:3   error  'UploadProgress' is defined but never used        @typescript-eslint/no-unused-vars
+  31:3   error  'Timestamp' is defined but never used             @typescript-eslint/no-unused-vars
+  32:3   error  'getDocs' is defined but never used               @typescript-eslint/no-unused-vars
+  35:14  error  'isFirebaseConfigured' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\store\projectRequestStore.ts
+  125:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\store\projectStore.ts
+  2:117  error  'ProofAttachment' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\store\settingsStore.ts
+   4:34  error  'getApp' is defined but never used   @typescript-eslint/no-unused-vars
+  15:3   error  'getDocs' is defined but never used  @typescript-eslint/no-unused-vars
+  16:3   error  'addDoc' is defined but never used   @typescript-eslint/no-unused-vars
+  20:3   error  'where' is defined but never used    @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\store\taskStore.ts
+   7:3   error  'getDocs' is defined but never used      @typescript-eslint/no-unused-vars
+  19:10  error  'COLLECTIONS' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Downloads\Kimi_Agent_Freelancer Project Admin Dashboard\app\src\types\index.ts
+  226:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 496 problems (488 errors, 8 warnings)
+
